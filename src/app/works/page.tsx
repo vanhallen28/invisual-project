@@ -67,7 +67,7 @@ export default function WorksPage() {
         );
 
     return (
-        <section className="container mx-auto px-6 md:px-12 py-4">
+        <section className="container mx-auto px-4 lg:px-4">
             {/* Mobile Dropdown */}
             {!loading && (
                 <div className="flex flex-col gap-4 mb-6 lg:hidden">
@@ -140,8 +140,8 @@ export default function WorksPage() {
             <div className="flex flex-col lg:flex-row gap-6">
                 {/* Left Filters */}
                 {!loading && (
-                    <div className="lg:w-1/12 hidden lg:block">
-                        <ScrollArea className="h-[70vh]">
+                    <div className="lg:w-1.5/12 hidden lg:block">
+                        <ScrollArea className="h-[90vh]">
                             <ul className="flex flex-col gap-3 text-sm p-2">
                                 <li className="text-xs font-semibold uppercase text-neutral-500 tracking-wide px-1">
                                     Service
@@ -151,7 +151,7 @@ export default function WorksPage() {
                                         key={cat.id}
                                         className={`cursor-pointer px-1 ${selectedService === cat.name
                                             ? "font-bold text-primary"
-                                            : "text-neutral-600 hover:text-primary"
+                                            : "hover:text-primary"
                                             }`}
                                         onClick={() => setSelectedService(cat.name)}
                                     >
@@ -167,7 +167,7 @@ export default function WorksPage() {
                                         key={ind.id}
                                         className={`cursor-pointer px-1 ${selectedIndustry === ind.name
                                             ? "font-bold text-primary"
-                                            : "text-neutral-600 hover:text-primary"
+                                            : "hover:text-primary"
                                             }`}
                                         onClick={() => setSelectedIndustry(ind.name)}
                                     >
@@ -180,8 +180,8 @@ export default function WorksPage() {
                 )}
 
                 {/* Works Grid */}
-                <div className="lg:w-10/12">
-                    <ScrollArea className="h-[80vh]">
+                <div className="lg:w-12/12">
+                    <ScrollArea className="h-[90vh]">
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-2">
                             {filteredWorks.map((work) => (
                                 <Link
@@ -224,7 +224,7 @@ export default function WorksPage() {
                                 key={opt}
                                 className={`cursor-pointer ${selectedSort === opt
                                     ? "font-bold text-primary"
-                                    : "text-neutral-600 hover:text-primary"
+                                    : "hover:text-primary"
                                     }`}
                                 onClick={() => setSelectedSort(opt)}
                             >

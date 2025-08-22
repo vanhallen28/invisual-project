@@ -35,9 +35,11 @@ export default function RootLayout({
         enableSystem
         disableTransitionOnChange
       >
-          <Header />
-          {children}
-          <Footer />
+          <main className="relative pt-14">
+            <Header />
+            {children}
+            <Footer />
+          </main>
         </ThemeProvider>
       </body>
     </html>

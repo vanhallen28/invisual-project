@@ -20,7 +20,7 @@ export default function ServicesSection() {
     });
 
     return (
-        <section className="container mx-auto px-6 lg:px-12">
+        <section className="container mx-auto px-4 lg:px-4">
             <h2 className="text-3xl font-bold text-foreground mb-6">Services</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                 {columns.map((col, colIndex) => (

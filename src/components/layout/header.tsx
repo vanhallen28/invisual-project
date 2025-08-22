@@ -56,12 +56,12 @@ export default function Navbar() {
 
     return (
         <header
-            className={`sticky top-0 z-50 w-full bg-background transition-all duration-300
+            className={`fixed top-0 z-50 w-full items-center justify-between bg-background transition-all duration-300
         ${show ? "translate-y-0" : "-translate-y-full"}
         ${hasScrolled ? "shadow-md dark:shadow-[0_4px_6px_-1px_#0457ff]" : "shadow-none"}
       `}
         >
-            <div className="container mx-auto flex h-14 items-center justify-between px-6 md:px-12">
+            <nav className="container flex h-14 items-center justify-between rounded-2xl px-6 backdrop:filter transition-all sm:mx-auto">
                 {/* Logo */}
                 <Link href="/" className="flex items-center">
                     <Image src="/logo.svg" alt="Invisual Logo" width={35} height={35} priority />
@@ -115,7 +115,7 @@ export default function Navbar() {
                         <Menu className="h-5 w-5" />
                     </button>
                 </div>
-            </div>
+            </nav>
 
             <Sidebar open={open} setOpen={setOpen} />
         </header>

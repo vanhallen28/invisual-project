@@ -17,7 +17,7 @@ export default function WorksSection() {
     }, []);
 
     return (
-        <section className="container mx-auto px-6 lg:px-12">
+        <section className="container mx-auto px-4 lg:px-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
                 {works.map((work) => (
                     <Link
