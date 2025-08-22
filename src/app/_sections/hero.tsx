@@ -45,7 +45,7 @@ export default function HeroSection() {
             </div>
 
             {/* ✍️ Text Section */}
-            <div className="relative z-10 h-full flex items-center justify-end p-6 sm:p-12">
+            <div className="relative z-10 h-full flex items-center justify-end p-8 sm:p-12 py-20">
                 <div className="max-w-xl text-right mt-auto mb-[20%]">
                     <span className="text-md font-semibold text-primary tracking-widest uppercase drop-shadow-md">
                         Creative. Impactful. Scalable.

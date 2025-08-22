@@ -25,7 +25,7 @@ export default function ServicesSection() {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                 {columns.map((col, colIndex) => (
                     <div key={colIndex}>
-                        <ul className="space-y-1 text-white">
+                        <ul className="space-y-1">
                             {col.map((item: any) => (
                                 <li key={item.id}>{item.name}</li>
                             ))}
