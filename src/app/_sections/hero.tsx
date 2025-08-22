@@ -34,7 +34,7 @@ export default function HeroSection() {
                 <div className="w-full lg:w-1/2 flex flex-col gap-4">
 
                     {/* Mobile: 2 banner stack vertically */}
-                    <div className="flex flex-col w-full gap-2 lg:w-1/2">
+                    <div className="flex flex-col w-full gap-2">
                         <div className="relative w-full aspect-[2.6]">
                             <Image
                                 src={banners[activeIndex]}

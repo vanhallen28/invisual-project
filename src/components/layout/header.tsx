@@ -70,7 +70,7 @@ export default function Navbar() {
                 {/* Desktop Nav */}
                 <div className="hidden md:block">
                     <NavigationMenu>
-                        <NavigationMenuList className="flex gap-20">
+                        <NavigationMenuList className="flex gap-20 md:gap-6 lg:gap-22">
                             {NAV.map((item) => {
                                 const isActive =
                                     item.href === "/"
@@ -85,7 +85,7 @@ export default function Navbar() {
                                                 className={`uppercase tracking-wide px-3 py-1 transition-colors 
                           ${isActive
                                                         ? "text-primary font-semibold border-primary"
-                                                        : "text-muted-foreground hover:text-primary"
+                                                        : "text-muted-foreground"
                                                     }`}
                                             >
                                                 {item.label}

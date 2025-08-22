@@ -67,7 +67,7 @@ export default function WorksPage() {
         );
 
     return (
-        <section className="container mx-auto px-6 md:px-12 py-10">
+        <section className="container mx-auto px-6 md:px-12 py-4">
             {/* Mobile Dropdown */}
             {!loading && (
                 <div className="flex flex-col gap-4 mb-6 lg:hidden">
@@ -150,8 +150,8 @@ export default function WorksPage() {
                                     <li
                                         key={cat.id}
                                         className={`cursor-pointer px-1 ${selectedService === cat.name
-                                                ? "font-bold text-primary"
-                                                : "text-neutral-600 hover:text-primary"
+                                            ? "font-bold text-primary"
+                                            : "text-neutral-600 hover:text-primary"
                                             }`}
                                         onClick={() => setSelectedService(cat.name)}
                                     >
@@ -166,8 +166,8 @@ export default function WorksPage() {
                                     <li
                                         key={ind.id}
                                         className={`cursor-pointer px-1 ${selectedIndustry === ind.name
-                                                ? "font-bold text-primary"
-                                                : "text-neutral-600 hover:text-primary"
+                                            ? "font-bold text-primary"
+                                            : "text-neutral-600 hover:text-primary"
                                             }`}
                                         onClick={() => setSelectedIndustry(ind.name)}
                                     >
@@ -194,6 +194,9 @@ export default function WorksPage() {
                                             src={work.work_media?.[0]?.url || "/placeholder.png"}
                                             alt={work.title}
                                             fill
+                                            sizes="(max-width: 640px) 100vw,
+         (max-width: 1024px) 50vw,
+         33vw"
                                             className="object-cover group-hover:scale-105 transition-transform duration-300"
                                             priority
                                         />
@@ -220,8 +223,8 @@ export default function WorksPage() {
                             <div
                                 key={opt}
                                 className={`cursor-pointer ${selectedSort === opt
-                                        ? "font-bold text-primary"
-                                        : "text-neutral-600 hover:text-primary"
+                                    ? "font-bold text-primary"
+                                    : "text-neutral-600 hover:text-primary"
                                     }`}
                                 onClick={() => setSelectedSort(opt)}
                             >
