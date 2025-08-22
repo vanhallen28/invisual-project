@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { getClients } from "@/services/clients";
 
 export default function ClientsSection() {
@@ -24,14 +25,29 @@ export default function ClientsSection() {
                 {clients.map((client) => (
                     <div
                         key={client.id}
-                        className="border border-neutral-300 p-3 hover:border-primary transition-colors"
+                        className="border border-neutral-300 p-3 hover:border-primary transition-colors flex items-center gap-3 rounded-md"
                     >
-                        <p className="text-base font-medium text-foreground">
-                            {client.name}
-                        </p>
-                        <p className="text-xs text-neutral-500">
-                            {client.industries?.name || client.type || "General"}
-                        </p>
+                        {/* 🖼️ Logo */}
+                        {client.logo && (
+                            <div className="relative w-10 h-10 flex-shrink-0">
+                                <Image
+                                    src={client.logo}
+                                    alt={`${client.name} logo`}
+                                    fill
+                                    className="object-contain rounded"
+                                />
+                            </div>
+                        )}
+
+                        {/* 📄 Teks */}
+                        <div className="flex flex-col">
+                            <p className="text-base font-medium text-foreground">
+                                {client.name}
+                            </p>
+                            <p className="text-xs text-neutral-600 dark:text-neutral-300">
+                                {client.industries?.name || client.type || "General"}
+                            </p>
+                        </div>
                     </div>
                 ))}
             </div>

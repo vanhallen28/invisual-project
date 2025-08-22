@@ -9,6 +9,7 @@ export async function getClients() {
       `
       id,
       name,
+      logo,
       industries ( id, name )
     `
     )

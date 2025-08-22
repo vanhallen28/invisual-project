@@ -61,7 +61,7 @@ export default function HeroSection() {
 
                 {/* ✍️ Text Section */}
                 <div className="w-full lg:w-1/2 text-center lg:text-left flex flex-col items-center lg:items-start">
-                    <span className="text-md font-bold text-primary tracking-widest uppercase">
+                    <span className="text-md font-semibold text-primary tracking-widest uppercase">
                         Creative. Impactful. Scalable.
                     </span>
 

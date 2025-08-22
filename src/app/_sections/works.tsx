@@ -38,10 +38,9 @@ export default function WorksSection() {
 
                         {/* Title & category + industry */}
                         <div className="mt-2 px-1">
-                            <p className="text-xl font-semibold text-foreground">
-                                {work.title}
+                            <p className="text-lg font-semibold text-foreground">                                {work.title}
                             </p>
-                            <p className="text-shadow-md">
+                            <p className="text-sm text-neutral-500">
                                 {work.services?.name || "Uncategorized"}
                                 {" • "}
                                 {work.clients?.industries?.name || "General"}
