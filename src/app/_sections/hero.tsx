@@ -42,6 +42,7 @@ export default function HeroSection() {
                                 width={1620}
                                 height={624}
                                 priority
+                                fetchPriority="high"
                                 className="object-cover rounded-md"
                             />
                         </div>
@@ -77,10 +78,12 @@ export default function HeroSection() {
                         <Button size="lg" className="bg-primary text-neutral-50 cursor-pointer">
                             Start Your Project
                         </Button>
-                        <Button className="border-primary text-primary cursor-pointer" variant="outline" size="lg">
-                            <Link href="/works">Explore Our Works</Link>
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
+                        <Link href="/works">
+                            <Button className="border-primary text-primary cursor-pointer" variant="outline" size="lg">
+                                Explore Our Works
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        </Link>
                     </div>
                 </div>
 

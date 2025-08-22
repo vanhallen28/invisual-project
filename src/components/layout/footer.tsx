@@ -6,7 +6,7 @@ import { DarkmodeSwitch } from "../common/darkmode-toggle";
 
 export default function Footer() {
     return (
-        <footer className="container mx-auto mt-16 bg-slate-800 text-white md:mt-32 lg:mb-8 lg:rounded-2xl">
+        <footer className="container mx-auto mt-16 bg-neutral-800 text-white md:mt-32 lg:mb-8 lg:rounded-2xl">
             <div className="flex flex-col gap-8 px-6 py-8 md:px-12 md:py-12">
                 <div className="flex w-full flex-col gap-8 md:flex-row md:gap-20">
                     <div className="flex w-full flex-col gap-2 md:w-1/3">
