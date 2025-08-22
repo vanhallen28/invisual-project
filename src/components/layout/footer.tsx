@@ -46,7 +46,7 @@ export default function Footer() {
                             <Link href="mailto:invisual.id@gmail.com" className="w-fit text-neutral-400 hover:text-primary">invisual.id@gmail.com</Link>
                         </div>
                         <div className="flex w-2/5 flex-col gap-4 md:w-1/3">
-                            <DarkmodeSwitch />
+                            <DarkmodeSwitch aria-label="Toggle dark mode" />
                         </div>
                     </div>
                 </div>

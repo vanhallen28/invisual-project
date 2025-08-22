@@ -61,7 +61,7 @@ export default function HeroSection() {
 
                 {/* ✍️ Text Section */}
                 <div className="w-full lg:w-1/2 text-center lg:text-left flex flex-col items-center lg:items-start">
-                    <span className="text-sm font-semibold text-primary tracking-widest uppercase">
+                    <span className="text-md font-bold text-primary tracking-widest uppercase">
                         Creative. Impactful. Scalable.
                     </span>
 
@@ -79,7 +79,7 @@ export default function HeroSection() {
                             Start Your Project
                         </Button>
                         <Link href="/works">
-                            <Button className="border-primary text-primary cursor-pointer" variant="outline" size="lg">
+                            <Button className="border-primary-700 text-primary-700 hover:text-primary cursor-pointer" variant="outline" size="lg">
                                 Explore Our Works
                                 <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
