@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { getWorks } from "@/services/works";
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 
 export default function WorksSection() {
     const [works, setWorks] = useState<any[]>([]);
@@ -38,9 +40,10 @@ export default function WorksSection() {
 
                         {/* Title & category + industry */}
                         <div className="mt-2 px-1">
-                            <p className="text-lg font-semibold text-foreground">                                {work.title}
+                            <p className="text-lg font-semibold text-foreground">
+                                {work.title}
                             </p>
-                            <p className="text-sm text-neutral-500">
+                            <p className="text-sm">
                                 {work.services?.name || "Uncategorized"}
                                 {" • "}
                                 {work.clients?.industries?.name || "General"}
@@ -48,6 +51,18 @@ export default function WorksSection() {
                         </div>
                     </Link>
                 ))}
+            </div>
+            <div className="mt-10 flex flex-wrap justify-center">
+                <Link href="/works">
+                    <Button
+                        className="text-primary hover:text-base hover:underline cursor-pointer"
+                        variant="outline"
+                        size="lg"
+                    >
+                        Explore More Our Works
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                </Link>
             </div>
         </section>
     );

@@ -7,10 +7,10 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 const banners = [
-    "https://res.cloudinary.com/akrkmnd/image/upload/v1755238561/banner1_rt4zqy.webp",
-    "https://res.cloudinary.com/akrkmnd/image/upload/v1755238561/banner2_ucir4d.webp",
-    "https://res.cloudinary.com/akrkmnd/image/upload/v1755238561/banner3_g0hr5u.webp",
-    "https://res.cloudinary.com/akrkmnd/image/upload/v1755238561/banner4_h3dfpg.webp",
+    "https://res.cloudinary.com/akrkmnd/image/upload/v1756094741/6_nkmojn.webp",
+    "https://res.cloudinary.com/akrkmnd/image/upload/v1756094741/7_vpmxee.webp",
+    "https://res.cloudinary.com/akrkmnd/image/upload/v1756094741/8_ajeugc.webp",
+    "https://res.cloudinary.com/akrkmnd/image/upload/v1756094741/9_yd3mms.webp",
 ];
 
 export default function HeroSection() {
@@ -27,25 +27,24 @@ export default function HeroSection() {
     const nextIndex = (activeIndex + 1) % banners.length;
 
     return (
-        <section id="hero" className="relative h-screen w-full overflow-hidden">
+        <section id="hero" className="relative w-full overflow-hidden">
             {/* 📸 Fullscreen Hero with Background */}
-            <div className="absolute inset-0">
+            <div className="relative w-full aspect-[3507/2480]">
                 <Image
                     src={banners[activeIndex]}
                     alt={`Banner ${activeIndex + 1}`}
                     fill
                     priority
-                    fetchPriority="high"
-                    className="object-cover transition-opacity duration-700 ease-in-out"
+                    className="object-contain"
                 />
                 {/* overlay global biar semua agak gelap */}
-                <div className="absolute inset-0 bg-black/50"></div>
+                {/* <div className="absolute inset-0 bg-black/50"></div> */}
                 {/* gradient tambahan dari bawah biar teks makin jelas */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent"></div>
+                {/* <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent"></div> */}
             </div>
 
             {/* ✍️ Text Section */}
-            <div className="relative z-10 h-full flex items-center justify-end p-8 sm:p-12 py-20">
+            <div className="block md:hidden relative z-10 h-full items-center justify-end p-8 sm:p-12">
                 <div className="max-w-xl text-right mt-auto mb-[20%]">
                     <span className="text-md font-semibold text-primary tracking-widest uppercase drop-shadow-md">
                         Creative. Impactful. Scalable.
@@ -61,17 +60,18 @@ export default function HeroSection() {
                     </p>
 
                     <div className="mt-8 flex flex-wrap justify-end gap-4">
-                        <Button size="lg" className="bg-primary text-neutral-50 cursor-pointer">
-                            Start Your Project
-                        </Button>
-                        <Link href="/works">
+                        <Link href="/company">
+                            <Button size="lg" className="bg-primary text-neutral-50 cursor-pointer">
+                                Read More
+                            </Button>
+                        </Link>
+                        <Link href="/contact">
                             <Button
-                                className="border-primary-700 text-primary-700 hover:text-primary cursor-pointer"
+                                className="text-primary cursor-pointer"
                                 variant="outline"
                                 size="lg"
                             >
-                                Explore Our Works
-                                <ArrowRight className="ml-2 h-4 w-4" />
+                                Start Your Project
                             </Button>
                         </Link>
                     </div>

@@ -5,22 +5,13 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
     Sheet,
-    SheetClose,
     SheetContent,
     SheetDescription,
-    SheetFooter,
     SheetHeader,
     SheetTitle,
 } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-
-const NAV = [
-    { href: "/", label: "Home" },
-    { href: "/works", label: "Works" },
-    { href: "/company", label: "Company" },
-    { href: "/contact", label: "Contact" },
-] as const;
+import { ConnectLinks, NavLinks } from "@/configs/links";
 
 export default function Sidebar({
     open,
@@ -32,12 +23,11 @@ export default function Sidebar({
     const pathname = usePathname();
     const [mounted, setMounted] = useState(false);
 
-    // tunggu mount di client
     useEffect(() => {
         setMounted(true);
     }, []);
 
-    if (!mounted) return null; // jangan render sebelum client mount
+    if (!mounted) return null;
 
     return (
         <Sheet open={open} onOpenChange={setOpen}>
@@ -49,9 +39,10 @@ export default function Sidebar({
                     </SheetDescription>
                 </SheetHeader>
 
+                {/* Main Nav */}
                 <div className="flex-1 px-4 py-2">
                     <div className="grid gap-3">
-                        {NAV.map((item) => {
+                        {NavLinks.map((item) => {
                             const isActive =
                                 item.href === "/"
                                     ? pathname === "/"
@@ -77,14 +68,21 @@ export default function Sidebar({
                     </div>
                 </div>
 
-                <SheetFooter className="flex flex-col gap-2">
-                    <Button className="cursor-pointer w-full">Get Started</Button>
-                    <SheetClose asChild>
-                        <Button className="border-primary text-primary cursor-pointer w-full" variant="outline">
-                            Close
-                        </Button>
-                    </SheetClose>
-                </SheetFooter>
+                {/* Connect Links */}
+                <div className="px-4 py-4 flex gap-6">
+                    {ConnectLinks.map((item) => (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="uppercase text-sm font-semibold hover:text-primary hover:underline"
+                            onClick={() => setOpen(false)}
+                        >
+                            {item.label}
+                        </Link>
+                    ))}
+                </div>
             </SheetContent>
         </Sheet>
     );

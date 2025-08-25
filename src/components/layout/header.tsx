@@ -8,18 +8,11 @@ import {
     NavigationMenuLink,
     NavigationMenuList,
 } from "@/components/ui/navigation-menu";
-import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import Sidebar from "./sidebar";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-
-const NAV = [
-    { href: "/", label: "Home" },
-    { href: "/works", label: "Works" },
-    { href: "/company", label: "Company" },
-    { href: "/contact", label: "Contact" },
-] as const;
+import { NavLinks, ConnectLinks } from "@/configs/links";
 
 export default function Navbar() {
     const [open, setOpen] = useState(false);
@@ -30,12 +23,10 @@ export default function Navbar() {
     const pathname = usePathname();
     const [mounted, setMounted] = useState(false);
 
-    // Menandakan sudah mount di client
     useEffect(() => {
         setMounted(true);
     }, []);
 
-    // Scroll behavior
     useEffect(() => {
         const handleScroll = () => {
             const currentScrollY = window.scrollY;
@@ -51,7 +42,6 @@ export default function Navbar() {
         return () => window.removeEventListener("scroll", handleScroll);
     }, [lastScrollY]);
 
-    // Jangan render sebelum client mount untuk menghindari hydration error
     if (!mounted) return null;
 
     return (
@@ -71,7 +61,7 @@ export default function Navbar() {
                 <div className="hidden md:block">
                     <NavigationMenu>
                         <NavigationMenuList className="flex gap-20 md:gap-6 lg:gap-22">
-                            {NAV.map((item) => {
+                            {NavLinks.map((item) => {
                                 const isActive =
                                     item.href === "/"
                                         ? pathname === "/"
@@ -98,15 +88,22 @@ export default function Navbar() {
                     </NavigationMenu>
                 </div>
 
-                {/* CTA + Mobile */}
-                <div className="flex items-center gap-3">
-                    <Button
-                        variant="outline"
-                        className="hidden md:flex border-primary text-primary cursor-pointer"
-                    >
-                        <span className="h-2 w-2 rounded-full bg-primary mr-2" />
-                        Get Started
-                    </Button>
+                {/* Connect Links + Mobile */}
+                <div className="flex items-center gap-7">
+                    <div className="hidden md:flex gap-7">
+                        {ConnectLinks.map((item) => (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="uppercase text-sm font-semibold hover:text-primary hover:underline"
+                            >
+                                {item.label}
+                            </Link>
+                        ))}
+                    </div>
+
                     <button
                         className="md:hidden p-2 rounded-md border-none cursor-pointer"
                         onClick={() => setOpen(true)}
