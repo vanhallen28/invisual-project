@@ -27,10 +27,10 @@ export default function WorksSection() {
                         href={`/works/${work.slug}`}
                         className="group block overflow-hidden"
                     >
-                        {/* Gambar dengan rasio 16:9 */}
+                        {/* Thumbnail pakai cover */}
                         <div className="relative w-full aspect-video overflow-hidden rounded-md border border-transparent group-hover:border-primary transition-all duration-300">
                             <Image
-                                src={work.work_media?.[0]?.url || "/placeholder.png"}
+                                src={work.cover || "/placeholder.png"}
                                 alt={work.title}
                                 fill
                                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -43,9 +43,8 @@ export default function WorksSection() {
                             <p className="text-lg font-semibold text-foreground">
                                 {work.title}
                             </p>
-                            <p className="text-sm">
-                                {work.services?.name || "Uncategorized"}
-                                {" • "}
+                            <p className="text-sm text-neutral-500">
+                                {work.services?.name || "Uncategorized"} •{" "}
                                 {work.clients?.industries?.name || "General"}
                             </p>
                         </div>

@@ -10,7 +10,7 @@ export async function getClients() {
       id,
       name,
       logo,
-      industries ( id, name )
+      industry:industries ( id, name )
     `
     )
     .order("name", { ascending: true });
