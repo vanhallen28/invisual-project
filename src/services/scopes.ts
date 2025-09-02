@@ -1,15 +1,15 @@
 import { createClient } from "@/lib/supabase/client";
 
-export async function getServices() {
+export async function getScopes() {
   const supabase = createClient();
 
   const { data, error } = await supabase
-    .from("services")
+    .from("scopes")
     .select("id, name")
     .order("name", { ascending: true });
 
   if (error) {
-    console.error("Error fetching services:", error.message);
+    console.error("Error fetching scopes:", error.message);
     return [];
   }
 

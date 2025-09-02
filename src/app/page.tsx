@@ -10,8 +10,8 @@ export default function Page() {
             <HeroSection />
             <WorksSection />
             <ClientsSection />
-            <ServicesSection />
-            <TestiSection />
+            {/* <ServicesSection /> */}
+            {/* <TestiSection /> */}
         </div>
     );
 }

@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { DarkmodeSwitch } from "../common/darkmode-toggle";
+import { DarkmodeToggle } from "../common/darkmode-toggle";
 import { ConnectLinks, ContactLinks, NavLinks } from "@/configs/links";
 
 export default function Footer() {
     return (
-        <footer className="container mx-auto mt-16 bg-neutral-800 text-white md:mt-32 lg:mb-8 lg:rounded-2xl">
+        <footer className="container mx-auto mt-16 bg-neutral-800 text-white dark:bg-primary md:mt-32 lg:mb-8 lg:rounded-2xl">
             <div className="flex flex-col gap-8 px-6 py-8 md:px-12 md:py-12">
                 <div className="flex w-full flex-col gap-8 md:flex-row md:gap-20">
                     {/* Logo & Info */}
@@ -33,7 +33,7 @@ export default function Footer() {
                             </div>
                             <Link
                                 target="_blank"
-                                className="flex items-center justify-center gap-1 text-sm text-neutral-300 hover:text-primary hover:underline underline-offset-4"
+                                className="flex items-center justify-center gap-1 text-sm text-neutral-300 hover:underline underline-offset-4"
                                 href="https://wa.me/6285190062005"
                             >
                                 <svg
@@ -62,7 +62,7 @@ export default function Footer() {
                                 <Link
                                     key={item.href}
                                     href={item.href}
-                                    className="w-fit text-neutral-400 hover:text-primary hover:underline underline-offset-4"
+                                    className="w-fit text-neutral-300 hover:underline underline-offset-4"
                                 >
                                     {item.label}
                                 </Link>
@@ -77,7 +77,7 @@ export default function Footer() {
                                     href={item.href}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="w-fit text-neutral-400 hover:text-primary hover:underline underline-offset-4"
+                                    className="w-fit text-neutral-300 hover:underline underline-offset-4"
                                 >
                                     {item.label}
                                 </Link>
@@ -90,7 +90,7 @@ export default function Footer() {
                                 <Link
                                     key={item.href}
                                     href={item.href}
-                                    className="w-fit text-neutral-400 hover:text-primary hover:underline underline-offset-4"
+                                    className="w-fit text-neutral-300 hover:underline underline-offset-4"
                                 >
                                     {item.label}
                                 </Link>
@@ -99,7 +99,7 @@ export default function Footer() {
 
                         <div className="flex w-2/5 flex-col gap-4 md:w-1/3">
                             <h2 className="mb-2 font-bold">Theme</h2>
-                            <DarkmodeSwitch aria-label="Toggle dark mode" />
+                            <DarkmodeToggle aria-label="Toggle dark mode" />
                         </div>
                     </div>
                 </div>

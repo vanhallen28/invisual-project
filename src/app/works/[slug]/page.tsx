@@ -1,95 +1,122 @@
-"use client";
-
-import { useState, useEffect } from "react";
+import { getWorkBySlug } from "@/services/works";
 import Image from "next/image";
-import { useParams } from "next/navigation";
-import { getWorks } from "@/services/works";
 
-export default function WorkDetailPage() {
-    const params = useParams();
-    const [work, setWork] = useState<any | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [activeIndex, setActiveIndex] = useState(0);
+interface WorkDetailPageProps {
+    params: { slug: string };
+}
 
-    useEffect(() => {
-        const fetchWork = async () => {
-            if (!params.slug) return;
-            const allWorks = await getWorks();
-            const foundWork = allWorks.find((w) => w.slug === params.slug);
-            setWork(foundWork || null);
-            setLoading(false);
-        };
-        fetchWork();
-    }, [params.slug]);
+export default async function WorkDetailPage({ params }: WorkDetailPageProps) {
+    const work = await getWorkBySlug(params.slug);
 
-    if (loading) return <p>Loading...</p>;
-    if (!work) return <p>Work not found</p>;
-
-    const mediaItems = work.work_media?.map((m: any) => m.url) || [];
+    if (!work) {
+        return (
+            <section className="container mx-auto px-6 md:px-12 py-12">
+                <h1 className="text-2xl font-bold">Work not found</h1>
+            </section>
+        );
+    }
 
     return (
-        <section className="container mx-auto px-6 md:px-12 py-12">
-            <h1 className="text-3xl font-bold mb-6">{work.title}</h1>
-
-            {/* Main Carousel */}
-            {mediaItems.length > 0 ? (
-                <div className="relative w-full aspect-video bg-neutral-100 rounded overflow-hidden mb-4">
-                    {mediaItems[activeIndex].endsWith(".mp4") ? (
-                        <video
-                            src={mediaItems[activeIndex]}
-                            controls
-                            className="w-full h-full object-cover rounded"
-                        />
-                    ) : (
+        <section className="container mx-auto px-6 md:px-12 py-12 space-y-12">
+            {/* Title + Cover */}
+            <div className="space-y-4">
+                <h1 className="text-4xl font-bold">{work.title}</h1>
+                {work.cover_url && (
+                    <div className="relative w-full h-[400px] rounded-2xl overflow-hidden shadow-lg">
                         <Image
-                            src={mediaItems[activeIndex]}
-                            alt={`${work.title} media ${activeIndex + 1}`}
+                            src={work.cover_url}
+                            alt={work.title}
                             fill
-                            className="object-cover rounded"
-                            priority
+                            className="object-cover"
                         />
-                    )}
-                </div>
-            ) : (
-                <div className="w-full aspect-video bg-neutral-200 rounded flex items-center justify-center text-neutral-500 mb-4">
-                    No media available
-                </div>
-            )}
-
-            {/* Thumbnail Preview */}
-            {mediaItems.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto mb-6">
-                    {mediaItems.map((item: string, idx: number) => (
-                        <div
-                            key={idx}
-                            className={`w-20 h-20 flex-shrink-0 border-2 ${activeIndex === idx ? "border-primary" : "border-transparent"
-                                } rounded cursor-pointer overflow-hidden`}
-                            onClick={() => setActiveIndex(idx)}
-                        >
-                            {item.endsWith(".mp4") ? (
-                                <video
-                                    src={item}
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <Image
-                                    src={item}
-                                    alt={`Thumbnail ${idx + 1} of ${work.title}`}
-                                    width={80}
-                                    height={80}
-                                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                                />
-                            )}
-                        </div>
-                    ))}
-                </div>
-            )}
+                    </div>
+                )}
+            </div>
 
             {/* Description */}
-            <div className="text-white">
-                <h2 className="text-xl font-semibold mb-2">Description</h2>
-                <p className="text-justify">{work.description}</p>
+            {work.description && (
+                <div className="prose max-w-none">
+                    <p>{work.description}</p>
+                </div>
+            )}
+
+            {/* Meta Info */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {work.industry && (
+                    <div>
+                        <h3 className="font-semibold text-lg">Industry</h3>
+                        <p>{work.industry.name}</p>
+                    </div>
+                )}
+                {work.scope && (
+                    <div>
+                        <h3 className="font-semibold text-lg">Scope</h3>
+                        <p>{work.scope.name}</p>
+                    </div>
+                )}
+                {work.specializations.length > 0 && (
+                    <div>
+                        <h3 className="font-semibold text-lg">Specializations</h3>
+                        <ul className="list-disc list-inside">
+                            {work.specializations.map((s) => (
+                                <li key={s.id}>{s.name}</li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
             </div>
+
+            {/* Team */}
+            {work.assignments.length > 0 && (
+                <div className="space-y-4">
+                    <h3 className="font-semibold text-lg">Team</h3>
+                    <ul className="space-y-2">
+                        {work.assignments.map((a) => (
+                            <li key={a.id} className="flex items-center gap-3">
+                                {a.profile?.avatar_url && (
+                                    <Image
+                                        src={a.profile.avatar_url}
+                                        alt={a.profile.name}
+                                        width={40}
+                                        height={40}
+                                        className="rounded-full"
+                                    />
+                                )}
+                                <div>
+                                    <p className="font-medium">{a.profile?.name ?? "Unknown"}</p>
+                                    <p className="text-sm text-gray-500">
+                                        {a.specialization.name}
+                                    </p>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+
+            {/* Media */}
+            {work.media.length > 0 && (
+                <div className="space-y-4">
+                    <h3 className="font-semibold text-lg">Gallery</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                        {work.media
+                            .sort((a, b) => a.order_index - b.order_index)
+                            .map((m) => (
+                                <div
+                                    key={m.id}
+                                    className="relative w-full h-64 rounded-xl overflow-hidden shadow"
+                                >
+                                    <Image
+                                        src={m.url}
+                                        alt={m.caption ?? ""}
+                                        fill
+                                        className="object-cover"
+                                    />
+                                </div>
+                            ))}
+                    </div>
+                </div>
+            )}
         </section>
     );
 }

@@ -9,7 +9,7 @@ export async function getClients() {
       `
       id,
       name,
-      logo,
+      logo_url,
       industry:industries ( id, name )
     `
     )

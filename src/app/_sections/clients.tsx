@@ -21,17 +21,17 @@ export default function ClientsSection() {
                 Clients
             </h1>
             <div className="mb-8 h-1 w-[100px] rounded-full bg-primary"></div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                 {clients.map((client) => (
                     <div
                         key={client.id}
-                        className="border border-neutral-300 p-3 hover:border-primary transition-colors flex items-center gap-3 rounded-md"
+                        className="border-b border-accent-foreground p-3 transition-colors flex items-center gap-3"
                     >
                         {/* 🖼️ Logo */}
-                        {client.logo && (
-                            <div className="relative w-10 h-10 flex-shrink-0">
+                        {client.logo_url && (
+                            <div className="relative w-20 h-20 flex-shrink-0">
                                 <Image
-                                    src={client.logo}
+                                    src={client.logo_url}
                                     alt={`${client.name} logo`}
                                     fill
                                     className="object-contain rounded"
@@ -41,11 +41,11 @@ export default function ClientsSection() {
 
                         {/* 📄 Teks */}
                         <div className="flex flex-col">
-                            <p className="text-base font-medium text-foreground">
+                            <p className="text-xl font-medium text-foreground">
                                 {client.name}
                             </p>
-                            <p className="text-xs text-neutral-600 dark:text-neutral-300">
-                                {client.industries?.name || client.type || "General"}
+                            <p className="text-sm text-neutral-600 dark:text-neutral-300">
+                                {client.industry?.name || "General"}
                             </p>
                         </div>
                     </div>

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { getWorks } from "@/services/works";
-import { getServices } from "@/services/services";
+import { getScopes } from "@/services/scopes";
 import { getIndustries } from "@/services/industries";
 
 import {
@@ -20,7 +20,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 // --------------------
 // Types
 // --------------------
-interface Service {
+interface Scope {
     id: number;
     name: string;
 }
@@ -30,112 +30,84 @@ interface Industry {
     name: string;
 }
 
+interface Client {
+    id: number;
+    name: string;
+    logo_url?: string;
+    industry?: Industry;
+}
+
 interface Work {
     id: number;
     title: string;
     slug: string;
+    description?: string;
 
-    cover?: {
-        url: string;
-        type: "image" | "gif" | "video"; // bisa diperluas kalau mau
-    };
+    cover_url?: string;
 
-    service_id?: number;
-    service?: { id: number; name: string };
-
-    client?: {
-        id: number;
-        name: string;
-        logo?: string;
-        industry_id?: number;
-        industry?: { id: number; name: string };
-    };
-
-    work_media?: { id?: number; url: string; type?: string }[];
+    scope?: Scope;
+    industry?: Industry;
+    client?: Client;
 }
 
 const sortOptions = ["Latest", "Oldest", "A-Z", "Z-A"] as const;
 type SortOption = (typeof sortOptions)[number];
 
-// helper untuk handle embed Supabase yg kadang array
-function first<T>(value: any): T | undefined {
-    if (!value) return undefined;
-    return Array.isArray(value) ? value[0] : value;
-}
-
-// normalizer supaya shape data konsisten dengan <Work>
+// --------------------
+// Normalizer
+// --------------------
 function normalizeWorks(rows: any[]): Work[] {
-    return (rows || []).map((r: any) => {
-        const svc = first<{ id: number; name: string }>(r.service ?? r.services);
-        const cli = first<any>(r.client ?? r.clients);
-        const ind = first<{ id: number; name: string }>(cli?.industry ?? cli?.industries);
-
-        return {
-            id: Number(r.id),
-            title: r.title,
-            slug: r.slug,
-
-            // 🟢 Tambahkan ini
-            cover: r.cover
-                ? {
-                    url: typeof r.cover === "string" ? r.cover : r.cover.url, // handle string / object
-                    type:
-                        (typeof r.cover === "object" && r.cover.type) ||
-                        "image", // default kalau null
-                }
-                : undefined,
-
-            service_id: r.service_id ?? (svc?.id != null ? Number(svc.id) : undefined),
-            service: svc ? { id: Number(svc.id), name: svc.name } : undefined,
-
-            client: cli
-                ? {
-                    id: Number(cli.id),
-                    name: cli.name,
-                    logo: cli.logo,
-                    industry_id:
-                        cli.industry_id ??
-                        (ind?.id != null ? Number(ind.id) : undefined),
-                    industry: ind ? { id: Number(ind.id), name: ind.name } : undefined,
-                }
-                : undefined,
-
-            work_media: Array.isArray(r.work_media)
-                ? r.work_media.map((m: any) => ({
-                    id: m.id != null ? Number(m.id) : undefined,
-                    url: m.url,
-                    type: m.type,
-                }))
-                : [],
-        };
-    });
+    return (rows || []).map((r: any) => ({
+        id: Number(r.id),
+        title: r.title,
+        slug: r.slug,
+        description: r.description ?? undefined,
+        cover_url: r.cover_url ?? undefined,
+        scope: r.scope ? { id: Number(r.scope.id), name: r.scope.name } : undefined,
+        industry: r.industry
+            ? { id: Number(r.industry.id), name: r.industry.name }
+            : undefined,
+        client: r.client
+            ? {
+                id: Number(r.client.id),
+                name: r.client.name,
+                logo_url: r.client.logo_url ?? undefined,
+                industry: r.client.industry
+                    ? {
+                        id: Number(r.client.industry.id),
+                        name: r.client.industry.name,
+                    }
+                    : undefined,
+            }
+            : undefined,
+    }));
 }
 
+// --------------------
+// Page Component
+// --------------------
 export default function WorksPage() {
     const [works, setWorks] = useState<Work[]>([]);
-    const [services, setServices] = useState<(Service | { id: "All"; name: string })[]>([]);
-    const [industries, setIndustries] = useState<(Industry | { id: "All"; name: string })[]>([]);
+    const [scopes, setScopes] = useState<(Scope | { id: "All"; name: string })[]>([]);
+    const [industries, setIndustries] = useState<
+        (Industry | { id: "All"; name: string })[]
+    >([]);
     const [loading, setLoading] = useState(true);
 
-    const [selectedService, setSelectedService] = useState<number | "All">("All");
+    const [selectedScope, setSelectedScope] = useState<number | "All">("All");
     const [selectedIndustry, setSelectedIndustry] = useState<number | "All">("All");
     const [selectedSort, setSelectedSort] = useState<SortOption>("Latest");
 
-    // --------------------
-    // Fetch Data
-    // --------------------
     useEffect(() => {
         const fetchData = async () => {
-            const [worksData, servicesData, industriesData] = await Promise.all([
+            const [worksData, scopesData, industriesData] = await Promise.all([
                 getWorks(),
-                getServices(),
+                getScopes(),
                 getIndustries(),
             ]);
 
-            // 🔧 penting: normalisasi dulu biar shape-nya konsisten
             setWorks(normalizeWorks(worksData));
-
-            setServices([{ id: "All", name: "All" }, ...servicesData]);
+            setScopes([{ id: "All", name: "All" }, ...scopesData]);
             setIndustries([{ id: "All", name: "All" }, ...industriesData]);
             setLoading(false);
         };
@@ -147,18 +119,17 @@ export default function WorksPage() {
     // Filter + Sort
     // --------------------
     let filteredWorks = works.filter((work) => {
-        const matchService =
-            selectedService === "All" ||
-            work.service_id === selectedService ||
-            work.service?.id === selectedService; // fallback kalau service_id nggak ada
+        const matchScope =
+            selectedScope === "All" ||
+            work.scope?.id === selectedScope;
 
         const industryId =
-            work.client?.industry_id ?? work.client?.industry?.id;
+            work.industry?.id ?? work.client?.industry?.id;
 
         const matchIndustry =
             selectedIndustry === "All" || industryId === selectedIndustry;
 
-        return matchService && matchIndustry;
+        return matchScope && matchIndustry;
     });
 
     if (selectedSort === "Latest") {
@@ -187,10 +158,10 @@ export default function WorksPage() {
                 ) : (
                     <>
                         <FilterDropdown
-                            label="Service"
-                            value={selectedService}
-                            onChange={setSelectedService}
-                            options={services}
+                            label="Scope"
+                            value={selectedScope}
+                            onChange={setSelectedScope}
+                            options={scopes}
                         />
 
                         <FilterDropdown
@@ -212,17 +183,17 @@ export default function WorksPage() {
 
             <div className="flex flex-col lg:flex-row gap-6">
                 {/* Left Sidebar Filters */}
-                <div className="lg:w-1.5/12 hidden lg:block">
+                <div className="lg:w-2/12 hidden lg:block">
                     <ScrollArea className="h-[90vh]">
                         {loading ? (
                             <SkeletonSidebar />
                         ) : (
                             <>
                                 <FilterSidebar
-                                    title="Service"
-                                    options={services}
-                                    selected={selectedService}
-                                    onChange={setSelectedService}
+                                    title="Scope"
+                                    options={scopes}
+                                    selected={selectedScope}
+                                    onChange={setSelectedScope}
                                 />
                                 <FilterSidebar
                                     title="Industry"
@@ -283,40 +254,26 @@ export default function WorksPage() {
 // --------------------
 function WorkCard({ work }: { work: Work }) {
     return (
-        <Link
-            href={`/works/${work.slug}`}
-            className="group block overflow-hidden"
-        >
+        <Link href={`/works/${work.slug}`} className="group block overflow-hidden">
             <div className="relative w-full aspect-video overflow-hidden rounded-md border border-transparent group-hover:border-primary transition-all duration-300">
-                {work.cover?.type === "video" ? (
-                    <video
-                        src={work.cover.url}
-                        className="object-cover w-full h-full"
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                    />
-                ) : (
-                    <Image
-                        src={work.cover?.url || "/placeholder.png"}
-                        alt={work.title}
-                        fill
-                        sizes="(max-width: 640px) 100vw,
+                <Image
+                    src={work.cover_url || "/placeholder.png"}
+                    alt={work.title}
+                    fill
+                    sizes="(max-width: 640px) 100vw,
             (max-width: 1024px) 50vw,
             33vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                    />
-                )}
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                />
             </div>
             <div className="mt-2 px-1">
                 <p className="text-lg font-semibold text-foreground">
                     {work.title}
                 </p>
                 <p className="text-sm text-neutral-500">
-                    {work.service?.name || "Uncategorized"} •{" "}
-                    {work.client?.industry?.name || "General"}
+                    {work.scope?.name || "Uncategorized"} •{" "}
+                    {work.industry?.name || work.client?.industry?.name || "General"}
                 </p>
             </div>
         </Link>
@@ -330,7 +287,7 @@ function FilterDropdown({
     options,
 }: {
     label: string;
-    value: number | "All" | string; // string untuk Sort
+    value: number | "All" | string;
     onChange: (v: any) => void;
     options: { id: number | string; name: string }[];
 }) {
@@ -344,7 +301,7 @@ function FilterDropdown({
                 onValueChange={(v) => {
                     if (v === "All") onChange("All");
                     else if (!isNaN(Number(v))) onChange(Number(v));
-                    else onChange(v); // untuk Sort
+                    else onChange(v);
                 }}
             >
                 <SelectTrigger className="w-full">
