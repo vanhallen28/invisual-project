@@ -1,12 +1,34 @@
-import { getWorkBySlug } from "@/services/works";
-import Image from "next/image";
+"use client";
 
-export default async function WorkDetailPage({
-    params,
-}: {
-    params: { slug: string };
-}) {
-    const work = await getWorkBySlug(params.slug);
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import Image from "next/image";
+import { getWorkBySlug } from "@/services/works";
+
+export default function WorkDetailPage() {
+    const params = useParams<{ slug: string }>();
+    const [work, setWork] = useState<any | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchWork = async () => {
+            if (!params?.slug) return;
+
+            const data = await getWorkBySlug(params.slug);
+            setWork(data);
+            setLoading(false);
+        };
+
+        fetchWork();
+    }, [params?.slug]);
+
+    if (loading) {
+        return (
+            <section className="container mx-auto px-6 md:px-12 py-12">
+                <p>Loading...</p>
+            </section>
+        );
+    }
 
     if (!work) {
         return (
@@ -54,11 +76,11 @@ export default async function WorkDetailPage({
                         <p>{work.scope.name}</p>
                     </div>
                 )}
-                {work.specializations.length > 0 && (
+                {work.specializations?.length > 0 && (
                     <div>
                         <h3 className="font-semibold text-lg">Specializations</h3>
                         <ul className="list-disc list-inside">
-                            {work.specializations.map((s) => (
+                            {work.specializations.map((s: any) => (
                                 <li key={s.id}>{s.name}</li>
                             ))}
                         </ul>
@@ -67,11 +89,11 @@ export default async function WorkDetailPage({
             </div>
 
             {/* Team */}
-            {work.assignments.length > 0 && (
+            {work.assignments?.length > 0 && (
                 <div className="space-y-4">
                     <h3 className="font-semibold text-lg">Team</h3>
                     <ul className="space-y-2">
-                        {work.assignments.map((a) => (
+                        {work.assignments.map((a: any) => (
                             <li key={a.id} className="flex items-center gap-3">
                                 {a.profile?.avatar_url && (
                                     <Image
@@ -95,13 +117,13 @@ export default async function WorkDetailPage({
             )}
 
             {/* Media */}
-            {work.media.length > 0 && (
+            {work.media?.length > 0 && (
                 <div className="space-y-4">
                     <h3 className="font-semibold text-lg">Gallery</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                         {work.media
-                            .sort((a, b) => a.order_index - b.order_index)
-                            .map((m) => (
+                            .sort((a: any, b: any) => a.order_index - b.order_index)
+                            .map((m: any) => (
                                 <div
                                     key={m.id}
                                     className="relative w-full h-64 rounded-xl overflow-hidden shadow"
