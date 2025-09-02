@@ -1,8 +1,6 @@
-import ServicesSection from "./_sections/services";
 import HeroSection from "./_sections/hero";
 import WorksSection from "./_sections/works";
 import ClientsSection from "./_sections/clients";
-import TestiSection from "./_sections/testi";
 
 export default function Page() {
     return (
