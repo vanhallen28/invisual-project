@@ -1,11 +1,11 @@
 import { getWorkBySlug } from "@/services/works";
 import Image from "next/image";
 
-interface WorkDetailPageProps {
+export default async function WorkDetailPage({
+    params,
+}: {
     params: { slug: string };
-}
-
-export default async function WorkDetailPage({ params }: WorkDetailPageProps) {
+}) {
     const work = await getWorkBySlug(params.slug);
 
     if (!work) {
