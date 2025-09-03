@@ -35,6 +35,7 @@ export default function ClientsSection() {
                                     alt={`${client.name} logo`}
                                     fill
                                     className="object-contain rounded"
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                 />
                             </div>
                         )}

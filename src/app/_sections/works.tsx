@@ -56,7 +56,7 @@ export default function WorksSection() {
             {/* tombol more works */}
             <div className="mt-10 flex flex-wrap justify-center">
                 <Link href="/works">
-                    <p className="text-2xl hover:underline cursor-pointer">
+                    <p className="text-xl hover:underline cursor-pointer">
                         <u>MORE WORKS</u>
                     </p>
                 </Link>

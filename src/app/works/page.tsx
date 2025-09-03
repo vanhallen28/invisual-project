@@ -6,6 +6,7 @@ import Image from "next/image";
 import { getWorks } from "@/services/works";
 import { getScopes } from "@/services/scopes";
 import { getIndustries } from "@/services/industries";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import {
     Select,
@@ -42,9 +43,7 @@ interface Work {
     title: string;
     slug: string;
     description?: string;
-
     cover_url?: string;
-
     scope?: Scope;
     industry?: Industry;
     client?: Client;
@@ -98,6 +97,9 @@ export default function WorksPage() {
     const [selectedIndustry, setSelectedIndustry] = useState<number | "All">("All");
     const [selectedSort, setSelectedSort] = useState<SortOption>("Latest");
 
+    const [showFilter, setShowFilter] = useState(true);
+    const [showSort, setShowSort] = useState(true);
+
     useEffect(() => {
         const fetchData = async () => {
             const [worksData, scopesData, industriesData] = await Promise.all([
@@ -120,11 +122,9 @@ export default function WorksPage() {
     // --------------------
     let filteredWorks = works.filter((work) => {
         const matchScope =
-            selectedScope === "All" ||
-            work.scope?.id === selectedScope;
+            selectedScope === "All" || work.scope?.id === selectedScope;
 
-        const industryId =
-            work.industry?.id ?? work.client?.industry?.id;
+        const industryId = work.industry?.id ?? work.client?.industry?.id;
 
         const matchIndustry =
             selectedIndustry === "All" || industryId === selectedIndustry;
@@ -181,40 +181,51 @@ export default function WorksPage() {
                 )}
             </div>
 
-            <div className="flex flex-col lg:flex-row gap-6">
-                {/* Left Sidebar Filters */}
-                <div className="lg:w-2/12 hidden lg:block">
-                    <ScrollArea className="h-[90vh]">
-                        {loading ? (
-                            <SkeletonSidebar />
-                        ) : (
-                            <>
-                                <FilterSidebar
-                                    title="Scope"
-                                    options={scopes}
-                                    selected={selectedScope}
-                                    onChange={setSelectedScope}
-                                />
-                                <FilterSidebar
-                                    title="Industry"
-                                    options={industries}
-                                    selected={selectedIndustry}
-                                    onChange={setSelectedIndustry}
-                                />
-                            </>
-                        )}
-                    </ScrollArea>
+            <div className="flex flex-col lg:flex-row gap-6 relative">
+                {/* LEFT FILTER PANEL */}
+                <div className="relative hidden lg:flex">
+                    {/* Toggle Button */}
+                    <ToggleButtonLeft
+                        isOpen={showFilter}
+                        onClick={() => setShowFilter(!showFilter)}
+                        className="cursor-pointer"
+                    />
+
+                    {/* Sidebar */}
+                    <div
+                        className={`transition-all duration-300 overflow-hidden ${showFilter ? "w-48 pr-4" : "w-0"}`}
+                    >
+                        <ScrollArea className="h-[90vh]">
+                            {loading ? (
+                                <SkeletonSidebar />
+                            ) : (
+                                <>
+                                    <FilterSidebar
+                                        title="Scope"
+                                        options={scopes}
+                                        selected={selectedScope}
+                                        onChange={setSelectedScope}
+                                    />
+                                    <FilterSidebar
+                                        title="Industry"
+                                        options={industries}
+                                        selected={selectedIndustry}
+                                        onChange={setSelectedIndustry}
+                                    />
+                                </>
+                            )}
+                        </ScrollArea>
+                    </div>
                 </div>
 
-                {/* Works Grid */}
-                <div className="lg:w-12/12">
+
+                {/* MAIN CONTENT */}
+                <div className="flex-1">
                     <ScrollArea className="h-[90vh]">
                         {loading ? (
                             <SkeletonGrid />
                         ) : filteredWorks.length === 0 ? (
-                            <p className="text-center text-neutral-500 py-12">
-                                No works found.
-                            </p>
+                            <p className="text-center text-neutral-500 py-12">No works found.</p>
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-2">
                                 {filteredWorks.map((work) => (
@@ -225,25 +236,36 @@ export default function WorksPage() {
                     </ScrollArea>
                 </div>
 
-                {/* Desktop Sort */}
-                <div className="lg:w-1/12 hidden lg:flex flex-col gap-2 text-sm">
-                    {loading ? (
-                        <SkeletonSort />
-                    ) : (
-                        sortOptions.map((opt) => (
-                            <div
-                                key={opt}
-                                className={`cursor-pointer ${selectedSort === opt
-                                        ? "font-bold text-primary"
-                                        : "hover:text-primary"
-                                    }`}
-                                onClick={() => setSelectedSort(opt)}
-                            >
-                                {opt}
+                <div className="relative hidden lg:flex">
+                    {/* Sidebar */}
+                    <div
+                        className={`transition-all duration-300 overflow-hidden ${showSort ? "w-32 pl-4" : "w-0"}`}
+                    >
+                        {loading ? (
+                            <SkeletonSort />
+                        ) : (
+                            <div className="flex flex-col gap-2 text-sm">
+                                {sortOptions.map((opt) => (
+                                    <div
+                                        key={opt}
+                                        className={`cursor-pointer ${selectedSort === opt ? "font-bold text-primary" : "hover:text-primary"}`}
+                                        onClick={() => setSelectedSort(opt)}
+                                    >
+                                        {opt}
+                                    </div>
+                                ))}
                             </div>
-                        ))
-                    )}
+                        )}
+                    </div>
+
+                    {/* Toggle Button */}
+                    <ToggleButtonRight
+                        isOpen={showSort}
+                        onClick={() => setShowSort(!showSort)}
+                        className="cursor-pointer"
+                    />
                 </div>
+
             </div>
         </section>
     );
@@ -263,17 +285,14 @@ function WorkCard({ work }: { work: Work }) {
                     sizes="(max-width: 640px) 100vw,
             (max-width: 1024px) 50vw,
             33vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="object-cover group-hover:scale-110 transition-transform duration-300"
                     loading="lazy"
                 />
             </div>
             <div className="mt-2 px-1">
-                <p className="text-lg font-semibold text-foreground">
-                    {work.title}
-                </p>
+                <p className="text-lg font-semibold text-foreground">{work.title}</p>
                 <p className="text-sm text-neutral-500">
-                    {work.scope?.name || "Uncategorized"} •{" "}
-                    {work.industry?.name || work.client?.industry?.name || "General"}
+                    {work.scope?.name || "Uncategorized"} • {work.industry?.name || work.client?.industry?.name || "General"}
                 </p>
             </div>
         </Link>
@@ -407,5 +426,49 @@ function SkeletonSort() {
                 <div key={i} className="h-3 w-10 bg-neutral-200 rounded" />
             ))}
         </div>
+    );
+}
+
+function ToggleButtonLeft({
+    isOpen,
+    onClick,
+    className = "",
+}: {
+    isOpen: boolean;
+    onClick: () => void;
+    className?: string;
+}) {
+    return (
+        <button
+            onClick={onClick}
+            className={`absolute top-1/2 right-0 -translate-y-1/2 z-20 
+                  bg-primary text-white w-5 h-8 flex items-center justify-center 
+                  shadow-sm hover:bg-primary/80 transition-all
+                  rounded-r-md ${className}`}
+        >
+            {isOpen ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}
+        </button>
+    );
+}
+
+function ToggleButtonRight({
+    isOpen,
+    onClick,
+    className = "",
+}: {
+    isOpen: boolean;
+    onClick: () => void;
+    className?: string;
+}) {
+    return (
+        <button
+            onClick={onClick}
+            className={`absolute top-1/2 left-0 -translate-y-1/2 z-20 
+                  bg-primary text-white w-5 h-8 flex items-center justify-center 
+                  shadow-sm hover:bg-primary/80 transition-all
+                  rounded-l-md ${className}`}
+        >
+            {isOpen ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+        </button>
     );
 }

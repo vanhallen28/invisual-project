@@ -41,9 +41,8 @@ export interface WorkAssignment {
   link_url?: string;
 }
 
-export interface WorkMedia {
-  id: number;
-  type: string; // image, video, gif, etc.
+export interface MediaItem {
+  type: string;
   url: string;
   caption?: string;
   order_index: number;
@@ -54,13 +53,15 @@ export interface Work {
   title: string;
   slug: string;
   description?: string;
-  cover_url?: string;
+  cover_url?: string; // untuk listing
+  created_at?: string;
   industry?: Industry;
   scope?: Scope;
   client?: Client;
   specializations: Specialization[];
   assignments: WorkAssignment[];
-  media: WorkMedia[];
+  hero?: MediaItem; // hero untuk detail
+  media: MediaItem[]; // gallery
 }
 
 // =============================
@@ -73,6 +74,7 @@ function normalizeWork(r: any): Work {
     slug: r.slug,
     description: r.description ?? undefined,
     cover_url: r.cover_url ?? undefined,
+    created_at: r.created_at ?? undefined,
     industry: r.industry
       ? { id: Number(r.industry.id), name: r.industry.name }
       : undefined,
@@ -112,40 +114,35 @@ function normalizeWork(r: any): Work {
       status: a.status,
       link_url: a.link_url ?? undefined,
     })),
-    media: (r.media || []).map((m: any) => ({
-      id: Number(m.id),
-      type: m.type,
-      url: m.url,
-      caption: m.caption ?? undefined,
-      order_index: m.order_index ?? 0,
-    })),
+    hero: r.work_media?.hero ?? undefined,
+    media: r.work_media?.media ?? [],
   };
 }
 
 // =============================
-// Get list of works
+// Get list of works (untuk listing)
 // =============================
 export async function getWorks(): Promise<Work[]> {
   const supabase = createClient();
 
-const { data, error } = await supabase
-  .from("works")
-  .select(
-    `
-    id,
-    title,
-    slug,
-    cover_url,
-    scope:scopes ( id, name ),
-    client:clients (
+  const { data, error } = await supabase
+    .from("works")
+    .select(
+      `
       id,
-      name,
-      logo_url,
-      industry:industries ( id, name )
+      title,
+      slug,
+      cover_url,
+      scope:scopes ( id, name ),
+      client:clients (
+        id,
+        name,
+        logo_url,
+        industry:industries ( id, name )
+      )
+    `
     )
-  `
-  )
-  .order("id", { ascending: true });
+    .order("id", { ascending: true });
 
   if (error) {
     console.error("Error fetching works:", error.message);
@@ -156,7 +153,7 @@ const { data, error } = await supabase
 }
 
 // =============================
-// Get Work by Slug
+// Get Work by Slug (untuk detail)
 // =============================
 export async function getWorkBySlug(slug: string): Promise<Work | null> {
   const supabase = createClient();
@@ -170,6 +167,7 @@ export async function getWorkBySlug(slug: string): Promise<Work | null> {
       slug,
       description,
       cover_url,
+      created_at,
       industry:industries ( id, name ),
       scope:scopes ( id, name ),
       client:clients (
@@ -188,7 +186,10 @@ export async function getWorkBySlug(slug: string): Promise<Work | null> {
         specialization:specializations ( id, name ),
         profile:profiles ( id, name, role, avatar_url )
       ),
-      media:work_media ( id, type, url, caption, order_index )
+      work_media (
+        hero,
+        media
+      )
     `
     )
     .eq("slug", slug)
@@ -199,5 +200,21 @@ export async function getWorkBySlug(slug: string): Promise<Work | null> {
     return null;
   }
 
-  return data ? normalizeWork(data) : null;
+  // ambil row pertama dari work_media array
+  const wm = data?.work_media?.[0] ?? null;
+
+  const parsed = data
+    ? {
+        ...data,
+        work_media: wm
+          ? {
+              hero: wm.hero,
+              media: wm.media,
+            }
+          : { hero: null, media: [] },
+      }
+    : null;
+
+  return parsed ? normalizeWork(parsed) : null;
 }
+
