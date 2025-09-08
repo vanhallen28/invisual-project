@@ -133,6 +133,7 @@ export async function getWorks(): Promise<Work[]> {
       title,
       slug,
       cover_url,
+      industry:industries ( id, name ),
       scope:scopes ( id, name ),
       client:clients (
         id,

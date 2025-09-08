@@ -56,30 +56,36 @@ type SortOption = (typeof sortOptions)[number];
 // Normalizer
 // --------------------
 function normalizeWorks(rows: any[]): Work[] {
-    return (rows || []).map((r: any) => ({
-        id: Number(r.id),
-        title: r.title,
-        slug: r.slug,
-        description: r.description ?? undefined,
-        cover_url: r.cover_url ?? undefined,
-        scope: r.scope ? { id: Number(r.scope.id), name: r.scope.name } : undefined,
-        industry: r.industry
+    return (rows || []).map((r: any) => {
+        const industry = r.industry
             ? { id: Number(r.industry.id), name: r.industry.name }
-            : undefined,
-        client: r.client
-            ? {
-                id: Number(r.client.id),
-                name: r.client.name,
-                logo_url: r.client.logo_url ?? undefined,
-                industry: r.client.industry
-                    ? {
-                        id: Number(r.client.industry.id),
-                        name: r.client.industry.name,
-                    }
-                    : undefined,
-            }
-            : undefined,
-    }));
+            : r.client?.industry
+                ? { id: Number(r.client.industry.id), name: r.client.industry.name }
+                : undefined;
+
+        return {
+            id: Number(r.id),
+            title: r.title,
+            slug: r.slug,
+            description: r.description ?? undefined,
+            cover_url: r.cover_url ?? undefined,
+            scope: r.scope ? { id: Number(r.scope.id), name: r.scope.name } : undefined,
+            industry, // ⬅️ sekarang industry selalu diprioritaskan dari FK di works
+            client: r.client
+                ? {
+                    id: Number(r.client.id),
+                    name: r.client.name,
+                    logo_url: r.client.logo_url ?? undefined,
+                    industry: r.client.industry
+                        ? {
+                            id: Number(r.client.industry.id),
+                            name: r.client.industry.name,
+                        }
+                        : undefined,
+                }
+                : undefined,
+        };
+    });
 }
 
 // --------------------
@@ -124,6 +130,7 @@ export default function WorksPage() {
         const matchScope =
             selectedScope === "All" || work.scope?.id === selectedScope;
 
+        // ⬇️ Gunakan industry_id dari works dulu, baru fallback ke client.industry
         const industryId = work.industry?.id ?? work.client?.industry?.id;
 
         const matchIndustry =
@@ -272,9 +279,11 @@ export default function WorksPage() {
 }
 
 // --------------------
-// Components
+// WorkCard
 // --------------------
 function WorkCard({ work }: { work: Work }) {
+    const industryName = work.industry?.name ?? work.client?.industry?.name ?? "General";
+
     return (
         <Link href={`/works/${work.slug}`} className="group block overflow-hidden">
             <div className="relative w-full aspect-video overflow-hidden rounded-md border border-transparent group-hover:border-primary transition-all duration-300">
@@ -292,7 +301,7 @@ function WorkCard({ work }: { work: Work }) {
             <div className="mt-2 px-1">
                 <p className="text-lg font-semibold text-foreground">{work.title}</p>
                 <p className="text-sm text-neutral-500">
-                    {work.scope?.name || "Uncategorized"} • {work.industry?.name || work.client?.industry?.name || "General"}
+                    {work.scope?.name || "Uncategorized"} • {industryName}
                 </p>
             </div>
         </Link>

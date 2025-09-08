@@ -120,7 +120,7 @@ export default function WorkDetailPage() {
             )}
 
             {/* Title + Year */}
-            <section className="container mx-auto px-6 md:px-12 py-8 border-b">
+            <section className="container mx-auto px-4 md:px-4 py-8 border-b">
                 <div className="flex items-center justify-between">
                     <h1 className="text-3xl md:text-4xl font-bold">{work.title}</h1>
                     {work.created_at && (
@@ -132,7 +132,7 @@ export default function WorkDetailPage() {
             </section>
 
             {/* Content */}
-            <section className="container mx-auto px-6 md:px-12 py-12 space-y-12">
+            <section className="container mx-auto px-4 md:px-4 py-12 space-y-12">
                 {/* 3 Columns */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {/* Column 1: Scope & Industry */}
@@ -177,7 +177,7 @@ export default function WorkDetailPage() {
                 {/* Gallery */}
                 {work.media?.length > 0 && (
                     <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 gap-6">
                             {work.media
                                 .sort((a: any, b: any) => a.order_index - b.order_index)
                                 .map((m: any, i: number) => (

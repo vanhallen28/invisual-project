@@ -114,7 +114,7 @@ export default function Navbar() {
                     </div>
 
                     <button
-                        className="md:hidden border-none cursor-pointer"
+                        className="md:hidden p-2 rounded-md border-none cursor-pointer"
                         onClick={() => setOpen(true)}
                         aria-label="Open menu"
                     >
