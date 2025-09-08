@@ -16,20 +16,27 @@ export default function Footer() {
                         <p className="mt-4 text-sm leading-relaxed lg:text-base">Invisual Studio</p>
 
                         <div className="mt-4 flex flex-col items-start gap-4 xl:flex-row">
+
                             <div className="flex items-center justify-center gap-1 text-sm text-neutral-300">
-                                <svg
-                                    stroke="currentColor"
-                                    fill="currentColor"
-                                    strokeWidth="0"
-                                    viewBox="0 0 384 512"
-                                    className="text-2xl"
-                                    height="1em"
-                                    width="1em"
-                                    xmlns="http://www.w3.org/2000/svg"
+                                <Link
+                                    target="_blank"
+                                    className="flex items-center justify-center gap-1 text-sm text-neutral-300 hover:underline underline-offset-4"
+                                    href="https://maps.app.goo.gl/EZb1N7KCEMsMKMDc8"
                                 >
-                                    <path d="M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"></path>
-                                </svg>
-                                <p>Antapani Residence, Jl.Malangbong Raya Blok C10</p>
+                                    <svg
+                                        stroke="currentColor"
+                                        fill="currentColor"
+                                        strokeWidth="0"
+                                        viewBox="0 0 384 512"
+                                        className="text-2xl"
+                                        height="1em"
+                                        width="1em"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                        <path d="M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"></path>
+                                    </svg>
+                                    <p>Antapani Residence, Jl.Malangbong Raya Blok C10</p>
+                                </Link>
                             </div>
                             <Link
                                 target="_blank"

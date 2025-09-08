@@ -13,6 +13,7 @@ import Sidebar from "./sidebar";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { NavLinks, ConnectLinks } from "@/configs/links";
+import { useTheme } from "next-themes";
 
 export default function Navbar() {
     const [open, setOpen] = useState(false);
@@ -22,6 +23,8 @@ export default function Navbar() {
 
     const pathname = usePathname();
     const [mounted, setMounted] = useState(false);
+
+    const { theme } = useTheme();
 
     useEffect(() => {
         setMounted(true);
@@ -51,10 +54,16 @@ export default function Navbar() {
         ${hasScrolled ? "shadow-md dark:shadow-[0_4px_6px_-1px_#0457ff]" : "shadow-none"}
       `}
         >
-            <nav className="container flex h-14 items-center justify-between rounded-2xl px-6 backdrop:filter transition-all sm:mx-auto">
+            <nav className="container flex h-14 items-center justify-between rounded-2xl px-4 backdrop:filter transition-all sm:mx-auto">
                 {/* Logo */}
                 <Link href="/" className="flex items-center">
-                    <Image src="/logo.svg" alt="Invisual Logo" width={35} height={35} priority />
+                    <Image
+                        src={theme === "dark" ? "/invisual-dark.svg" : "/invisual-light.svg"}
+                        alt="Invisual Logo"
+                        width={110}
+                        height={50}
+                        priority
+                    />
                 </Link>
 
                 {/* Desktop Nav */}
@@ -105,11 +114,11 @@ export default function Navbar() {
                     </div>
 
                     <button
-                        className="md:hidden p-2 rounded-md border-none cursor-pointer"
+                        className="md:hidden border-none cursor-pointer"
                         onClick={() => setOpen(true)}
                         aria-label="Open menu"
                     >
-                        <Menu className="h-5 w-5" />
+                        <Menu className="h-7 w-7" />
                     </button>
                 </div>
             </nav>
