@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { ConnectLinks, NavLinks } from "@/configs/links";
+import Image from "next/image";
+import { useTheme } from "next-themes";
 
 export default function Sidebar({
     open,
@@ -22,6 +24,7 @@ export default function Sidebar({
 }) {
     const pathname = usePathname();
     const [mounted, setMounted] = useState(false);
+    const { theme } = useTheme();
 
     useEffect(() => {
         setMounted(true);
@@ -33,7 +36,19 @@ export default function Sidebar({
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetContent>
                 <SheetHeader>
-                    <SheetTitle className="text-primary text-2xl">INVISUAL</SheetTitle>
+                    <SheetTitle>
+                        <Link href="/" className="flex items-center">
+                            <div className="relative w-[110px] h-[34px]">
+                                <Image
+                                    src={theme === "dark" ? "/invisual-dark.svg" : "/invisual-light.svg"}
+                                    alt="Invisual Logo"
+                                    fill
+                                    priority
+                                    className="object-contain"
+                                />
+                            </div>
+                        </Link>
+                    </SheetTitle>
                     <SheetDescription className="sr-only">
                         Sidebar navigation for main sections of the website
                     </SheetDescription>
@@ -52,7 +67,7 @@ export default function Sidebar({
                                 <div key={item.href}>
                                     <Link
                                         href={item.href}
-                                        className={`block px-3 py-2 rounded transition-colors
+                                        className={`block px-3 py-2 transition-colors
                       ${isActive
                                                 ? "text-primary font-semibold bg-primary/10"
                                                 : "text-muted-foreground hover:text-primary hover:bg-primary/5"
@@ -76,7 +91,7 @@ export default function Sidebar({
                             href={item.href}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="uppercase text-sm font-semibold hover:text-primary hover:underline"
+                            className="text-sm font-semibold hover:text-primary hover:underline"
                             onClick={() => setOpen(false)}
                         >
                             {item.label}

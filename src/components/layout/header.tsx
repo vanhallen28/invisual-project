@@ -57,19 +57,21 @@ export default function Navbar() {
             <nav className="container flex h-14 items-center justify-between rounded-2xl px-4 backdrop:filter transition-all sm:mx-auto">
                 {/* Logo */}
                 <Link href="/" className="flex items-center">
-                    <Image
-                        src={theme === "dark" ? "/invisual-dark.svg" : "/invisual-light.svg"}
-                        alt="Invisual Logo"
-                        width={110}
-                        height={50}
-                        priority
-                    />
+                    <div className="relative w-[110px] h-[34px]">
+                        <Image
+                            src={theme === "dark" ? "/invisual-dark.svg" : "/invisual-light.svg"}
+                            alt="Invisual Logo"
+                            fill
+                            priority
+                            className="object-contain"
+                        />
+                    </div>
                 </Link>
 
                 {/* Desktop Nav */}
-                <div className="hidden md:block">
+                <div className="hidden lg:block">
                     <NavigationMenu>
-                        <NavigationMenuList className="flex gap-20 md:gap-6 lg:gap-22">
+                        <NavigationMenuList className="flex gap-10">
                             {NavLinks.map((item) => {
                                 const isActive =
                                     item.href === "/"
@@ -99,22 +101,22 @@ export default function Navbar() {
 
                 {/* Connect Links + Mobile */}
                 <div className="flex items-center gap-7">
-                    <div className="hidden md:flex gap-7">
+                    <div className="hidden lg:flex gap-7">
                         {ConnectLinks.map((item) => (
                             <Link
                                 key={item.href}
                                 href={item.href}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="uppercase text-sm font-semibold hover:text-primary hover:underline"
+                                className="text-sm font-semibold hover:text-primary hover:underline"
                             >
-                                {item.label}
+                                {item.shortLabel}
                             </Link>
                         ))}
                     </div>
 
                     <button
-                        className="md:hidden p-2 rounded-md border-none cursor-pointer"
+                        className="lg:hidden rounded-md border-none cursor-pointer"
                         onClick={() => setOpen(true)}
                         aria-label="Open menu"
                     >

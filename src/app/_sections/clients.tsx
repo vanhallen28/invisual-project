@@ -16,7 +16,7 @@ export default function ClientsSection() {
     }, []);
 
     return (
-        <section className="container mx-auto px-4 lg:px-4">
+        <section className="container mx-auto px-4">
             <h1 className="text-3xl font-bold text-primary mb-2 lg:text-4xl">
                 Clients
             </h1>

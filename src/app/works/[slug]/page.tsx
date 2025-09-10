@@ -33,7 +33,7 @@ export default function WorkDetailPage() {
         return (
             <section className="flex items-center justify-center w-full h-screen">
                 <Image
-                    src="/logo.svg"   // pastikan ada di public/logo.svg
+                    src="/logo.png"
                     alt="Loading..."
                     width={40}
                     height={40}
@@ -120,7 +120,7 @@ export default function WorkDetailPage() {
             )}
 
             {/* Title + Year */}
-            <section className="container mx-auto px-4 md:px-4 py-8 border-b">
+            <section className="container mx-auto px-4 py-4 md:px-14 border-b-2">
                 <div className="flex items-center justify-between">
                     <h1 className="text-3xl md:text-4xl font-bold">{work.title}</h1>
                     {work.created_at && (
@@ -132,21 +132,21 @@ export default function WorkDetailPage() {
             </section>
 
             {/* Content */}
-            <section className="container mx-auto px-4 md:px-4 py-12 space-y-12">
+            <section className="container mx-auto px-4 py-4 space-y-8">
                 {/* 3 Columns */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:px-10">
                     {/* Column 1: Scope & Industry */}
-                    <div className="space-y-4">
+                    <div className="space-y-8">
                         {work.scope && (
                             <div>
-                                <p className="font-medium">Scope of work</p>
-                                <p>{work.scope.name}</p>
+                                <p className="font-medium text-muted-foreground">SCOPE OF WORK</p>
+                                <p className="text-sm">{work.scope.name}</p>
                             </div>
                         )}
                         {work.industry && (
                             <div>
-                                <p className="font-medium">Industry</p>
-                                <p>{work.industry.name}</p>
+                                <p className="font-medium text-muted-foreground">INDUSTRY</p>
+                                <p className="text-sm">{work.industry.name}</p>
                             </div>
                         )}
                     </div>
@@ -155,12 +155,12 @@ export default function WorkDetailPage() {
                     <div className="space-y-4">
                         {work.assignments?.length > 0 && (
                             <div>
-                                <p className="font-medium">Team</p>
-                                <ul className="mt-2 space-y-1">
+                                <p className="font-medium text-muted-foreground">TEAM</p>
+                                <ul>
                                     {work.assignments.map((a: any) => (
                                         <li key={a.id} className="text-sm">
                                             {a.profile?.name ?? "Unknown"}{" "}
-                                            <span className="text-gray-500">
+                                            <span className="text-muted-foreground">
                                                 ({a.specialization.name})
                                             </span>
                                         </li>
@@ -177,7 +177,7 @@ export default function WorkDetailPage() {
                 {/* Gallery */}
                 {work.media?.length > 0 && (
                     <div className="space-y-4">
-                        <div className="grid grid-cols-1 gap-6">
+                        <div className="grid grid-cols-1 gap-10 md:px-10">
                             {work.media
                                 .sort((a: any, b: any) => a.order_index - b.order_index)
                                 .map((m: any, i: number) => (
@@ -260,7 +260,7 @@ function GalleryItem({
                         video.play().catch(() => { });
                     } else {
                         video.pause();
-                        video.currentTime = 0; // reset ke awal
+                        video.currentTime = 0;
                     }
                 });
             },
@@ -268,14 +268,12 @@ function GalleryItem({
         );
 
         observer.observe(video);
-        return () => {
-            observer.disconnect();
-        };
+        return () => observer.disconnect();
     }, [media.type]);
 
     return (
         <div
-            className="relative w-full aspect-[16/9] overflow-hidden shadow cursor-pointer"
+            className="relative w-full aspect-[16/9] overflow-hidden shadow-md cursor-pointer"
             onClick={onClick}
         >
             {media.type === "image" ? (
@@ -298,3 +296,4 @@ function GalleryItem({
         </div>
     );
 }
+

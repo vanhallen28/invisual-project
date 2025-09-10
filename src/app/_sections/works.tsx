@@ -20,7 +20,7 @@ export default function WorksSection() {
     }, []);
 
     return (
-        <section className="container mx-auto px-4 lg:px-4">
+        <section className="container mx-auto px-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
                 {works.map((work) => (
                     <Link
@@ -41,10 +41,10 @@ export default function WorksSection() {
 
                         {/* Title & scope + industry */}
                         <div className="mt-2 px-1">
-                            <p className="text-xl font-semibold text-foreground">
+                            <p className="text-xl font-semibold text-foreground transition-colors duration-300 group-hover:text-primary">
                                 {work.title}
                             </p>
-                            <p className="text-sm text-neutral-500">
+                            <p className="text-sm">
                                 {work.scope?.name || "Uncategorized"} •{" "}
                                 {work.client?.industry?.name || "General"}
                             </p>

@@ -103,8 +103,8 @@ export default function WorksPage() {
     const [selectedIndustry, setSelectedIndustry] = useState<number | "All">("All");
     const [selectedSort, setSelectedSort] = useState<SortOption>("Latest");
 
-    const [showFilter, setShowFilter] = useState(true);
-    const [showSort, setShowSort] = useState(true);
+    const [showFilter, setShowFilter] = useState(false);
+    const [showSort, setShowSort] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -189,18 +189,14 @@ export default function WorksPage() {
             </div>
 
             <div className="flex flex-col lg:flex-row gap-6 relative">
-                {/* LEFT FILTER PANEL */}
                 <div className="relative hidden lg:flex">
-                    {/* Toggle Button */}
                     <ToggleButtonLeft
                         isOpen={showFilter}
                         onClick={() => setShowFilter(!showFilter)}
                         className="cursor-pointer"
                     />
-
-                    {/* Sidebar */}
                     <div
-                        className={`transition-all duration-300 overflow-hidden ${showFilter ? "w-48 pr-4" : "w-0"}`}
+                        className={`transition-all duration-300 overflow-hidden ${showFilter ? "w-41 pr-5" : "w-0"}`}
                     >
                         <ScrollArea className="h-[90vh]">
                             {loading ? (
@@ -225,16 +221,15 @@ export default function WorksPage() {
                     </div>
                 </div>
 
-
                 {/* MAIN CONTENT */}
                 <div className="flex-1">
                     <ScrollArea className="h-[90vh]">
                         {loading ? (
                             <SkeletonGrid />
                         ) : filteredWorks.length === 0 ? (
-                            <p className="text-center text-neutral-500 py-12">No works found.</p>
+                            <p className="text-center justify-center text-neutral-500 py-12">No works found.</p>
                         ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-2">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2">
                                 {filteredWorks.map((work) => (
                                     <WorkCard key={work.id} work={work} />
                                 ))}
@@ -244,14 +239,13 @@ export default function WorksPage() {
                 </div>
 
                 <div className="relative hidden lg:flex">
-                    {/* Sidebar */}
                     <div
-                        className={`transition-all duration-300 overflow-hidden ${showSort ? "w-32 pl-4" : "w-0"}`}
+                        className={`transition-all duration-300 overflow-hidden ${showSort ? "w-16 pl-4" : "w-0"}`}
                     >
                         {loading ? (
                             <SkeletonSort />
                         ) : (
-                            <div className="flex flex-col gap-2 text-sm">
+                            <div className="flex flex-col gap-2 text-xs">
                                 {sortOptions.map((opt) => (
                                     <div
                                         key={opt}
@@ -264,8 +258,6 @@ export default function WorksPage() {
                             </div>
                         )}
                     </div>
-
-                    {/* Toggle Button */}
                     <ToggleButtonRight
                         isOpen={showSort}
                         onClick={() => setShowSort(!showSort)}
@@ -299,8 +291,8 @@ function WorkCard({ work }: { work: Work }) {
                 />
             </div>
             <div className="mt-2 px-1">
-                <p className="text-lg font-semibold text-foreground">{work.title}</p>
-                <p className="text-sm text-neutral-500">
+                <p className="text-xl font-semibold text-foreground transition-colors duration-300 group-hover:text-primary">{work.title}</p>
+                <p className="text-sm">
                     {work.scope?.name || "Uncategorized"} • {industryName}
                 </p>
             </div>
@@ -361,16 +353,16 @@ function FilterSidebar({
     onChange: (v: any) => void;
 }) {
     return (
-        <ul className="flex flex-col gap-3 text-sm p-2">
-            <li className="text-xs font-semibold uppercase text-neutral-500 tracking-wide px-1">
+        <ul className="flex flex-col gap-2 text-xs p-2">
+            <li className="text-xs font-semibold uppercase text-neutral-500 tracking-wide">
                 {title}
             </li>
             {options.map((opt) => (
                 <li
                     key={opt.id}
-                    className={`cursor-pointer px-1 ${selected === opt.id
-                            ? "font-bold text-primary"
-                            : "hover:text-primary"
+                    className={`cursor-pointer pl-2 ${selected === opt.id
+                        ? "font-bold text-primary"
+                        : "hover:text-primary"
                         }`}
                     onClick={() =>
                         typeof opt.id === "string" ? onChange(opt.id) : onChange(Number(opt.id))
@@ -389,7 +381,7 @@ function FilterSidebar({
 function SkeletonGrid() {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-2 animate-pulse">
-            {Array.from({ length: 6 }).map((_, i) => (
+            {Array.from({ length: 15 }).map((_, i) => (
                 <div key={i} className="space-y-2">
                     <div className="aspect-video rounded-md bg-neutral-200" />
                     <div className="h-4 bg-neutral-200 rounded w-3/4" />
@@ -451,11 +443,11 @@ function ToggleButtonLeft({
         <button
             onClick={onClick}
             className={`absolute top-1/2 right-0 -translate-y-1/2 z-20 
-                  bg-primary text-white w-5 h-8 flex items-center justify-center 
-                  shadow-sm hover:bg-primary/80 transition-all
-                  rounded-r-md ${className}`}
+                  bg-neutral-600 text-white w-5 h-10 flex items-center justify-center 
+                  shadow-sm hover:bg-neutral-700/70 transition-all
+                  rounded-r-sm ${className}`}
         >
-            {isOpen ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}
+            {isOpen ? <ChevronLeft size={15} /> : <ChevronRight size={15} />}
         </button>
     );
 }
@@ -473,11 +465,11 @@ function ToggleButtonRight({
         <button
             onClick={onClick}
             className={`absolute top-1/2 left-0 -translate-y-1/2 z-20 
-                  bg-primary text-white w-5 h-8 flex items-center justify-center 
-                  shadow-sm hover:bg-primary/80 transition-all
-                  rounded-l-md ${className}`}
+                  bg-neutral-600 text-white w-5 h-10 flex items-center justify-center 
+                  shadow-sm hover:bg-neutral-700/70 transition-all
+                  rounded-l-sm ${className}`}
         >
-            {isOpen ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+            {isOpen ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
         </button>
     );
 }
