@@ -37,7 +37,13 @@ export default function TeamSection() {
                 {initialMembers.map((member, i) => (
                     <div key={i} className="space-y-2">
                         <div className="relative w-full aspect-square overflow-hidden">
-                            <Image src={member.img} alt={member.name} fill className="object-cover" />
+                            <Image
+                                src={member.img}
+                                alt={member.name}
+                                fill
+                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                                className="object-cover"
+                            />
                         </div>
                         <div>
                             <p className="text-xl font-semibold">{member.name}</p>
@@ -60,7 +66,13 @@ export default function TeamSection() {
                         {extraMembers.map((member, i) => (
                             <div key={i} className="space-y-2">
                                 <div className="relative w-full aspect-square overflow-hidden">
-                                    <Image src={member.img} alt={member.name} fill className="object-cover" />
+                                    <Image
+                                        src={member.img}
+                                        alt={member.name}
+                                        fill
+                                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                                        className="object-cover"
+                                    />
                                 </div>
                                 <div>
                                     <p className="text-xl font-semibold">{member.name}</p>
