@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
+import FooterWrapper from "@/components/layout/footer-wrapper";
 
 const assistant = Assistant({
     subsets: ["latin"],
@@ -31,7 +32,7 @@ export default function RootLayout({
                     <main className="relative pt-14">
                         <Header />
                         {children}
-                        <Footer />
+                        <FooterWrapper />
                     </main>
                 </ThemeProvider>
             </body>

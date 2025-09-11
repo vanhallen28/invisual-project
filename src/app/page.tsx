@@ -10,8 +10,6 @@ export default function Page() {
             <IntroSection />
             <WorksSection />
             <ClientsSection />
-            {/* <ServicesSection /> */}
-            {/* <TestiSection /> */}
         </div>
     );
 }

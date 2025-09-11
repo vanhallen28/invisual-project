@@ -13,8 +13,8 @@ export const ConnectLinks = [
 
 export const ContactLinks = [
   {
-    href: "mailto:invibusiness@invisual.studio",
-    label: "invibusiness@invisual.studio",
+    href: "mailto:business@invisual.studio",
+    label: "business@invisual.studio",
   },
   {
     href: "https://wa.me/6282295555314",
