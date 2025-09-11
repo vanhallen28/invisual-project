@@ -4,7 +4,7 @@ export default function HeadOfficeSection() {
     return (
         <section className="container mx-auto px-4">
             {/* Baris Head Office + alamat + kosong */}
-            <div className="text-sm md:text-xl grid grid-cols-2 md:grid-cols-3 gap-8 items-start text-justify leading-relaxed">
+            <div className="text-sm md:text-xl grid grid-cols-2 md:grid-cols-3 md:gap-8 items-start text-justify leading-relaxed">
                 {/* Kolom 1 */}
                 <h2 className="font-bold text-muted-foreground">HEAD OFFICE</h2>
 

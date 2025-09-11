@@ -10,8 +10,8 @@ export default function ServicesSection() {
             <div className="flex justify-between md:justify-center">
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-8 md:gap-64 text-sm md:text-xl leading-relaxed">
                     <div>
-                        <h2 className="font-semibold text-muted-foreground mb-2">BRANDING</h2>
-                        <ul className="space-y-1">
+                        <h2 className="font-semibold text-muted-foreground mb-4">BRANDING</h2>
+                        <ul>
                             <li>Brand Research</li>
                             <li>Brand Plan</li>
                             <li>Brand Strategy</li>
@@ -25,8 +25,8 @@ export default function ServicesSection() {
                         </ul>
                     </div>
                     <div>
-                        <h2 className="font-semibold text-muted-foreground mb-2">GRAPHIC DESIGN</h2>
-                        <ul className="space-y-1">
+                        <h2 className="font-semibold text-muted-foreground mb-4">GRAPHIC DESIGN</h2>
+                        <ul>
                             <li>Key Visual Development</li>
                             <li>Environmental Design</li>
                             <li>Company Profile</li>
@@ -40,8 +40,8 @@ export default function ServicesSection() {
                         </ul>
                     </div>
                     <div>
-                        <h2 className="font-semibold text-muted-foreground mb-2">ILLUSTRATION</h2>
-                        <ul className="space-y-1">
+                        <h2 className="font-semibold text-muted-foreground mb-4">ILLUSTRATION</h2>
+                        <ul>
                             <li>Character / Mascot Design</li>
                             <li>Artwork Design</li>
                             <li>Comic Strip</li>
