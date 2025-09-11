@@ -1,18 +1,23 @@
-// src/app/contact/_components/head-office.tsx
-export default function HeadOffice() {
+"use client";
+
+export default function HeadOfficeSection() {
     return (
-        <div className="bg-black text-white p-6 rounded-md space-y-2">
-            <h2 className="font-bold">Head Office</h2>
-            <p>
-                Jl. Malangbong Raya Blok C10, Antapani Wetan, <br />
-                Antapani, Bandung City, West Java 40291
-            </p>
-            <a
-                href="tel:+621234567890"
-                className="text-blue-400 underline"
-            >
-                +62 123 4567 8900
-            </a>
-        </div>
+        <section className="container mx-auto px-4">
+            {/* Baris Head Office + alamat + kosong */}
+            <div className="text-sm md:text-xl grid grid-cols-2 md:grid-cols-3 gap-8 items-start text-justify leading-relaxed">
+                {/* Kolom 1 */}
+                <h2 className="font-bold text-muted-foreground">HEAD OFFICE</h2>
+
+                {/* Kolom 2 */}
+                <div>
+                    <address className="not-italic">
+                        Jl. Malangbong Raya Blok C10, Antapani Wetan, Antapani, Bandung City, West Java 40291
+                    </address>
+                    <p className="mt-4 underline hover:text-primary">
+                        <a href="https://wa.me/6282295555314">+62 822 9555 5314</a>
+                    </p>
+                </div>
+            </div>
+        </section>
     );
 }

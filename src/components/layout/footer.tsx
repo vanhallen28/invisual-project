@@ -67,7 +67,7 @@ export default function Footer() {
             </div>
 
             {/* Bottom area */}
-            <div className="flex flex-col-reverse items-center justify-center gap-6 border-t border-white/20 px-7 py-2 md:flex-row md:justify-between">
+            <div className="flex flex-col-reverse items-center justify-center gap-6 border-t border-white/30 px-7 py-2 md:flex-row md:justify-between">
                 {/* Logo + copyright */}
                 <div className="flex items-center gap-3">
                     <Image
@@ -77,7 +77,7 @@ export default function Footer() {
                         height={40}
                         priority
                     />
-                    <p className="text-sm text-neutral-300">
+                    <p className="text-sm text-shadow-muted-foreground">
                         © Invisual Studio 2025 - All Rights Reserved
                     </p>
                 </div>

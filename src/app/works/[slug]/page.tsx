@@ -177,7 +177,7 @@ export default function WorkDetailPage() {
                 {/* Gallery */}
                 {work.media?.length > 0 && (
                     <div className="space-y-4">
-                        <div className="grid grid-cols-1 gap-10 md:px-10">
+                        <div className="grid grid-cols-1 gap-4 md:px-10 md:gap-10">
                             {work.media
                                 .sort((a: any, b: any) => a.order_index - b.order_index)
                                 .map((m: any, i: number) => (

@@ -1,9 +1,10 @@
 // src/app/contact/_components/description.tsx
-export default function Description() {
+export default function DescriptionSection() {
     return (
-        <p className="text-center text-lg text-neutral-700 dark:text-neutral-300">
-            Invisual Studio is located in Bandung, Indonesia, which is known as a
-            creative city. You can&apos;t go wrong if you work with us.
-        </p>
+        <section className="container mx-auto px-4">
+            <p className="text-xl md:text-3xl font-semibold leading-relaxed text-justify">
+                Invisual Studio is located in Bandung, Indonesia, which is known as a creative city. You cannot go wrong if you work with us.
+            </p>
+        </section>
     );
 }

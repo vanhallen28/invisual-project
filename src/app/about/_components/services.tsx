@@ -2,40 +2,55 @@
 
 export default function ServicesSection() {
     return (
-        <section>
-            <h2 className="text-3xl font-semibold mb-10 text-center">Services</h2>
-            <div className="grid md:grid-cols-3 gap-8 text-sm leading-relaxed">
-                <div>
-                    <h3 className="font-semibold mb-2">Branding</h3>
-                    <ul className="space-y-1 text-muted-foreground">
-                        <li>Brand Strategy</li>
-                        <li>Visual Identity</li>
-                        <li>Logo Design</li>
-                        <li>Brand Guidelines</li>
-                        <li>Naming</li>
-                        <li>Custom Font / Typography</li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 className="font-semibold mb-2">Graphic Design</h3>
-                    <ul className="space-y-1 text-muted-foreground">
-                        <li>Key Visual Development</li>
-                        <li>Packaging Design</li>
-                        <li>Poster / Layout Design</li>
-                        <li>Editorial Design</li>
-                        <li>Digital Collateral</li>
-                        <li>Social Media Visual</li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 className="font-semibold mb-2">Illustration</h3>
-                    <ul className="space-y-1 text-muted-foreground">
-                        <li>Character / Mascot Design</li>
-                        <li>Album & Book Covers</li>
-                        <li>Children’s Book</li>
-                        <li>Icon System</li>
-                        <li>Editorial Illustration</li>
-                    </ul>
+        <section className="container mx-auto px-4">
+            <h1 className="text-3xl font-bold text-primary mb-2 lg:text-4xl">
+                Services
+            </h1>
+            <div className="mb-8 h-1 w-[100px] rounded-full bg-primary"></div>
+            <div className="flex justify-between md:justify-center">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-8 md:gap-64 text-sm md:text-xl leading-relaxed">
+                    <div>
+                        <h2 className="font-semibold text-muted-foreground mb-2">BRANDING</h2>
+                        <ul className="space-y-1">
+                            <li>Brand Research</li>
+                            <li>Brand Plan</li>
+                            <li>Brand Strategy</li>
+                            <li>Brand Identity</li>
+                            <li>Brand Guideline</li>
+                            <li>Visual Development</li>
+                            <li>Logo Design</li>
+                            <li>Branding Kit</li>
+                            <li>Stationery Design</li>
+                            <li>Custom Font / Typography</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h2 className="font-semibold text-muted-foreground mb-2">GRAPHIC DESIGN</h2>
+                        <ul className="space-y-1">
+                            <li>Key Visual Development</li>
+                            <li>Environmental Design</li>
+                            <li>Company Profile</li>
+                            <li>Packaging Design</li>
+                            <li>Editorial Design</li>
+                            <li>Merchandise</li>
+                            <li>Social Media Design</li>
+                            <li>Promotional Design</li>
+                            <li>Presentation Design</li>
+                            <li>Web Development</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h2 className="font-semibold text-muted-foreground mb-2">ILLUSTRATION</h2>
+                        <ul className="space-y-1">
+                            <li>Character / Mascot Design</li>
+                            <li>Artwork Design</li>
+                            <li>Comic Strip</li>
+                            <li>Children’s Book</li>
+                            <li>Product Illustration</li>
+                            <li>Scene Environment</li>
+                            <li>Editorial Illustration</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </section>
