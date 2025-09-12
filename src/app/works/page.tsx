@@ -7,6 +7,7 @@ import { getWorks } from "@/services/works";
 import { getScopes } from "@/services/scopes";
 import { getIndustries } from "@/services/industries";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 import {
     Select,
@@ -229,11 +230,23 @@ export default function WorksPage() {
                         ) : filteredWorks.length === 0 ? (
                             <p className="text-center justify-center text-neutral-500 py-12">No works found.</p>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2">
+                            <motion.div
+                                key={`${selectedScope}-${selectedIndustry}-${selectedSort}`} // supaya re-animate pas filter/sort berubah
+                                initial="hidden"
+                                animate="visible"
+                                variants={{
+                                    hidden: { opacity: 0 },
+                                    visible: {
+                                        opacity: 1,
+                                        transition: { staggerChildren: 0.1 }, // animasi berurutan
+                                    },
+                                }}
+                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2"
+                            >
                                 {filteredWorks.map((work) => (
                                     <WorkCard key={work.id} work={work} />
                                 ))}
-                            </div>
+                            </motion.div>
                         )}
                     </ScrollArea>
                 </div>
@@ -277,26 +290,39 @@ function WorkCard({ work }: { work: Work }) {
     const industryName = work.industry?.name ?? work.client?.industry?.name ?? "General";
 
     return (
-        <Link href={`/works/${work.slug}`} className="group block overflow-hidden">
-            <div className="relative w-full aspect-video overflow-hidden rounded-md border border-transparent group-hover:border-primary transition-all duration-300">
-                <Image
-                    src={work.cover_url || "/placeholder.png"}
-                    alt={work.title}
-                    fill
-                    sizes="(max-width: 640px) 100vw,
-            (max-width: 1024px) 50vw,
-            33vw"
-                    className="object-cover group-hover:scale-110 transition-transform duration-300"
-                    loading="lazy"
-                />
-            </div>
-            <div className="mt-2 px-1">
-                <p className="text-xl font-semibold text-foreground transition-colors duration-300 group-hover:text-primary">{work.title}</p>
-                <p className="text-sm">
-                    {work.scope?.name || "Uncategorized"} • {industryName}
-                </p>
-            </div>
-        </Link>
+        <motion.div
+            variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 },
+            }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+        >
+            <Link href={`/works/${work.slug}`} className="group block overflow-hidden">
+                <div className="relative w-full aspect-video overflow-hidden rounded-md border border-transparent group-hover:border-primary transition-all duration-300">
+                    <Image
+                        src={work.cover_url || "/placeholder.png"}
+                        alt={work.title}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        loading="lazy"
+                    />
+
+                    {/* Overlay CTA */}
+                    <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <span className="text-white text-md tracking-wide">View Work →</span>
+                    </div>
+                </div>
+                <div className="mt-2 px-1">
+                    <p className="text-xl font-semibold text-foreground transition-colors duration-300 group-hover:text-primary">
+                        {work.title}
+                    </p>
+                    <p className="text-sm">
+                        {work.scope?.name || "Uncategorized"} • {industryName}
+                    </p>
+                </div>
+            </Link>
+        </motion.div>
     );
 }
 

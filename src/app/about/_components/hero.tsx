@@ -5,15 +5,15 @@ import Image from "next/image";
 export default function HeroSection() {
     return (
         <section className="container mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-4 md:gap-6 items-start">
-                <div className="relative w-full h-[400px] md:h-[600px]">
+            <div className="grid gap-4 md:gap-16 items-start">
+                <div className="relative w-full bg-background">
                     <Image
                         src="https://res.cloudinary.com/akrkmnd/image/upload/v1757572949/YYW09124_yh0qyf.avif"
                         alt="Studio Activity"
-                        fill
-                        sizes="(max-width: 768px) 100vw, (min-width: 769px) 50vw"
-                        className="object-cover"
+                        width={1920}
+                        height={1080}
                         priority
+                        className="w-full h-auto object-cover"
                     />
                 </div>
                 <div className="max-w-7xl mx-auto text-justify">
@@ -22,8 +22,6 @@ export default function HeroSection() {
                         and makers who bring different perspectives to the table. From
                         design and development to writing, strategy, and storytelling, our
                         backgrounds are diverse, but our passion is shared.
-                        <br />
-                        <br />
                         For us, work is more than tasks, it’s about creating impact, solving
                         problems, and enjoying the process together as a close-knit team.
                     </p>
