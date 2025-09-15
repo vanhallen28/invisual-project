@@ -5,13 +5,12 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import Header from "@/components/layout/header";
 import FooterWrapper from "@/components/layout/footer-wrapper";
 
-<meta name="apple-mobile-web-app-title" content="Invisual" />
 const assistant = Assistant({
     subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-    title: "Invisual",
+    title: "Invisual Studio",
     description: "Company Portfolio",
 };
 
