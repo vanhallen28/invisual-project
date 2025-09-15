@@ -3,9 +3,9 @@ import { Assistant } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import Header from "@/components/layout/header";
-import Footer from "@/components/layout/footer";
 import FooterWrapper from "@/components/layout/footer-wrapper";
 
+<meta name="apple-mobile-web-app-title" content="Invisual" />
 const assistant = Assistant({
     subsets: ["latin"],
 });
