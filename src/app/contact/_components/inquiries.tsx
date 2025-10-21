@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function InquiriesSection() {
     return (
-        <section className="container mx-auto px-4">
+        <section className="px-4 md:px-8">
             {/* Baris Head Office + alamat + kosong */}
             <div className="text-sm md:text-xl grid grid-cols-2 md:grid-cols-3 md:gap-8 items-start text-justify leading-relaxed">
                 {/* Kolom 1 */}

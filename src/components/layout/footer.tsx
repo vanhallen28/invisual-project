@@ -7,7 +7,7 @@ import { ConnectLinks, ContactLinks } from "@/configs/links";
 
 export default function Footer() {
     return (
-        <footer className="container mx-auto mt-16 bg-neutral-800 text-white dark:bg-primary">
+        <footer className="mt-16 bg-neutral-800 text-white dark:bg-primary">
             <div className="flex flex-col gap-12 px-4 py-6 md:flex-row md:px-7 md:py-7">
                 {/* Kolom kiri (teks + toggle di mobile) */}
                 <div className="flex w-full flex-col md:w-1/2">

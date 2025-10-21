@@ -4,11 +4,11 @@ import Image from "next/image";
 
 export default function HeroSection() {
     return (
-        <section className="container mx-auto px-4">
+        <section className="px-4 md:px-8">
             <div className="grid gap-4 md:gap-16 items-start">
                 <div className="relative w-full bg-background">
                     <Image
-                        src="https://res.cloudinary.com/akrkmnd/image/upload/v1757572949/YYW09124_yh0qyf.avif"
+                        src="https://res.cloudinary.com/akrkmnd/image/upload/v1760670141/lp7bvtmifdoqjfqimcrg_w33ksu.avif"
                         alt="Studio Activity"
                         width={1920}
                         height={1080}
@@ -16,7 +16,7 @@ export default function HeroSection() {
                         className="w-full h-auto object-cover"
                     />
                 </div>
-                <div className="max-w-7xl mx-auto text-justify">
+                <div className="mx-auto text-justify">
                     <p className="text-lg md:text-3xl leading-relaxed font-light">
                         We are a multidisciplinary team made up of creatives, strategists,
                         and makers who bring different perspectives to the table. From

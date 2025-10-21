@@ -2,12 +2,11 @@
 
 export default function ServicesSection() {
     return (
-        <section className="container mx-auto px-4">
+        <section className="px-4 md:px-8">
             <h1 className="text-3xl font-bold text-primary mb-2 lg:text-4xl">
                 Services
             </h1>
             <div className="mb-8 h-1 w-[100px] rounded-full bg-primary"></div>
-            <div className="flex justify-between md:justify-center">
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-8 md:gap-64 text-sm md:text-xl leading-relaxed">
                     <div>
                         <h2 className="font-semibold text-muted-foreground mb-4">BRANDING</h2>
@@ -52,7 +51,6 @@ export default function ServicesSection() {
                         </ul>
                     </div>
                 </div>
-            </div>
         </section>
     );
 }

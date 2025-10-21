@@ -54,7 +54,7 @@ export default function Navbar() {
         ${hasScrolled ? "shadow-md dark:shadow-[0_4px_6px_-1px_#0457ff]" : "shadow-none"}
       `}
         >
-            <nav className="container flex h-14 items-center justify-between rounded-2xl px-4 backdrop:filter transition-all sm:mx-auto">
+            <nav className="flex h-14 items-center justify-between rounded-2xl px-4 sm:px-8 md:px-8 backdrop:filter transition-all sm:mx-auto">
                 {/* Logo */}
                 <Link href="/" className="flex items-center">
                     <div className="relative w-[110px] h-[34px]">
@@ -98,9 +98,16 @@ export default function Navbar() {
                         </NavigationMenuList>
                     </NavigationMenu>
                 </div>
-
+                <button
+                    className="lg:hidden rounded-md border-none cursor-pointer"
+                    onClick={() => setOpen(true)}
+                    aria-label="Open menu"
+                >
+                    <Menu className="h-7 w-7" />
+                </button>
+   
                 {/* Connect Links + Mobile */}
-                <div className="flex items-center gap-7">
+                {/* <div className="flex items-center gap-7">
                     <div className="hidden lg:flex gap-7">
                         {ConnectLinks.map((item) => (
                             <Link
@@ -122,7 +129,7 @@ export default function Navbar() {
                     >
                         <Menu className="h-7 w-7" />
                     </button>
-                </div>
+                </div> */}
             </nav>
 
             <Sidebar open={open} setOpen={setOpen} />

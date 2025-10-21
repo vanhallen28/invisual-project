@@ -120,7 +120,7 @@ export default function WorkDetailPage() {
             )}
 
             {/* Title + Year */}
-            <section className="container mx-auto px-4 py-4 md:px-14 border-b-2">
+            <section className="px-4 py-4 md:px-14 border-b-2">
                 <div className="flex items-center justify-between">
                     <h1 className="text-3xl md:text-4xl font-bold">{work.title}</h1>
                     {work.created_at && (
@@ -132,7 +132,7 @@ export default function WorkDetailPage() {
             </section>
 
             {/* Content */}
-            <section className="container mx-auto px-4 py-4 space-y-8">
+            <section className="px-4 py-4 space-y-8">
                 {/* 3 Columns */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:px-10">
                     {/* Column 1: Scope & Industry */}

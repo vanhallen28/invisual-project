@@ -158,7 +158,7 @@ export default function WorksPage() {
     // Render
     // --------------------
     return (
-        <section className="container mx-auto px-4 lg:px-4">
+        <section className="px-4 md:px-8">
             {/* Mobile Dropdown Filters */}
             <div className="flex flex-col gap-4 mb-6 lg:hidden">
                 {loading ? (

@@ -7,7 +7,7 @@ import { DarkmodeToggle } from "@/components/common/darkmode-toggle";
 
 export default function FooterSection() {
     return (
-        <footer className="container mx-auto bg-neutral-800 text-white dark:bg-primary">
+        <footer className="bg-neutral-800 text-white dark:bg-primary">
             {/* Bottom area */}
             <div className="flex flex-col-reverse items-center justify-center gap-4 border-t border-white/30 px-7 py-2 md:flex-row md:justify-between">
                 {/* Logo + copyright */}

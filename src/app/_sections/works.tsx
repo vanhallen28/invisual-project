@@ -19,7 +19,7 @@ export default function WorksSection() {
     }, []);
 
     return (
-        <section className="container mx-auto px-4">
+        <section className="px-4 md:px-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
                 {works.map((work, i) => (
                     <motion.div
@@ -45,7 +45,7 @@ export default function WorksSection() {
                                 {/* Overlay muncul saat hover */}
                                 <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
                                     <span className="text-white text-lg tracking-wide">
-                                        View Project →
+                                        View Work →
                                     </span>
                                 </div>
                             </div>
