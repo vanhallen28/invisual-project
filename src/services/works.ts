@@ -1,5 +1,5 @@
 // src/services/works.ts
-import { supabase } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 
 // =============================
 // Types
@@ -91,8 +91,9 @@ function normalizeWork(row: any): Work {
 // Get list of works
 // =============================
 export async function getWorks(): Promise<Work[]> {
-  const { data, error } = await supabase
-    .from("works")
+  const supabase = createClient();
+  const { data, error } = await
+   supabase.from("works")
     .select(`
       id,
       title,
@@ -123,6 +124,7 @@ export async function getWorks(): Promise<Work[]> {
 // Get work by slug
 // =============================
 export async function getWorkBySlug(slug: string): Promise<Work | null> {
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("works")
     .select(`

@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 
 // =============================
 // Types
@@ -12,6 +12,7 @@ export interface Scope {
 // Get scopes
 // =============================
 export async function getScopes(): Promise<Scope[]> {
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("scopes")
     .select("id, name")
