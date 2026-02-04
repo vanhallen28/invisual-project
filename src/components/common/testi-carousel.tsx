@@ -36,6 +36,11 @@ const testimonials = [
         role: "CMO at Svara",
         quote: "Highly recommend! They're not just designers, they’re thinkers. Our growth was backed by great visuals.",
     },
+    {
+        name: "Lisa.",
+        role: "CMO at Svara",
+        quote: "Highly recommend! They're not just designers, they’re thinkers. Our growth was backed by great visuals.",
+    },
 ]
 
 export function TestimonialCarousel() {
