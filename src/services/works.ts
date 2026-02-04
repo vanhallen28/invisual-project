@@ -20,27 +20,6 @@ export interface Client {
   industry?: Industry;
 }
 
-export interface Specialization {
-  id: number;
-  name: string;
-  description?: string;
-}
-
-export interface Profile {
-  id: string;
-  name: string;
-  role: string;
-  avatar_url?: string;
-}
-
-export interface WorkAssignment {
-  id: number;
-  specialization: Specialization;
-  profile?: Profile;
-  status: string;
-  link_url?: string;
-}
-
 export interface MediaItem {
   type: string;
   url: string;
@@ -53,15 +32,13 @@ export interface Work {
   title: string;
   slug: string;
   description?: string;
-  cover_url?: string; // untuk listing
+  cover_url?: string;
   created_at?: string;
   industry?: Industry;
   scope?: Scope;
   client?: Client;
-  specializations: Specialization[];
-  assignments: WorkAssignment[];
-  hero?: MediaItem; // hero untuk detail
-  media: MediaItem[]; // gallery
+  hero?: MediaItem;
+  media: MediaItem[];
 }
 
 // =============================
@@ -78,7 +55,9 @@ function normalizeWork(r: any): Work {
     industry: r.industry
       ? { id: Number(r.industry.id), name: r.industry.name }
       : undefined,
-    scope: r.scope ? { id: Number(r.scope.id), name: r.scope.name } : undefined,
+    scope: r.scope
+      ? { id: Number(r.scope.id), name: r.scope.name }
+      : undefined,
     client: r.client
       ? {
           id: Number(r.client.id),
@@ -92,43 +71,20 @@ function normalizeWork(r: any): Work {
             : undefined,
         }
       : undefined,
-    specializations: (r.specializations || []).map((ws: any) => ({
-      id: Number(ws.specialization.id),
-      name: ws.specialization.name,
-      description: ws.specialization.description,
-    })),
-    assignments: (r.assignments || []).map((a: any) => ({
-      id: Number(a.id),
-      specialization: {
-        id: Number(a.specialization.id),
-        name: a.specialization.name,
-      },
-      profile: a.profile
-        ? {
-            id: a.profile.id,
-            name: a.profile.name,
-            role: a.profile.role,
-            avatar_url: a.profile.avatar_url ?? undefined,
-          }
-        : undefined,
-      status: a.status,
-      link_url: a.link_url ?? undefined,
-    })),
     hero: r.work_media?.hero ?? undefined,
     media: r.work_media?.media ?? [],
   };
 }
 
 // =============================
-// Get list of works (untuk listing)
+// Get list of works
 // =============================
 export async function getWorks(): Promise<Work[]> {
   const supabase = createClient();
 
   const { data, error } = await supabase
     .from("works")
-    .select(
-      `
+    .select(`
       id,
       title,
       slug,
@@ -141,34 +97,27 @@ export async function getWorks(): Promise<Work[]> {
         logo_url,
         industry:industries ( id, name )
       )
-    `
-    )
-    .order("id", { ascending: true });
+    `)
+    .order("created_at", { ascending: true });
 
   if (error) {
     console.error("Error fetching works:", error.message);
     return [];
   }
 
-  return (data || []).map(normalizeWork);
+  return (data ?? []).map(normalizeWork);
 }
 
 // =============================
-// Get Work by Slug (untuk detail)
+// Get Work by Slug
 // =============================
 export async function getWorkBySlug(slug: string): Promise<Work | null> {
   const supabase = createClient();
 
   const { data, error } = await supabase
     .from("works")
-    .select(
-      `
-      id,
-      title,
-      slug,
-      description,
-      cover_url,
-      created_at,
+    .select(`
+      *,
       industry:industries ( id, name ),
       scope:scopes ( id, name ),
       client:clients (
@@ -177,45 +126,20 @@ export async function getWorkBySlug(slug: string): Promise<Work | null> {
         logo_url,
         industry:industries ( id, name )
       ),
-      specializations:work_specializations (
-        specialization:specializations ( id, name, description )
-      ),
-      assignments:work_assignments (
-        id,
-        status,
-        link_url,
-        specialization:specializations ( id, name ),
-        profile:profiles ( id, name, role, avatar_url )
-      ),
-      work_media (
-        hero,
-        media
-      )
-    `
-    )
+      work_media ( hero, media )
+    `)
     .eq("slug", slug)
     .single();
 
   if (error) {
-    console.error("Error fetching work by slug:", error.message);
+    console.error(error.message);
     return null;
   }
 
-  // ambil row pertama dari work_media array
   const wm = data?.work_media?.[0] ?? null;
 
-  const parsed = data
-    ? {
-        ...data,
-        work_media: wm
-          ? {
-              hero: wm.hero,
-              media: wm.media,
-            }
-          : { hero: null, media: [] },
-      }
-    : null;
-
-  return parsed ? normalizeWork(parsed) : null;
+  return normalizeWork({
+    ...data,
+    work_media: wm ?? { hero: null, media: [] },
+  });
 }
-
