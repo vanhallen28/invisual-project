@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/client";
+// src/services/works.ts
+import { supabase } from "@/lib/supabase/client";
 
 // =============================
 // Types
@@ -37,42 +38,52 @@ export interface Work {
   industry?: Industry;
   scope?: Scope;
   client?: Client;
-  hero?: MediaItem;
+  hero?: MediaItem | null;
   media: MediaItem[];
 }
 
 // =============================
 // Normalizer
 // =============================
-function normalizeWork(r: any): Work {
+function normalizeWork(row: any): Work {
   return {
-    id: Number(r.id),
-    title: r.title,
-    slug: r.slug,
-    description: r.description ?? undefined,
-    cover_url: r.cover_url ?? undefined,
-    created_at: r.created_at ?? undefined,
-    industry: r.industry
-      ? { id: Number(r.industry.id), name: r.industry.name }
-      : undefined,
-    scope: r.scope
-      ? { id: Number(r.scope.id), name: r.scope.name }
-      : undefined,
-    client: r.client
+    id: Number(row.id),
+    title: row.title,
+    slug: row.slug,
+    description: row.description ?? undefined,
+    cover_url: row.cover_url ?? undefined,
+    created_at: row.created_at ?? undefined,
+
+    industry: row.industry
       ? {
-          id: Number(r.client.id),
-          name: r.client.name,
-          logo_url: r.client.logo_url ?? undefined,
-          industry: r.client.industry
+          id: Number(row.industry.id),
+          name: row.industry.name,
+        }
+      : undefined,
+
+    scope: row.scope
+      ? {
+          id: Number(row.scope.id),
+          name: row.scope.name,
+        }
+      : undefined,
+
+    client: row.client
+      ? {
+          id: Number(row.client.id),
+          name: row.client.name,
+          logo_url: row.client.logo_url ?? undefined,
+          industry: row.client.industry
             ? {
-                id: Number(r.client.industry.id),
-                name: r.client.industry.name,
+                id: Number(row.client.industry.id),
+                name: row.client.industry.name,
               }
             : undefined,
         }
       : undefined,
-    hero: r.work_media?.hero ?? undefined,
-    media: r.work_media?.media ?? [],
+
+    hero: row.work_media?.hero ?? null,
+    media: row.work_media?.media ?? [],
   };
 }
 
@@ -80,15 +91,15 @@ function normalizeWork(r: any): Work {
 // Get list of works
 // =============================
 export async function getWorks(): Promise<Work[]> {
-  const supabase = createClient();
-
   const { data, error } = await supabase
     .from("works")
     .select(`
       id,
       title,
       slug,
+      description,
       cover_url,
+      created_at,
       industry:industries ( id, name ),
       scope:scopes ( id, name ),
       client:clients (
@@ -98,7 +109,7 @@ export async function getWorks(): Promise<Work[]> {
         industry:industries ( id, name )
       )
     `)
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: false });
 
   if (error) {
     console.error("Error fetching works:", error.message);
@@ -109,11 +120,9 @@ export async function getWorks(): Promise<Work[]> {
 }
 
 // =============================
-// Get Work by Slug
+// Get work by slug
 // =============================
 export async function getWorkBySlug(slug: string): Promise<Work | null> {
-  const supabase = createClient();
-
   const { data, error } = await supabase
     .from("works")
     .select(`
@@ -131,15 +140,15 @@ export async function getWorkBySlug(slug: string): Promise<Work | null> {
     .eq("slug", slug)
     .single();
 
-  if (error) {
-    console.error(error.message);
+  if (error || !data) {
+    console.error("Error fetching work by slug:", error?.message);
     return null;
   }
 
-  const wm = data?.work_media?.[0] ?? null;
+  const workMedia = data.work_media?.[0] ?? null;
 
   return normalizeWork({
     ...data,
-    work_media: wm ?? { hero: null, media: [] },
+    work_media: workMedia ?? { hero: null, media: [] },
   });
 }

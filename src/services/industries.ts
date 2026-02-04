@@ -1,8 +1,17 @@
-import { createClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 
-export async function getIndustries() {
-  const supabase = createClient();
+// =============================
+// Types
+// =============================
+export interface Industry {
+  id: number;
+  name: string;
+}
 
+// =============================
+// Get industries
+// =============================
+export async function getIndustries(): Promise<Industry[]> {
   const { data, error } = await supabase
     .from("industries")
     .select("id, name")
@@ -13,5 +22,10 @@ export async function getIndustries() {
     return [];
   }
 
-  return data || [];
+  return (
+    data?.map((item) => ({
+      id: Number(item.id),
+      name: item.name,
+    })) ?? []
+  );
 }

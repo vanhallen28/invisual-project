@@ -1,18 +1,14 @@
-import { createClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 
 export async function getClients() {
-  const supabase = createClient();
-
   const { data, error } = await supabase
     .from("clients")
-    .select(
-      `
+    .select(`
       id,
       name,
       logo_url,
       industry:industries ( id, name )
-    `
-    )
+    `)
     .order("name", { ascending: true });
 
   if (error) {
