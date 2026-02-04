@@ -50,11 +50,11 @@ export default function Footer() {
                             <Link
                                 target="_blank"
                                 className="text-neutral-300 hover:underline underline-offset-4"
-                                href="https://maps.app.goo.gl/EZb1N7KCEMsMKMDc8"
+                                href="https://maps.app.goo.gl/JWWyRCD4Y2AmDobQ9"
                             >
-                                <p>Jl. Malangbong Raya Blok C10,</p>
-                                <p>Antapani Wetan, Antapani,</p>
-                                <p>Bandung City, West Java 40291</p>
+                                <p>Jl. Golf Bar. XVII No.8, ,</p>
+                                <p>Sukamiskin, Kec. Arcamanik,</p>
+                                <p>Kota Bandung, Jawa Barat 40293</p>
                             </Link>
                         </div>
                     </div>
