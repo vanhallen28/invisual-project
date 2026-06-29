@@ -35,6 +35,7 @@ export interface Work {
   description?: string;
   cover_url?: string;
   created_at?: string;
+  featured?: boolean;
   industry?: Industry;
   scope?: Scope;
   client?: Client;
@@ -53,6 +54,7 @@ function normalizeWork(row: any): Work {
     description: row.description ?? undefined,
     cover_url: row.cover_url ?? undefined,
     created_at: row.created_at ?? undefined,
+    featured: row.featured ?? false,
 
     industry: row.industry
       ? {
@@ -101,6 +103,7 @@ export async function getWorks(): Promise<Work[]> {
       description,
       cover_url,
       created_at,
+      featured,
       industry:industries ( id, name ),
       scope:scopes ( id, name ),
       client:clients (

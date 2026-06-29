@@ -12,8 +12,10 @@ export default function WorksSection() {
     useEffect(() => {
         const fetchData = async () => {
             const data = await getWorks();
-            const latestSix = data.slice(-6).reverse();
-            setWorks(latestSix);
+            // Hanya karya yang ditandai "Tampil di home" lewat /admin.
+            // getWorks() sudah urut terbaru-dulu, jadi yang terbaru di depan.
+            const featured = data.filter((work) => work.featured);
+            setWorks(featured);
         };
         fetchData();
     }, []);

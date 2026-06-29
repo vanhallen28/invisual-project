@@ -1,56 +1,39 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { getServiceCategories, type ServiceCategory } from "@/services/about";
+
 export default function ServicesSection() {
+    const [categories, setCategories] = useState<ServiceCategory[]>([]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const data = await getServiceCategories();
+            setCategories(data);
+        };
+        fetchData();
+    }, []);
+
     return (
         <section className="px-4 md:px-8">
             <h1 className="text-3xl font-bold text-primary mb-2 lg:text-4xl">
                 Services
             </h1>
             <div className="mb-8 h-1 w-[100px] rounded-full bg-primary"></div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-8 md:gap-64 text-sm md:text-xl leading-relaxed">
-                    <div>
-                        <h2 className="font-semibold text-muted-foreground mb-4">BRANDING</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-8 md:gap-64 text-sm md:text-xl leading-relaxed">
+                {categories.map((cat) => (
+                    <div key={cat.id}>
+                        <h2 className="font-semibold text-muted-foreground mb-4">
+                            {cat.name}
+                        </h2>
                         <ul>
-                            <li>Brand Research</li>
-                            <li>Brand Plan</li>
-                            <li>Brand Strategy</li>
-                            <li>Brand Identity</li>
-                            <li>Brand Guideline</li>
-                            <li>Visual Development</li>
-                            <li>Logo Design</li>
-                            <li>Branding Kit</li>
-                            <li>Stationery Design</li>
-                            <li>Custom Font / Typography</li>
+                            {cat.items.map((item, i) => (
+                                <li key={i}>{item}</li>
+                            ))}
                         </ul>
                     </div>
-                    <div>
-                        <h2 className="font-semibold text-muted-foreground mb-4">GRAPHIC DESIGN</h2>
-                        <ul>
-                            <li>Key Visual Development</li>
-                            <li>Environmental Design</li>
-                            <li>Company Profile</li>
-                            <li>Packaging Design</li>
-                            <li>Editorial Design</li>
-                            <li>Merchandise</li>
-                            <li>Social Media Design</li>
-                            <li>Promotional Design</li>
-                            <li>Presentation Design</li>
-                            <li>Web Development</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h2 className="font-semibold text-muted-foreground mb-4">ILLUSTRATION</h2>
-                        <ul>
-                            <li>Character / Mascot Design</li>
-                            <li>Artwork Design</li>
-                            <li>Comic Strip</li>
-                            <li>Children’s Book</li>
-                            <li>Product Illustration</li>
-                            <li>Scene Environment</li>
-                            <li>Editorial Illustration</li>
-                        </ul>
-                    </div>
-                </div>
+                ))}
+            </div>
         </section>
     );
 }

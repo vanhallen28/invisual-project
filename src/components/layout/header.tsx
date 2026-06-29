@@ -22,6 +22,7 @@ export default function Navbar() {
     const [hasScrolled, setHasScrolled] = useState(false);
 
     const pathname = usePathname();
+    const isAdminRoute = pathname?.startsWith("/admin") ?? false;
     const [mounted, setMounted] = useState(false);
 
     const { theme } = useTheme();
@@ -33,7 +34,7 @@ export default function Navbar() {
     useEffect(() => {
         const handleScroll = () => {
             const currentScrollY = window.scrollY;
-            if (currentScrollY > lastScrollY && currentScrollY > 80) {
+            if (!isAdminRoute && currentScrollY > lastScrollY && currentScrollY > 80) {
                 setShow(false);
             } else {
                 setShow(true);
@@ -43,7 +44,7 @@ export default function Navbar() {
         };
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
-    }, [lastScrollY]);
+    }, [lastScrollY, isAdminRoute]);
 
     if (!mounted) return null;
 
@@ -68,8 +69,14 @@ export default function Navbar() {
                     </div>
                 </Link>
 
-                {/* Desktop Nav */}
-                <div className="hidden lg:block">
+                {/* Desktop Nav + Client Portal */}
+                <div className="hidden lg:flex items-center gap-4">
+                    <a
+                        href="https://portal.invisual.studio"
+                        className="inline-flex items-center rounded-full bg-[#0457ff] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#0344cc]"
+                    >
+                        Client Portal
+                    </a>
                     <NavigationMenu>
                         <NavigationMenuList className="flex gap-10">
                             {NavLinks.map((item) => {
