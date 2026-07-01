@@ -89,6 +89,7 @@ export type CreateWorkInput = {
   industry?: { id?: number; name?: string };
   scope?: { id?: number; name?: string };
   client?: { id?: number; name?: string; logoUrl?: string };
+  details?: { label: string; value: string }[];
   hero?: { type: MediaType; url: string; caption?: string } | null;
   media: MediaItemInput[];
 };
@@ -149,6 +150,7 @@ export async function createWork(
         industry_id,
         scope_id,
         client_id,
+        details: input.details ?? [],
       })
       .select("id, slug")
       .single();
@@ -212,6 +214,7 @@ export async function updateWork(
         industry_id,
         scope_id,
         client_id,
+        details: input.details ?? [],
       })
       .eq("id", id)
       .select("id, slug")

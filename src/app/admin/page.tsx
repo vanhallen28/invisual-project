@@ -18,6 +18,7 @@ type WorkRow = {
   scope_id: number | null;
   client_id: number | null;
   featured: boolean | null;
+  details: unknown | null;
   work_media?: { hero: unknown; media: unknown }[] | null;
 };
 
@@ -30,7 +31,7 @@ export default async function AdminPage() {
       supabase
         .from("works")
         .select(
-          "id, title, slug, description, cover_url, industry_id, scope_id, client_id, featured, work_media ( hero, media )"
+          "id, title, slug, description, cover_url, industry_id, scope_id, client_id, featured, details, work_media ( hero, media )"
         )
         .order("created_at", { ascending: false }),
       supabase
@@ -69,6 +70,9 @@ export default async function AdminPage() {
     scope_id: w.scope_id,
     client_id: w.client_id,
     featured: w.featured ?? false,
+    details: Array.isArray(w.details)
+      ? (w.details as { label: string; value: string }[])
+      : [],
     hero: (w.work_media?.[0]?.hero as never) ?? null,
     media: (w.work_media?.[0]?.media as never) ?? [],
   }));

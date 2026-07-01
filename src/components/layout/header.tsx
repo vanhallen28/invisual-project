@@ -73,6 +73,8 @@ export default function Navbar() {
                 <div className="hidden lg:flex items-center gap-4">
                     <a
                         href="https://portal.invisual.studio"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="inline-flex items-center rounded-full bg-[#0457ff] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#0344cc]"
                     >
                         Client Portal

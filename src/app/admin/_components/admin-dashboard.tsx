@@ -66,8 +66,6 @@ export function AdminDashboard({
   const [togglingId, setTogglingId] = useState<number | null>(null);
   const [query, setQuery] = useState("");
 
-  const clientOptions: Option[] = clients.map((c) => ({ id: c.id, name: c.name }));
-
   function savedAndClose() {
     setForm(null);
     router.refresh();
@@ -169,7 +167,6 @@ export function AdminDashboard({
           <WorkForm
             industries={industries}
             scopes={scopes}
-            clients={clientOptions}
             initial={form.mode === "edit" ? (form.item as WorkInitial) : null}
             onSaved={savedAndClose}
             onCancel={() => setForm(null)}

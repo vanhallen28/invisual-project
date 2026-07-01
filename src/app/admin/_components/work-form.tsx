@@ -1,7 +1,7 @@
 "use client";
 // src/app/admin/_components/work-form.tsx
 import { useMemo, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus, Trash2 } from "lucide-react";
 import { type CloudinaryUploadResult, type MediaType } from "@/lib/cloudinary";
 import {
   inputClass,
@@ -33,6 +33,7 @@ export type WorkInitial = {
   industry_id?: number | null;
   scope_id?: number | null;
   client_id?: number | null;
+  details?: { label: string; value: string }[] | null;
   hero?: { type: MediaType; url: string; caption?: string } | null;
   media?: MediaItem[] | null;
 };
@@ -48,14 +49,12 @@ function slugify(input: string): string {
 export function WorkForm({
   industries,
   scopes,
-  clients,
   initial,
   onSaved,
   onCancel,
 }: {
   industries: Option[];
   scopes: Option[];
-  clients: Option[];
   initial?: WorkInitial | null;
   onSaved: () => void;
   onCancel: () => void;
@@ -75,11 +74,9 @@ export function WorkForm({
     initial?.scope_id ? String(initial.scope_id) : ""
   );
   const [scopeNew, setScopeNew] = useState("");
-  const [clientSel, setClientSel] = useState(
-    initial?.client_id ? String(initial.client_id) : ""
+  const [details, setDetails] = useState<{ label: string; value: string }[]>(
+    initial?.details ?? []
   );
-  const [clientNew, setClientNew] = useState("");
-  const [clientLogo, setClientLogo] = useState<CloudinaryUploadResult | null>(null);
 
   const [cover, setCover] = useState<CloudinaryUploadResult | null>(
     initial?.cover_url
@@ -135,12 +132,10 @@ export function WorkForm({
           : scopeSel
           ? { id: Number(scopeSel) }
           : undefined,
-      client:
-        clientSel === NEW
-          ? { name: clientNew, logoUrl: clientLogo?.url }
-          : clientSel
-          ? { id: Number(clientSel) }
-          : undefined,
+      client: initial?.client_id ? { id: initial.client_id } : undefined,
+      details: details
+        .map((d) => ({ label: d.label.trim(), value: d.value.trim() }))
+        .filter((d) => d.label || d.value),
       hero: hero
         ? { type: hero.type, url: hero.url, caption: hero.caption || undefined }
         : null,
@@ -232,24 +227,58 @@ export function WorkForm({
           newValue={scopeNew}
           onNewValue={setScopeNew}
         />
-        <div className="space-y-2">
-          <SelectOrNew
-            label="Client"
-            options={clients}
-            value={clientSel}
-            onValue={setClientSel}
-            newValue={clientNew}
-            onNewValue={setClientNew}
-          />
-          {clientSel === NEW ? (
-            <SinglePicker
-              label="Logo client (opsional)"
-              accept="image/*"
-              value={clientLogo}
-              onChange={setClientLogo}
-            />
-          ) : null}
-        </div>
+        <Field
+          label="Detail proyek"
+          hint="Kolom bebas — isi judul kolom (mis. Art Director) dan isinya (mis. Tryan Permana). Tambah baris sebanyak yang diperlukan; tampil di halaman detail proyek."
+        >
+          <div className="space-y-2">
+            {details.map((row, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <input
+                  value={row.label}
+                  onChange={(e) =>
+                    setDetails((d) =>
+                      d.map((r, idx) =>
+                        idx === i ? { ...r, label: e.target.value } : r
+                      )
+                    )
+                  }
+                  placeholder="Judul kolom (mis. Art Director)"
+                  className={inputClass}
+                />
+                <input
+                  value={row.value}
+                  onChange={(e) =>
+                    setDetails((d) =>
+                      d.map((r, idx) =>
+                        idx === i ? { ...r, value: e.target.value } : r
+                      )
+                    )
+                  }
+                  placeholder="Isi (mis. Tryan Permana)"
+                  className={inputClass}
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDetails((d) => d.filter((_, idx) => idx !== i))
+                  }
+                  className="shrink-0 rounded-md border border-red-500/40 p-2 text-red-500 transition-colors hover:bg-red-500/10"
+                  aria-label="Hapus baris"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setDetails((d) => [...d, { label: "", value: "" }])}
+              className={btnGhost}
+            >
+              <Plus className="h-4 w-4" /> Tambah baris
+            </button>
+          </div>
+        </Field>
       </section>
 
       {/* Media */}

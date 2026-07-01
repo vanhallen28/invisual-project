@@ -36,6 +36,7 @@ export interface Work {
   cover_url?: string;
   created_at?: string;
   featured?: boolean;
+  details?: { label: string; value: string }[];
   industry?: Industry;
   scope?: Scope;
   client?: Client;
@@ -55,6 +56,7 @@ function normalizeWork(row: any): Work {
     cover_url: row.cover_url ?? undefined,
     created_at: row.created_at ?? undefined,
     featured: row.featured ?? false,
+    details: Array.isArray(row.details) ? row.details : [],
 
     industry: row.industry
       ? {

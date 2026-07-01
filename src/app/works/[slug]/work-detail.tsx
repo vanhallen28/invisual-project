@@ -3,12 +3,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
-import { getWorkBySlug } from "@/services/works";
+import Link from "next/link";
+import { getWorkBySlug, getWorks, type Work } from "@/services/works";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
 export function WorkDetail() {
     const params = useParams<{ slug: string }>();
     const [work, setWork] = useState<any | null>(null);
+    const [others, setOthers] = useState<Work[]>([]);
     const [loading, setLoading] = useState(true);
 
     // lightbox
@@ -22,8 +24,12 @@ export function WorkDetail() {
     useEffect(() => {
         const fetchWork = async () => {
             if (!params?.slug) return;
-            const data = await getWorkBySlug(params.slug);
+            const [data, all] = await Promise.all([
+                getWorkBySlug(params.slug),
+                getWorks(),
+            ]);
             setWork(data);
+            setOthers(all.filter((w) => w.slug !== params.slug).slice(0, 3));
             setLoading(false);
         };
         fetchWork();
@@ -151,23 +157,21 @@ export function WorkDetail() {
                         )}
                     </div>
 
-                    {/* Column 2: Team */}
+                    {/* Column 2: Detail proyek (kolom custom) */}
                     <div className="space-y-4">
-                        {work.assignments?.length > 0 && (
-                            <div>
-                                <p className="font-medium text-muted-foreground">TEAM</p>
-                                <ul>
-                                    {work.assignments.map((a: any) => (
-                                        <li key={a.id} className="text-sm">
-                                            {a.profile?.name ?? "Unknown"}{" "}
-                                            <span className="text-muted-foreground">
-                                                ({a.specialization.name})
-                                            </span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
+                        {work.details?.length > 0 &&
+                            work.details.map(
+                                (d: { label: string; value: string }, i: number) => (
+                                    <div key={i}>
+                                        <p className="font-medium text-muted-foreground">
+                                            {d.label}
+                                        </p>
+                                        <p className="text-sm whitespace-pre-line">
+                                            {d.value}
+                                        </p>
+                                    </div>
+                                )
+                            )}
                     </div>
 
                     {/* Column 3: Description */}
@@ -192,6 +196,50 @@ export function WorkDetail() {
                 )}
             </section>
 
+            {/* More Works — preview project lain di atas footer */}
+            {others.length > 0 && (
+                <section className="px-4 md:px-14 py-12 mt-4 border-t">
+                    <div className="flex items-baseline justify-between mb-6">
+                        <h2 className="text-2xl md:text-3xl font-bold">More Works</h2>
+                        <Link
+                            href="/works"
+                            className="text-sm font-medium text-blue-600 hover:underline"
+                        >
+                            View all →
+                        </Link>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                        {others.map((w) => (
+                            <Link
+                                key={w.id}
+                                href={`/works/${w.slug}`}
+                                className="group block"
+                            >
+                                <div className="relative w-full aspect-[4/3] overflow-hidden rounded-md bg-muted">
+                                    {w.cover_url ? (
+                                        <Image
+                                            src={w.cover_url}
+                                            alt={w.title}
+                                            fill
+                                            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+                                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                        />
+                                    ) : null}
+                                </div>
+                                <div className="mt-3">
+                                    <p className="font-semibold">{w.title}</p>
+                                    {w.scope?.name ? (
+                                        <p className="text-sm text-muted-foreground">
+                                            {w.scope.name}
+                                        </p>
+                                    ) : null}
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </section>
+            )}
+
             {/* Lightbox */}
             {isOpen && (
                 <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
@@ -215,20 +263,27 @@ export function WorkDetail() {
                     </button>
 
                     <div className="relative w-full max-w-5xl aspect-[16/9]">
-                        {work.media[currentIndex].type === "image" ||
-                            work.media[currentIndex].type === "gif" ? (
-                            <Image
-                                src={work.media[currentIndex].url}
-                                alt={work.media[currentIndex].caption ?? ""}
-                                fill
-                                className="object-contain"
-                            />
-                        ) : (
+                        {work.media[currentIndex].type === "video" ? (
                             <video
                                 src={work.media[currentIndex].url}
                                 controls
                                 autoPlay
                                 className="w-full h-full object-contain"
+                            />
+                        ) : work.media[currentIndex].type === "gif" ? (
+                            // GIF: pakai <img> biasa agar animasi jalan
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                                src={work.media[currentIndex].url}
+                                alt={work.media[currentIndex].caption ?? ""}
+                                className="w-full h-full object-contain"
+                            />
+                        ) : (
+                            <Image
+                                src={work.media[currentIndex].url}
+                                alt={work.media[currentIndex].caption ?? ""}
+                                fill
+                                className="object-contain"
                             />
                         )}
                     </div>
@@ -249,7 +304,7 @@ function GalleryItem({
     const videoRef = useRef<HTMLVideoElement | null>(null);
 
     useEffect(() => {
-        if (media.type !== "video" && media.type !== "gif") return;
+        if (media.type !== "video") return;
         const video = videoRef.current;
         if (!video) return;
 
@@ -282,6 +337,14 @@ function GalleryItem({
                     alt={media.caption ?? ""}
                     fill
                     className="object-cover"
+                />
+            ) : media.type === "gif" ? (
+                // GIF: pakai <img> biasa agar animasi jalan & tidak diubah optimizer
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                    src={media.url}
+                    alt={media.caption ?? ""}
+                    className="w-full h-full object-cover"
                 />
             ) : (
                 <video
