@@ -5,12 +5,12 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { getWorkBySlug, getWorks, type Work } from "@/services/works";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 
 export function WorkDetail() {
     const params = useParams<{ slug: string }>();
     const [work, setWork] = useState<any | null>(null);
-    const [others, setOthers] = useState<Work[]>([]);
+    const [nextWork, setNextWork] = useState<Work | null>(null);
     const [loading, setLoading] = useState(true);
 
     // lightbox
@@ -29,7 +29,16 @@ export function WorkDetail() {
                 getWorks(),
             ]);
             setWork(data);
-            setOthers(all.filter((w) => w.slug !== params.slug).slice(0, 3));
+            if (all.length > 1) {
+                const idx = all.findIndex((w) => w.slug === params.slug);
+                const candidate =
+                    idx === -1 ? all[0] : all[(idx + 1) % all.length];
+                setNextWork(
+                    candidate.slug === params.slug ? null : candidate
+                );
+            } else {
+                setNextWork(null);
+            }
             setLoading(false);
         };
         fetchWork();
@@ -77,11 +86,11 @@ export function WorkDetail() {
 
         const words = work.description.split(" ");
         if (words.length <= descLimit) {
-            return <p className="text-justify">{work.description}</p>;
+            return <p className="text-left">{work.description}</p>;
         }
 
         return (
-            <div className="text-justify">
+            <div className="text-left">
                 <p>
                     {showFullDesc
                         ? work.description
@@ -99,9 +108,9 @@ export function WorkDetail() {
 
     return (
         <div className="w-full">
-            {/* Hero - biarkan aspect aslinya */}
+            {/* Hero - selebar konten & galeri (max-w-6xl), tanpa full-bleed */}
             {(work.hero?.url || work.cover_url) && (
-                <section className="relative w-full bg-black">
+                <section className="px-4 max-w-6xl mx-auto pt-4">
                     {work.hero?.type === "video" ? (
                         <video
                             src={work.hero.url}
@@ -125,8 +134,8 @@ export function WorkDetail() {
                 </section>
             )}
 
-            {/* Title + Year */}
-            <section className="px-4 py-4 md:px-14 border-b-2">
+            {/* Title + Year — sejajar dengan konten (deskripsi & scope) */}
+            <section className="px-4 py-4 border-b-2 max-w-6xl mx-auto">
                 <div className="flex items-center justify-between">
                     <h1 className="text-3xl md:text-4xl font-bold">{work.title}</h1>
                     {work.created_at && (
@@ -138,11 +147,14 @@ export function WorkDetail() {
             </section>
 
             {/* Content */}
-            <section className="px-4 py-4 space-y-8">
+            <section className="px-4 py-4 space-y-8 max-w-6xl mx-auto">
                 {/* 3 Columns */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:px-10">
-                    {/* Column 1: Scope & Industry */}
-                    <div className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+                    {/* Kiri: Deskripsi (rata kiri) */}
+                    <div>{renderDescription()}</div>
+
+                    {/* Kanan: Scope, Industry, Detail proyek (rata kanan) */}
+                    <div className="space-y-8 text-right">
                         {work.scope && (
                             <div>
                                 <p className="font-medium text-muted-foreground">SCOPE OF WORK</p>
@@ -155,10 +167,6 @@ export function WorkDetail() {
                                 <p className="text-sm">{work.industry.name}</p>
                             </div>
                         )}
-                    </div>
-
-                    {/* Column 2: Detail proyek (kolom custom) */}
-                    <div className="space-y-4">
                         {work.details?.length > 0 &&
                             work.details.map(
                                 (d: { label: string; value: string }, i: number) => (
@@ -173,15 +181,12 @@ export function WorkDetail() {
                                 )
                             )}
                     </div>
-
-                    {/* Column 3: Description */}
-                    <div>{renderDescription()}</div>
                 </div>
 
                 {/* Gallery */}
                 {work.media?.length > 0 && (
                     <div className="space-y-4">
-                        <div className="grid grid-cols-1 gap-4 md:px-10 md:gap-10">
+                        <div className="grid grid-cols-1 gap-4 md:gap-10">
                             {work.media
                                 .sort((a: any, b: any) => a.order_index - b.order_index)
                                 .map((m: any, i: number) => (
@@ -196,46 +201,32 @@ export function WorkDetail() {
                 )}
             </section>
 
-            {/* More Works — preview project lain di atas footer */}
-            {others.length > 0 && (
-                <section className="px-4 md:px-14 py-12 mt-4 border-t">
-                    <div className="flex items-baseline justify-between mb-6">
-                        <h2 className="text-2xl md:text-3xl font-bold">More Works</h2>
+            {/* Next project — konsep 9A: rata tengah, tombol bulat biru */}
+            {nextWork && (
+                <section className="px-4 max-w-6xl mx-auto mt-16 md:mt-24 mb-20 md:mb-28">
+                    <div className="border-t pt-16 md:pt-20">
                         <Link
-                            href="/works"
-                            className="text-sm font-medium text-blue-600 hover:underline"
+                            href={`/works/${nextWork.slug}`}
+                            className="group flex flex-col items-center text-center"
                         >
-                            View all →
-                        </Link>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                        {others.map((w) => (
-                            <Link
-                                key={w.id}
-                                href={`/works/${w.slug}`}
-                                className="group block"
+                            <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                                Next project
+                            </span>
+                            <span className="mt-4 text-4xl md:text-5xl font-bold leading-tight transition-opacity duration-300 group-hover:opacity-80">
+                                {nextWork.title}
+                            </span>
+                            {nextWork.scope?.name ? (
+                                <span className="mt-3 text-sm text-muted-foreground">
+                                    {nextWork.scope.name}
+                                </span>
+                            ) : null}
+                            <span
+                                className="mt-8 flex h-14 w-14 items-center justify-center rounded-full bg-[#0457ff] text-white transition-transform duration-300 group-hover:scale-110"
+                                aria-hidden="true"
                             >
-                                <div className="relative w-full aspect-[4/3] overflow-hidden rounded-md bg-muted">
-                                    {w.cover_url ? (
-                                        <Image
-                                            src={w.cover_url}
-                                            alt={w.title}
-                                            fill
-                                            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
-                                            className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                        />
-                                    ) : null}
-                                </div>
-                                <div className="mt-3">
-                                    <p className="font-semibold">{w.title}</p>
-                                    {w.scope?.name ? (
-                                        <p className="text-sm text-muted-foreground">
-                                            {w.scope.name}
-                                        </p>
-                                    ) : null}
-                                </div>
-                            </Link>
-                        ))}
+                                <ArrowRight className="h-6 w-6 transition-transform duration-300 group-hover:translate-x-0.5" />
+                            </span>
+                        </Link>
                     </div>
                 </section>
             )}

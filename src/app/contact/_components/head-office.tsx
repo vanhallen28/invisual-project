@@ -11,7 +11,7 @@ export default function HeadOfficeSection() {
                 {/* Kolom 2 */}
                 <div>
                     <address className="not-italic">
-                        Jl. Malangbong Raya Blok C10, Antapani Wetan, Antapani, Bandung City, West Java 40291
+                        Jl. Golf Bar. XVII No.8, Sukamiskin, Kec. Arcamanik, Kota Bandung, Jawa Barat 40293
                     </address>
                     <p className="mt-4 underline hover:text-primary">
                         <a href="https://wa.me/6282295555314">+62 822 9555 5314</a>

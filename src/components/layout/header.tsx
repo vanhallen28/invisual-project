@@ -17,12 +17,9 @@ import { useTheme } from "next-themes";
 
 export default function Navbar() {
     const [open, setOpen] = useState(false);
-    const [show, setShow] = useState(true);
-    const [lastScrollY, setLastScrollY] = useState(0);
     const [hasScrolled, setHasScrolled] = useState(false);
 
     const pathname = usePathname();
-    const isAdminRoute = pathname?.startsWith("/admin") ?? false;
     const [mounted, setMounted] = useState(false);
 
     const { theme } = useTheme();
@@ -33,25 +30,17 @@ export default function Navbar() {
 
     useEffect(() => {
         const handleScroll = () => {
-            const currentScrollY = window.scrollY;
-            if (!isAdminRoute && currentScrollY > lastScrollY && currentScrollY > 80) {
-                setShow(false);
-            } else {
-                setShow(true);
-            }
-            setHasScrolled(currentScrollY > 0);
-            setLastScrollY(currentScrollY);
+            setHasScrolled(window.scrollY > 0);
         };
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
-    }, [lastScrollY, isAdminRoute]);
+    }, []);
 
     if (!mounted) return null;
 
     return (
         <header
             className={`fixed top-0 z-50 w-full items-center justify-between bg-background transition-all duration-300
-        ${show ? "translate-y-0" : "-translate-y-full"}
         ${hasScrolled ? "shadow-md dark:shadow-[0_4px_6px_-1px_#0457ff]" : "shadow-none"}
       `}
         >
