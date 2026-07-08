@@ -41,7 +41,7 @@ export default function Navbar() {
     return (
         <header
             className={`fixed top-0 z-50 w-full items-center justify-between bg-background transition-all duration-300
-        ${hasScrolled ? "shadow-md dark:shadow-[0_4px_6px_-1px_#0457ff]" : "shadow-none"}
+        ${hasScrolled ? "shadow-md" : "shadow-none"}
       `}
         >
             <nav className="flex h-14 items-center justify-between rounded-2xl px-4 sm:px-8 md:px-8 backdrop:filter transition-all sm:mx-auto">
@@ -81,10 +81,10 @@ export default function Navbar() {
                                         <NavigationMenuLink asChild>
                                             <Link
                                                 href={item.href}
-                                                className={`uppercase tracking-wide px-3 py-1 transition-colors 
+                                                className={`inline-block uppercase tracking-wide px-3 py-1 transition-all duration-200 hover:-translate-y-0.5
                           ${isActive
-                                                        ? "text-primary font-semibold border-primary"
-                                                        : "text-muted-foreground"
+                                                        ? "text-[#416fd8] dark:text-[#f65294] font-semibold"
+                                                        : "text-muted-foreground hover:text-[#416fd8] dark:hover:text-[#f65294]"
                                                     }`}
                                             >
                                                 {item.label}

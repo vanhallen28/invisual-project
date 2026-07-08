@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Assistant } from "next/font/google";
+import { Host_Grotesk } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import Header from "@/components/layout/header";
@@ -7,7 +7,7 @@ import FooterWrapper from "@/components/layout/footer-wrapper";
 import { site } from "@/configs/site";
 import { absoluteUrl } from "@/lib/seo";
 
-const assistant = Assistant({
+const hostGrotesk = Host_Grotesk({
     subsets: ["latin"],
 });
 
@@ -59,7 +59,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en" className={assistant.className} suppressHydrationWarning>
+        <html lang="en" className={hostGrotesk.className} suppressHydrationWarning>
             <body>
                 <script
                     type="application/ld+json"

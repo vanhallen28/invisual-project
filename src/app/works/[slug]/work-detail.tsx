@@ -148,39 +148,36 @@ export function WorkDetail() {
 
             {/* Content */}
             <section className="px-4 py-4 space-y-8 max-w-6xl mx-auto">
-                {/* 3 Columns */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-                    {/* Kiri: Deskripsi (rata kiri) */}
-                    <div>{renderDescription()}</div>
+                {/* Deskripsi — full dari kiri sampai kanan */}
+                <div>{renderDescription()}</div>
 
-                    {/* Kanan: Scope, Industry, Detail proyek (rata kanan) */}
-                    <div className="space-y-8 text-right">
-                        {work.scope && (
-                            <div>
-                                <p className="font-medium text-muted-foreground">SCOPE OF WORK</p>
-                                <p className="text-sm">{work.scope.name}</p>
-                            </div>
+                {/* Scope, Industry, Detail proyek — berjajar horizontal di bawah deskripsi */}
+                <div className="flex flex-wrap gap-x-16 md:gap-x-24 gap-y-8">
+                    {work.scope && (
+                        <div>
+                            <p className="font-medium text-muted-foreground">SCOPE OF WORK</p>
+                            <p className="text-sm">{work.scope.name}</p>
+                        </div>
+                    )}
+                    {work.industry && (
+                        <div>
+                            <p className="font-medium text-muted-foreground">INDUSTRY</p>
+                            <p className="text-sm">{work.industry.name}</p>
+                        </div>
+                    )}
+                    {work.details?.length > 0 &&
+                        work.details.map(
+                            (d: { label: string; value: string }, i: number) => (
+                                <div key={i}>
+                                    <p className="font-medium text-muted-foreground">
+                                        {d.label}
+                                    </p>
+                                    <p className="text-sm whitespace-pre-line">
+                                        {d.value}
+                                    </p>
+                                </div>
+                            )
                         )}
-                        {work.industry && (
-                            <div>
-                                <p className="font-medium text-muted-foreground">INDUSTRY</p>
-                                <p className="text-sm">{work.industry.name}</p>
-                            </div>
-                        )}
-                        {work.details?.length > 0 &&
-                            work.details.map(
-                                (d: { label: string; value: string }, i: number) => (
-                                    <div key={i}>
-                                        <p className="font-medium text-muted-foreground">
-                                            {d.label}
-                                        </p>
-                                        <p className="text-sm whitespace-pre-line">
-                                            {d.value}
-                                        </p>
-                                    </div>
-                                )
-                            )}
-                    </div>
                 </div>
 
                 {/* Gallery */}
@@ -201,33 +198,26 @@ export function WorkDetail() {
                 )}
             </section>
 
-            {/* Next project — konsep 9A: rata tengah, tombol bulat biru */}
+            {/* Next project — bar horizontal (hover: biru di light, pink di dark) */}
             {nextWork && (
-                <section className="px-4 max-w-6xl mx-auto mt-16 md:mt-24 mb-20 md:mb-28">
-                    <div className="border-t pt-16 md:pt-20">
-                        <Link
-                            href={`/works/${nextWork.slug}`}
-                            className="group flex flex-col items-center text-center"
-                        >
-                            <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                                Next project
-                            </span>
-                            <span className="mt-4 text-4xl md:text-5xl font-bold leading-tight transition-opacity duration-300 group-hover:opacity-80">
-                                {nextWork.title}
-                            </span>
-                            {nextWork.scope?.name ? (
-                                <span className="mt-3 text-sm text-muted-foreground">
-                                    {nextWork.scope.name}
-                                </span>
-                            ) : null}
-                            <span
-                                className="mt-8 flex h-14 w-14 items-center justify-center rounded-full bg-[#0457ff] text-white transition-transform duration-300 group-hover:scale-110"
-                                aria-hidden="true"
-                            >
-                                <ArrowRight className="h-6 w-6 transition-transform duration-300 group-hover:translate-x-0.5" />
-                            </span>
-                        </Link>
-                    </div>
+                <section className="px-4 max-w-6xl mx-auto mt-12 md:mt-16 mb-20 md:mb-28">
+                    <Link
+                        href={`/works/${nextWork.slug}`}
+                        className="group flex items-center gap-5 md:gap-8 border-t py-8 md:py-10 text-foreground transition-colors hover:text-[#416fd8] dark:hover:text-[#f65294]"
+                    >
+                        {nextWork.cover_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                                src={nextWork.cover_url}
+                                alt={nextWork.title}
+                                className="h-12 md:h-16 w-auto flex-none rounded-sm"
+                            />
+                        ) : null}
+                        <span className="flex-1 text-2xl md:text-4xl font-bold uppercase tracking-tight leading-none">
+                            {nextWork.title}
+                        </span>
+                        <ArrowRight className="h-8 w-8 md:h-10 md:w-10 flex-none transition-transform duration-300 group-hover:translate-x-1" />
+                    </Link>
                 </section>
             )}
 
@@ -319,15 +309,15 @@ function GalleryItem({
 
     return (
         <div
-            className="relative w-full aspect-[16/9] overflow-hidden shadow-md cursor-pointer"
+            className="relative w-full overflow-hidden shadow-md cursor-pointer"
             onClick={onClick}
         >
             {media.type === "image" ? (
-                <Image
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
                     src={media.url}
                     alt={media.caption ?? ""}
-                    fill
-                    className="object-cover"
+                    className="w-full h-auto"
                 />
             ) : media.type === "gif" ? (
                 // GIF: pakai <img> biasa agar animasi jalan & tidak diubah optimizer
@@ -335,7 +325,7 @@ function GalleryItem({
                 <img
                     src={media.url}
                     alt={media.caption ?? ""}
-                    className="w-full h-full object-cover"
+                    className="w-full h-auto"
                 />
             ) : (
                 <video
@@ -344,7 +334,7 @@ function GalleryItem({
                     muted
                     playsInline
                     controls={false}
-                    className="w-full h-full object-cover"
+                    className="w-full h-auto"
                 />
             )}
         </div>
