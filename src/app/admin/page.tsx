@@ -19,6 +19,7 @@ type WorkRow = {
   scope_id: number | null;
   client_id: number | null;
   featured: boolean | null;
+  published: boolean | null;
   details: unknown | null;
   work_media?: { hero: unknown; media: unknown }[] | null;
 };
@@ -32,7 +33,7 @@ export default async function AdminPage() {
       supabase
         .from("works")
         .select(
-          "id, title, slug, description, cover_url, industry_id, scope_id, client_id, featured, details, work_media ( hero, media )"
+          "id, title, slug, description, cover_url, industry_id, scope_id, client_id, featured, published, details, work_media ( hero, media )"
         )
         .order("created_at", { ascending: false }),
       supabase
@@ -61,6 +62,12 @@ export default async function AdminPage() {
         .maybeSingle(),
     ]);
 
+  const unreadRes = await supabase
+    .from("contact_messages")
+    .select("*", { count: "exact", head: true })
+    .eq("read", false);
+  const unread = unreadRes.count ?? 0;
+
   const works = ((worksRes.data as unknown as WorkRow[]) ?? []).map((w) => ({
     id: Number(w.id),
     title: w.title,
@@ -71,6 +78,7 @@ export default async function AdminPage() {
     scope_id: w.scope_id,
     client_id: w.client_id,
     featured: w.featured ?? false,
+    published: w.published ?? true,
     details: Array.isArray(w.details)
       ? (w.details as { label: string; value: string }[])
       : [],
@@ -140,6 +148,23 @@ export default async function AdminPage() {
               className="rounded-full border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
             >
               Beranda
+            </Link>
+            <Link
+              href="/admin/messages"
+              className="relative rounded-full border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+            >
+              Pesan
+              {unread > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[#416fd8] px-1 text-[10px] font-semibold text-white dark:bg-[#f65294]">
+                  {unread}
+                </span>
+              )}
+            </Link>
+            <Link
+              href="/admin/faq"
+              className="rounded-full border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+            >
+              FAQ
             </Link>
             <Link
               href="/admin/stats"

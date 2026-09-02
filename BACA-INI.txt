@@ -1,20 +1,27 @@
-INVISUAL — paket update #8 (OG image / kartu share)
+INVISUAL — paket update #14 (Kotak masuk pesan + notifikasi email)
 
-Isi:
-  - public/og-image.png     : gambar share 1200x630 (dark, wordmark INVISUAL)
-  - src/configs/site.ts     : diarahkan memakai og-image.png (bukan logo.png)
+- Halaman /admin/messages: baca semua pesan dari form kontak, tandai
+  dibaca/belum, Balas (buka email ke pengirim), Hapus.
+- Tautan "Pesan" di header admin dengan badge jumlah pesan belum dibaca.
+- Form kontak: kirim email notifikasi lewat Resend (aktif jika key diisi).
 
-Pasang (dari FOLDER ROOT proyek):
-  unzip -o invisual-update-8.zip
+LANGKAH 1 — Jalankan SQL di Supabase:
+  Supabase -> SQL Editor -> tempel isi "messages-read.sql" -> Run.
+
+LANGKAH 2 — Pasang (dari FOLDER ROOT proyek):
+  unzip -o invisual-update-14.zip
   rm -rf .next && npm run dev
 
-Setelah deploy ke Vercel, saat link invisual.studio dibagikan (WhatsApp, LinkedIn,
-Twitter, dll), preview-nya memakai kartu ini.
+Tanpa npm install. Inbox langsung berfungsi.
 
-MENGGANTI DENGAN DESAIN TIM ANDA:
-  Cukup timpa file "public/og-image.png" dengan gambar baru Anda.
-  Syarat: ukuran 1200 x 630 piksel, format .png (atau .jpg — kalau .jpg,
-  ubah juga "og-image.png" jadi "og-image.jpg" di src/configs/site.ts).
-  Setelah share, cache-nya bisa di-refresh di:
-    - Facebook/WhatsApp: https://developers.facebook.com/tools/debug/
-    - LinkedIn:          https://www.linkedin.com/post-inspector/
+--- MENGAKTIFKAN EMAIL NOTIFIKASI (Resend) ---
+Email hanya terkirim jika RESEND_API_KEY diisi. Setelah punya akun Resend:
+1) Tambahkan ke file .env.local (dan ke Environment Variables di Vercel):
+     RESEND_API_KEY=re_xxxxxxxx
+     CONTACT_NOTIFY_TO=business@invisual.studio     (email tujuan notifikasi)
+     CONTACT_NOTIFY_FROM=Invisual <noreply@invisual.studio>
+   Catatan: "from" dengan domain sendiri (noreply@invisual.studio) butuh
+   verifikasi domain di Resend. Untuk uji cepat, boleh pakai:
+     CONTACT_NOTIFY_FROM=Invisual <onboarding@resend.dev>
+   (hanya bisa kirim ke email akun Resend Anda sendiri).
+2) Restart dev / redeploy. Kirim pesan uji dari /contact -> cek email.

@@ -72,11 +72,35 @@ export default async function WorkDetailRoute({
     },
   };
 
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: site.url },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Works",
+        item: absoluteUrl("/works"),
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: work.title,
+        item: absoluteUrl(`/works/${work.slug}`),
+      },
+    ],
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
       <WorkDetail work={work} nextWork={nextWork} />
     </>

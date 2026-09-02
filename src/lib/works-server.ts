@@ -64,6 +64,7 @@ export async function getWorkFull(slug: string): Promise<Work | null> {
     `
     )
     .eq("slug", slug)
+    .eq("published", true)
     .single();
 
   if (error || !data) return null;
@@ -82,6 +83,7 @@ export async function getWorksNav(): Promise<WorkNav[]> {
   const { data } = await db()
     .from("works")
     .select("slug, title, cover_url, created_at")
+    .eq("published", true)
     .order("created_at", { ascending: false });
 
   return (
@@ -154,6 +156,7 @@ export async function getWorksListServer(): Promise<WorkListItem[]> {
       client:clients ( id, name, logo_url, industry:industries ( id, name ) )
     `
     )
+    .eq("published", true)
     .order("created_at", { ascending: false });
 
   if (error) return [];

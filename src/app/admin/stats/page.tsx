@@ -1,23 +1,31 @@
 import Link from "next/link";
 import { getViewStats } from "@/lib/stats-server";
+import StatsControls from "./stats-controls";
 
 export const dynamic = "force-dynamic";
 
 export default async function StatsPage() {
   const stats = await getViewStats();
   const max = Math.max(1, ...stats.daily.map((d) => d.count));
+  const updatedAt = new Date().toLocaleTimeString("id-ID");
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
-      <div className="flex items-center justify-between mb-8">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">Statistik kunjungan</h1>
-        <Link
-          href="/admin"
-          className="text-sm underline hover:text-[#416fd8] dark:hover:text-[#f65294]"
-        >
-          ← Kembali ke Admin
-        </Link>
+        <div className="flex items-center gap-3">
+          <StatsControls />
+          <Link
+            href="/admin"
+            className="text-sm underline hover:text-[#416fd8] dark:hover:text-[#f65294]"
+          >
+            ← Kembali ke Admin
+          </Link>
+        </div>
       </div>
+      <p className="mb-8 text-xs text-muted-foreground">
+        Diperbarui {updatedAt} · auto-refresh tiap 10 detik
+      </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
         <StatCard label="Total kunjungan" value={stats.total} />

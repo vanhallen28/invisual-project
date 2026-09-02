@@ -274,6 +274,23 @@ export async function setWorkFeatured(
   return { ok: true };
 }
 
+export async function setWorkPublished(
+  id: number,
+  published: boolean
+): Promise<ActionResult> {
+  const unauth = await guard();
+  if (unauth) return unauth;
+  const supabase = createAdminClient();
+  const upd = await supabase.from("works").update({ published }).eq("id", id);
+  if (upd.error)
+    return {
+      ok: false,
+      error: `Gagal memperbarui status: ${upd.error.message}`,
+    };
+  revalidatePublic();
+  return { ok: true };
+}
+
 // ===================== CLIENTS =====================
 export type ClientInput = {
   name: string;

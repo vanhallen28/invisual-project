@@ -6,6 +6,9 @@ import Header from "@/components/layout/header";
 import FooterWrapper from "@/components/layout/footer-wrapper";
 import { Analytics } from "@vercel/analytics/next";
 import PageViewTracker from "@/components/analytics/page-view-tracker";
+import MetaPixel from "@/components/analytics/meta-pixel";
+import ConsentBanner from "@/components/consent/consent-banner";
+import BackToTop from "@/components/common/back-to-top";
 import { site } from "@/configs/site";
 import { absoluteUrl } from "@/lib/seo";
 
@@ -83,6 +86,9 @@ export default function RootLayout({
                 </ThemeProvider>
                 <Analytics />
                 <PageViewTracker />
+                <MetaPixel />
+                <ConsentBanner />
+                <BackToTop />
             </body>
         </html>
     );

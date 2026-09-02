@@ -100,6 +100,7 @@ export async function getAllWorkSlugs(): Promise<
   const { data } = await db()
     .from("works")
     .select("slug, created_at")
+    .eq("published", true)
     .order("created_at", { ascending: false });
   return (data as { slug: string; created_at: string | null }[] | null) ?? [];
 }

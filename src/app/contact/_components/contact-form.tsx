@@ -30,6 +30,15 @@ export default function ContactForm() {
                             action={formAction}
                             className="flex flex-col gap-4 max-w-xl"
                         >
+                            {/* honeypot anti-spam (disembunyikan dari manusia) */}
+                            <input
+                                type="text"
+                                name="company"
+                                tabIndex={-1}
+                                autoComplete="off"
+                                aria-hidden="true"
+                                className="hidden"
+                            />
                             <input
                                 name="name"
                                 required

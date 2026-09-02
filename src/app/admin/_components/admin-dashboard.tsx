@@ -2,7 +2,7 @@
 // src/app/admin/_components/admin-dashboard.tsx
 import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, Trash2, Loader2, Search, Home } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Search, Home, Eye, EyeOff } from "lucide-react";
 import { cldOptimized } from "@/lib/cloudinary";
 import { type Option } from "./form-ui";
 import { WorkForm, type WorkInitial } from "./work-form";
@@ -16,12 +16,13 @@ import {
   deleteClient,
   deleteTestimonial,
   setWorkFeatured,
+  setWorkPublished,
   deleteTeamMember,
   deleteServiceCategory,
 } from "../actions";
 
 type ClientRow = ClientInitial & { industry_name?: string | null };
-type WorkRow = WorkInitial & { featured?: boolean };
+type WorkRow = WorkInitial & { featured?: boolean; published?: boolean };
 type TeamRow = TeamInitial;
 type ServiceRow = ServiceInitial;
 type IntroData = IntroInitial;
@@ -64,6 +65,7 @@ export function AdminDashboard({
   const [form, setForm] = useState<FormState>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [togglingId, setTogglingId] = useState<number | null>(null);
+  const [statusTogglingId, setStatusTogglingId] = useState<number | null>(null);
   const [query, setQuery] = useState("");
 
   function savedAndClose() {
@@ -109,6 +111,17 @@ export function AdminDashboard({
       else router.refresh();
     } finally {
       setTogglingId(null);
+    }
+  }
+
+  async function toggleStatus(id: number, current: boolean) {
+    setStatusTogglingId(id);
+    try {
+      const res = await setWorkPublished(id, !current);
+      if (!res.ok) window.alert(res.error);
+      else router.refresh();
+    } finally {
+      setStatusTogglingId(null);
     }
   }
 
@@ -192,6 +205,11 @@ export function AdminDashboard({
                   on: !!w.featured,
                   busy: togglingId === w.id,
                   onToggle: () => toggleHome(w.id, !!w.featured),
+                }}
+                status={{
+                  on: w.published ?? true,
+                  busy: statusTogglingId === w.id,
+                  onToggle: () => toggleStatus(w.id, w.published ?? true),
                 }}
                 onEdit={() => setForm({ mode: "edit", item: w })}
                 onDelete={() => remove("works", w.id, w.title)}
@@ -403,6 +421,7 @@ function Row({
   onDelete,
   busy,
   home,
+  status,
 }: {
   thumb?: string | null;
   title: string;
@@ -411,6 +430,7 @@ function Row({
   onDelete: () => void;
   busy?: boolean;
   home?: { on: boolean; busy?: boolean; onToggle: () => void };
+  status?: { on: boolean; busy?: boolean; onToggle: () => void };
 }) {
   return (
     <li className="group flex items-center gap-3 rounded-md border p-3 transition-colors hover:bg-muted/40">
@@ -433,12 +453,44 @@ function Row({
               aria-label="Tampil di home"
             />
           ) : null}
+          {status && !status.on ? (
+            <span className="shrink-0 rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
+              Draft
+            </span>
+          ) : null}
         </div>
         {subtitle ? (
           <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
         ) : null}
       </div>
       <div className="flex shrink-0 items-center gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100">
+        {status ? (
+          <button
+            type="button"
+            onClick={status.onToggle}
+            disabled={status.busy}
+            aria-label={status.on ? "Jadikan draft" : "Terbitkan"}
+            title={
+              status.on
+                ? "Tampil di situs (klik untuk jadikan draft)"
+                : "Draft \u2014 tersembunyi (klik untuk terbitkan)"
+            }
+            className={
+              "inline-flex h-8 w-8 items-center justify-center rounded-md border transition-colors disabled:opacity-50 " +
+              (status.on
+                ? "text-muted-foreground hover:bg-muted"
+                : "border-amber-500/50 text-amber-600 hover:bg-amber-500/10 dark:text-amber-400")
+            }
+          >
+            {status.busy ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : status.on ? (
+              <Eye className="h-4 w-4" />
+            ) : (
+              <EyeOff className="h-4 w-4" />
+            )}
+          </button>
+        ) : null}
         {home ? (
           <button
             type="button"
