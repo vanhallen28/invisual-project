@@ -13,7 +13,7 @@ export const site = {
     "Invisual Studio is a visual design studio specializing in visual identity, illustration, and packaging design.",
   locale: "en_US",
   logoPath: "/logo.png",
-  defaultOgImage: "/logo.png",
+  defaultOgImage: "/og-image.png",
   socials: [
     "https://www.behance.net/invisualid",
     "https://www.linkedin.com/company/invisualid/",

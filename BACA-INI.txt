@@ -1,11 +1,20 @@
-INVISUAL — paket update #7 (SSR halaman About)
+INVISUAL — paket update #8 (OG image / kartu share)
 
-Hero, Services, dan Team di halaman About kini di-render di server (SSR),
-tidak lagi fetch di browser — jadi tidak ada lagi error "Failed to fetch"
-di konsol dan halaman tampil lebih cepat.
+Isi:
+  - public/og-image.png     : gambar share 1200x630 (dark, wordmark INVISUAL)
+  - src/configs/site.ts     : diarahkan memakai og-image.png (bukan logo.png)
 
 Pasang (dari FOLDER ROOT proyek):
-  unzip -o invisual-update-7.zip
+  unzip -o invisual-update-8.zip
   rm -rf .next && npm run dev
 
-Tanpa SQL, tanpa npm install.
+Setelah deploy ke Vercel, saat link invisual.studio dibagikan (WhatsApp, LinkedIn,
+Twitter, dll), preview-nya memakai kartu ini.
+
+MENGGANTI DENGAN DESAIN TIM ANDA:
+  Cukup timpa file "public/og-image.png" dengan gambar baru Anda.
+  Syarat: ukuran 1200 x 630 piksel, format .png (atau .jpg — kalau .jpg,
+  ubah juga "og-image.png" jadi "og-image.jpg" di src/configs/site.ts).
+  Setelah share, cache-nya bisa di-refresh di:
+    - Facebook/WhatsApp: https://developers.facebook.com/tools/debug/
+    - LinkedIn:          https://www.linkedin.com/post-inspector/
