@@ -1,13 +1,22 @@
 // src/app/admin/page.tsx
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { LogOut } from "lucide-react";
 import { isAdmin } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { logout } from "./auth-actions";
-import { AdminDashboard } from "./_components/admin-dashboard";
+import { AdminDashboard, type Tab } from "./_components/admin-dashboard";
+import { AdminShell } from "./_components/admin-shell";
+import { AdminOverview } from "./_components/admin-overview";
+import { getOverviewData } from "@/lib/admin-overview";
 
 export const dynamic = "force-dynamic";
+
+const CONTENT_TABS: Tab[] = [
+  "works",
+  "clients",
+  "testimonials",
+  "team",
+  "services",
+  "intro",
+];
 
 type WorkRow = {
   id: number;
@@ -24,8 +33,27 @@ type WorkRow = {
   work_media?: { hero: unknown; media: unknown }[] | null;
 };
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
   if (!(await isAdmin())) redirect("/admin/login");
+
+  const sp = await searchParams;
+  const tabParam = sp.tab as Tab | undefined;
+  const isContent = !!tabParam && CONTENT_TABS.includes(tabParam);
+
+  if (!isContent) {
+    const overview = await getOverviewData();
+    return (
+      <AdminShell active="overview" unread={overview.unread}>
+        <AdminOverview data={overview} />
+      </AdminShell>
+    );
+  }
+
+  const tab = tabParam as Tab;
 
   const supabase = createAdminClient();
   const [worksRes, clientsRes, testimonialsRes, industriesRes, scopesRes, teamRes, servicesRes, introRes] =
@@ -133,69 +161,18 @@ export default async function AdminPage() {
     } | null) ?? null;
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto w-full max-w-6xl px-4 py-10 md:px-8">
-        <header className="mb-6 flex items-start justify-between gap-4">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold md:text-3xl">Kelola konten</h1>
-            <p className="text-sm text-muted-foreground">
-              Perubahan langsung tampil di situs setelah disimpan.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/admin/home"
-              className="rounded-full border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
-            >
-              Beranda
-            </Link>
-            <Link
-              href="/admin/messages"
-              className="relative rounded-full border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
-            >
-              Pesan
-              {unread > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[#416fd8] px-1 text-[10px] font-semibold text-white dark:bg-[#f65294]">
-                  {unread}
-                </span>
-              )}
-            </Link>
-            <Link
-              href="/admin/faq"
-              className="rounded-full border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
-            >
-              FAQ
-            </Link>
-            <Link
-              href="/admin/stats"
-              className="rounded-full border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
-            >
-              Statistik
-            </Link>
-            <form action={logout}>
-              <button
-                type="submit"
-                aria-label="Keluar"
-                title="Keluar"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-500/40 text-red-500 transition-colors hover:bg-red-500 hover:text-white"
-              >
-                <LogOut className="h-5 w-5" />
-              </button>
-            </form>
-          </div>
-        </header>
-
-        <AdminDashboard
-          works={works}
-          clients={clients}
-          testimonials={testimonials}
-          team={team}
-          services={services}
-          intro={intro}
-          industries={industriesRes.data ?? []}
-          scopes={scopesRes.data ?? []}
-        />
-      </div>
-    </main>
+    <AdminShell active={tab} unread={unread}>
+      <AdminDashboard
+        tab={tab}
+        works={works}
+        clients={clients}
+        testimonials={testimonials}
+        team={team}
+        services={services}
+        intro={intro}
+        industries={industriesRes.data ?? []}
+        scopes={scopesRes.data ?? []}
+      />
+    </AdminShell>
   );
 }

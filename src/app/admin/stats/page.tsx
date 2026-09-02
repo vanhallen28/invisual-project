@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { AdminShell } from "../_components/admin-shell";
+import { getUnreadCount } from "@/lib/admin-unread";
 import { getViewStats } from "@/lib/stats-server";
 import StatsControls from "./stats-controls";
 
@@ -8,21 +9,15 @@ export default async function StatsPage() {
   const stats = await getViewStats();
   const max = Math.max(1, ...stats.daily.map((d) => d.count));
   const updatedAt = new Date().toLocaleTimeString("id-ID");
+  const unread = await getUnreadCount();
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10">
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold">Statistik kunjungan</h1>
-        <div className="flex items-center gap-3">
+    <AdminShell active="stats" unread={unread}>
+      <div className="mx-auto max-w-4xl">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-2xl font-bold md:text-3xl">Statistik kunjungan</h1>
           <StatsControls />
-          <Link
-            href="/admin"
-            className="text-sm underline hover:text-[#416fd8] dark:hover:text-[#f65294]"
-          >
-            ← Kembali ke Admin
-          </Link>
         </div>
-      </div>
       <p className="mb-8 text-xs text-muted-foreground">
         Diperbarui {updatedAt} · auto-refresh tiap 10 detik
       </p>
@@ -75,7 +70,8 @@ export default async function StatsPage() {
           ))}
         </ul>
       )}
-    </div>
+      </div>
+    </AdminShell>
   );
 }
 

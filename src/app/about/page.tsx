@@ -6,13 +6,15 @@ import {
     getAboutIntroServer,
     getServiceCategoriesServer,
     getTeamMembersServer,
+    getTestimonialsServer,
 } from "@/lib/about-server";
 
 export default async function AboutPage() {
-    const [intro, categories, members] = await Promise.all([
+    const [intro, categories, members, testimonials] = await Promise.all([
         getAboutIntroServer(),
         getServiceCategoriesServer(),
         getTeamMembersServer(),
+        getTestimonialsServer(),
     ]);
 
     return (
@@ -20,7 +22,7 @@ export default async function AboutPage() {
             <HeroSection intro={intro} />
             <ServicesSection categories={categories} />
             <TeamSection members={members} />
-            <TestiSection />
+            <TestiSection testimonials={testimonials} />
         </div>
     );
 }

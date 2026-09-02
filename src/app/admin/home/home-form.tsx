@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { updateHomeContent } from "./actions";
+import { useToast } from "../_components/toast";
 
 const inputClass =
     "w-full rounded-md border bg-transparent px-4 py-3 text-base outline-none transition-colors focus:border-[#416fd8] dark:focus:border-[#f65294]";
@@ -13,23 +14,20 @@ export default function HomeForm({
     initialHeroUrl: string;
     initialIntro: string;
 }) {
+    const toast = useToast();
     const [heroUrl, setHeroUrl] = useState(initialHeroUrl);
     const [intro, setIntro] = useState(initialIntro);
-    const [status, setStatus] = useState<null | "saving" | "ok" | "error">(null);
-    const [err, setErr] = useState("");
+    const [saving, setSaving] = useState(false);
 
     async function save() {
-        setStatus("saving");
-        setErr("");
+        setSaving(true);
         const res = await updateHomeContent({
             heroVideoUrl: heroUrl,
             introText: intro,
         });
-        if (res.ok) setStatus("ok");
-        else {
-            setStatus("error");
-            setErr(res.error || "Gagal menyimpan.");
-        }
+        setSaving(false);
+        if (res.ok) toast.show("Perubahan tersimpan");
+        else toast.show(res.error || "Gagal menyimpan.", "error");
     }
 
     return (
@@ -60,21 +58,12 @@ export default function HomeForm({
                 />
             </div>
 
-            {status === "error" && (
-                <p className="text-sm text-red-500">{err}</p>
-            )}
-            {status === "ok" && (
-                <p className="text-sm text-green-600">
-                    Tersimpan! Perubahan langsung tampil di beranda.
-                </p>
-            )}
-
             <button
                 onClick={save}
-                disabled={status === "saving"}
+                disabled={saving}
                 className="inline-flex items-center rounded-full bg-[#416fd8] px-6 py-3 text-sm font-semibold text-white transition-colors hover:opacity-90 disabled:opacity-60 dark:bg-[#f65294]"
             >
-                {status === "saving" ? "Menyimpan..." : "Simpan"}
+                {saving ? "Menyimpan..." : "Simpan"}
             </button>
         </div>
     );

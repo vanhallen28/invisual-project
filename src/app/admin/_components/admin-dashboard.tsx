@@ -1,8 +1,8 @@
 "use client";
 // src/app/admin/_components/admin-dashboard.tsx
-import { useState, type ReactNode } from "react";
+import { Children, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, Trash2, Loader2, Search, Home, Eye, EyeOff } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Search, Home, Eye, EyeOff, ExternalLink } from "lucide-react";
 import { cldOptimized } from "@/lib/cloudinary";
 import { type Option } from "./form-ui";
 import { WorkForm, type WorkInitial } from "./work-form";
@@ -17,16 +17,21 @@ import {
   deleteTestimonial,
   setWorkFeatured,
   setWorkPublished,
+  bulkSetWorksPublished,
+  bulkDeleteWorks,
   deleteTeamMember,
   deleteServiceCategory,
 } from "../actions";
+import { useToast } from "./toast";
+import { useConfirm } from "./confirm-dialog";
+import { Pagination } from "./pagination";
 
 type ClientRow = ClientInitial & { industry_name?: string | null };
 type WorkRow = WorkInitial & { featured?: boolean; published?: boolean };
 type TeamRow = TeamInitial;
 type ServiceRow = ServiceInitial;
 type IntroData = IntroInitial;
-type Tab = "works" | "clients" | "testimonials" | "team" | "services" | "intro";
+export type Tab = "works" | "clients" | "testimonials" | "team" | "services" | "intro";
 type FormState = { mode: "new" } | { mode: "edit"; item: unknown } | null;
 
 const TABS: { key: Tab; label: string }[] = [
@@ -42,6 +47,7 @@ const searchInputClass =
   "w-full rounded-md border bg-transparent py-2 pl-9 pr-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 export function AdminDashboard({
+  tab,
   works,
   clients,
   testimonials,
@@ -51,6 +57,7 @@ export function AdminDashboard({
   industries,
   scopes,
 }: {
+  tab: Tab;
   works: WorkRow[];
   clients: ClientRow[];
   testimonials: TestimonialInitial[];
@@ -61,29 +68,37 @@ export function AdminDashboard({
   scopes: Option[];
 }) {
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>("works");
+  const toast = useToast();
+  const confirm = useConfirm();
   const [form, setForm] = useState<FormState>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [togglingId, setTogglingId] = useState<number | null>(null);
   const [statusTogglingId, setStatusTogglingId] = useState<number | null>(null);
   const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [prevTab, setPrevTab] = useState<Tab>(tab);
+
+  if (tab !== prevTab) {
+    setPrevTab(tab);
+    setForm(null);
+    setQuery("");
+    setSelected(new Set());
+  }
 
   function savedAndClose() {
     setForm(null);
     router.refresh();
-  }
-
-  function switchTab(t: Tab) {
-    setTab(t);
-    setForm(null);
-    setQuery("");
+    toast.show("Perubahan tersimpan");
   }
 
   async function remove(kind: Tab, id: number, label: string) {
-    if (
-      !window.confirm(`Hapus "${label}"? Tindakan ini tidak bisa dibatalkan.`)
-    )
-      return;
+    const ok = await confirm({
+      title: "Hapus item",
+      message: `Hapus "${label}"? Tindakan ini tidak bisa dibatalkan.`,
+      confirmText: "Hapus",
+      danger: true,
+    });
+    if (!ok) return;
     setBusyId(id);
     try {
       const res =
@@ -96,8 +111,11 @@ export function AdminDashboard({
           : kind === "team"
           ? await deleteTeamMember(id)
           : await deleteServiceCategory(id);
-      if (!res.ok) window.alert(res.error);
-      else router.refresh();
+      if (!res.ok) toast.show(res.error ?? "Gagal menghapus.", "error");
+      else {
+        router.refresh();
+        toast.show("Item dihapus");
+      }
     } finally {
       setBusyId(null);
     }
@@ -107,7 +125,7 @@ export function AdminDashboard({
     setTogglingId(id);
     try {
       const res = await setWorkFeatured(id, !current);
-      if (!res.ok) window.alert(res.error);
+      if (!res.ok) toast.show(res.error ?? "Gagal memperbarui.", "error");
       else router.refresh();
     } finally {
       setTogglingId(null);
@@ -118,11 +136,46 @@ export function AdminDashboard({
     setStatusTogglingId(id);
     try {
       const res = await setWorkPublished(id, !current);
-      if (!res.ok) window.alert(res.error);
+      if (!res.ok) toast.show(res.error ?? "Gagal memperbarui.", "error");
       else router.refresh();
     } finally {
       setStatusTogglingId(null);
     }
+  }
+
+  const toggleSelect = (id: number) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  async function bulkPublish(published: boolean) {
+    const ids = [...selected];
+    if (ids.length === 0) return;
+    const res = await bulkSetWorksPublished(ids, published);
+    if (!res.ok) return toast.show(res.error ?? "Gagal.", "error");
+    setSelected(new Set());
+    router.refresh();
+    toast.show(published ? "Karya dipublikasikan" : "Karya dijadikan draft");
+  }
+
+  async function bulkRemove() {
+    const ids = [...selected];
+    if (ids.length === 0) return;
+    const ok = await confirm({
+      title: "Hapus karya",
+      message: `Hapus ${ids.length} karya terpilih? Tindakan ini tidak bisa dibatalkan.`,
+      confirmText: "Hapus",
+      danger: true,
+    });
+    if (!ok) return;
+    const res = await bulkDeleteWorks(ids);
+    if (!res.ok) return toast.show(res.error ?? "Gagal.", "error");
+    setSelected(new Set());
+    router.refresh();
+    toast.show("Karya dihapus");
   }
 
   const q = query.trim().toLowerCase();
@@ -155,23 +208,14 @@ export function AdminDashboard({
     : services;
 
   return (
-    <div>
-      <div className="mb-6 flex gap-1 border-b">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => switchTab(t.key)}
-            className={
-              "border-b-2 px-4 py-2 text-sm transition-colors " +
-              (tab === t.key
-                ? "border-primary font-medium text-foreground"
-                : "border-transparent text-muted-foreground hover:text-foreground")
-            }
-          >
-            {t.label}
-          </button>
-        ))}
+    <div className="mx-auto max-w-5xl">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold md:text-3xl">
+          {TABS.find((t) => t.key === tab)?.label ?? "Kelola konten"}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Perubahan langsung tampil di situs setelah disimpan.
+        </p>
       </div>
 
       {/* ---- KARYA ---- */}
@@ -185,6 +229,42 @@ export function AdminDashboard({
             onCancel={() => setForm(null)}
           />
         ) : (
+          <>
+            {selected.size > 0 && (
+              <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border bg-muted/40 p-3">
+                <span className="text-sm font-medium">{selected.size} dipilih</span>
+                <div className="ml-auto flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => bulkPublish(true)}
+                    className="rounded-full border px-3 py-1.5 text-sm transition-colors hover:bg-muted"
+                  >
+                    Publikasikan
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => bulkPublish(false)}
+                    className="rounded-full border px-3 py-1.5 text-sm transition-colors hover:bg-muted"
+                  >
+                    Jadikan draft
+                  </button>
+                  <button
+                    type="button"
+                    onClick={bulkRemove}
+                    className="rounded-full border border-red-500/40 px-3 py-1.5 text-sm text-red-500 transition-colors hover:bg-red-500 hover:text-white"
+                  >
+                    Hapus
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelected(new Set())}
+                    className="rounded-full px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted"
+                  >
+                    Batal
+                  </button>
+                </div>
+              </div>
+            )}
           <ListSection
             addLabel="Tambah karya"
             onAdd={() => setForm({ mode: "new" })}
@@ -211,11 +291,17 @@ export function AdminDashboard({
                   busy: statusTogglingId === w.id,
                   onToggle: () => toggleStatus(w.id, w.published ?? true),
                 }}
+                viewHref={`/works/${w.slug}`}
+                select={{
+                  checked: selected.has(w.id),
+                  onToggle: () => toggleSelect(w.id),
+                }}
                 onEdit={() => setForm({ mode: "edit", item: w })}
                 onDelete={() => remove("works", w.id, w.title)}
               />
             ))}
           </ListSection>
+          </>
         ))}
 
       {/* ---- KLIEN ---- */}
@@ -381,6 +467,18 @@ function ListSection({
   emptyText: string;
   children: ReactNode;
 }) {
+  const items = Children.toArray(children);
+  const PAGE_SIZE = 12;
+  const [page, setPage] = useState(1);
+  const [prevQuery, setPrevQuery] = useState(query);
+  if (query !== prevQuery) {
+    setPrevQuery(query);
+    setPage(1);
+  }
+  const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+  const current = Math.min(page, totalPages);
+  const pageItems = items.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -407,7 +505,15 @@ function ListSection({
           {emptyText}
         </p>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2">{children}</ul>
+        <>
+          <ul className="grid gap-4 sm:grid-cols-2">{pageItems}</ul>
+          <Pagination
+            page={current}
+            total={items.length}
+            pageSize={PAGE_SIZE}
+            onPage={setPage}
+          />
+        </>
       )}
     </div>
   );
@@ -422,6 +528,8 @@ function Row({
   busy,
   home,
   status,
+  viewHref,
+  select,
 }: {
   thumb?: string | null;
   title: string;
@@ -431,9 +539,20 @@ function Row({
   busy?: boolean;
   home?: { on: boolean; busy?: boolean; onToggle: () => void };
   status?: { on: boolean; busy?: boolean; onToggle: () => void };
+  viewHref?: string;
+  select?: { checked: boolean; onToggle: () => void };
 }) {
   return (
     <li className="group flex items-center gap-3 rounded-md border p-3 transition-colors hover:bg-muted/40">
+      {select ? (
+        <input
+          type="checkbox"
+          checked={select.checked}
+          onChange={select.onToggle}
+          aria-label="Pilih"
+          className="h-4 w-4 shrink-0 accent-[#416fd8] dark:accent-[#f65294]"
+        />
+      ) : null}
       {thumb ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -515,6 +634,18 @@ function Row({
               <Home className="h-4 w-4" />
             )}
           </button>
+        ) : null}
+        {viewHref ? (
+          <a
+            href={viewHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Lihat di situs"
+            title="Lihat di situs"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md border text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <ExternalLink className="h-4 w-4" />
+          </a>
         ) : null}
         <button
           type="button"

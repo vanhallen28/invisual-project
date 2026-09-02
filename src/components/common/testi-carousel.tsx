@@ -10,40 +10,14 @@ import {
 import { Card, CardContent } from "@/components/ui/card"
 import { useEffect, useRef } from "react"
 
-const testimonials = [
-    {
-        name: "Ayla N.",
-        role: "Founder of Hexa Studio",
-        quote: "Invisual truly understood our brand. They delivered beyond visuals — it felt like a partnership.",
-    },
-    {
-        name: "Reza F.",
-        role: "Marketing Lead at Luxa",
-        quote: "Super impressed with the clarity and professionalism. We gained real results after the rebrand.",
-    },
-    {
-        name: "Tasha R.",
-        role: "Creative Director at Mova",
-        quote: "Working with Invisual felt like working with an internal team. Smooth process and great design.",
-    },
-    {
-        name: "Iqbal H.",
-        role: "Co-founder of Brava",
-        quote: "Invisual helped us shape our identity from scratch — a huge win for our early-stage brand.",
-    },
-    {
-        name: "Lina M.",
-        role: "CMO at Svara",
-        quote: "Highly recommend! They're not just designers, they’re thinkers. Our growth was backed by great visuals.",
-    },
-    {
-        name: "Lisa.",
-        role: "CMO at Svara",
-        quote: "Highly recommend! They're not just designers, they’re thinkers. Our growth was backed by great visuals.",
-    },
-]
 
-export function TestimonialCarousel() {
+type Testimonial = { name: string; role?: string | null; quote: string }
+
+export function TestimonialCarousel({
+    testimonials,
+}: {
+    testimonials: Testimonial[]
+}) {
     const carouselRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {

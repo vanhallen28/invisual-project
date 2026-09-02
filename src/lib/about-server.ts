@@ -62,3 +62,19 @@ export async function getTeamMembersServer(): Promise<TeamMember[]> {
     .order("order_index", { ascending: true });
   return (data as TeamMember[] | null) ?? [];
 }
+
+export interface Testimonial {
+  id: number;
+  name: string;
+  role?: string | null;
+  quote: string;
+  order_index: number;
+}
+
+export async function getTestimonialsServer(): Promise<Testimonial[]> {
+  const { data } = await db()
+    .from("testimonials")
+    .select("id, name, role, quote, order_index")
+    .order("order_index", { ascending: true });
+  return (data as Testimonial[] | null) ?? [];
+}

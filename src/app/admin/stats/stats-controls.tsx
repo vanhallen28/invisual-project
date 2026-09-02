@@ -3,9 +3,13 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { resetPageViews } from "./actions";
+import { useToast } from "../_components/toast";
+import { useConfirm } from "../_components/confirm-dialog";
 
 export default function StatsControls() {
     const router = useRouter();
+    const toast = useToast();
+    const confirm = useConfirm();
     const [auto, setAuto] = useState(true);
     const [pending, startTransition] = useTransition();
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -19,16 +23,21 @@ export default function StatsControls() {
     }, [auto, router]);
 
     async function handleReset() {
-        const yes = window.confirm(
-            "Hapus SEMUA data kunjungan? Tindakan ini permanen dan tidak bisa dibatalkan."
-        );
+        const yes = await confirm({
+            title: "Reset statistik",
+            message:
+                "Hapus SEMUA data kunjungan? Tindakan ini permanen dan tidak bisa dibatalkan.",
+            confirmText: "Reset",
+            danger: true,
+        });
         if (!yes) return;
         const res = await resetPageViews();
         if (!res.ok) {
-            window.alert(res.error || "Gagal mereset data.");
+            toast.show(res.error || "Gagal mereset data.", "error");
             return;
         }
         startTransition(() => router.refresh());
+        toast.show("Statistik direset");
     }
 
     return (

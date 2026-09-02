@@ -291,6 +291,34 @@ export async function setWorkPublished(
   return { ok: true };
 }
 
+// Aksi massal untuk Karya.
+export async function bulkSetWorksPublished(
+  ids: number[],
+  published: boolean
+): Promise<ActionResult> {
+  const unauth = await guard();
+  if (unauth) return unauth;
+  if (ids.length === 0) return { ok: true };
+  const supabase = createAdminClient();
+  const upd = await supabase.from("works").update({ published }).in("id", ids);
+  if (upd.error)
+    return { ok: false, error: `Gagal memperbarui status: ${upd.error.message}` };
+  revalidatePublic();
+  return { ok: true };
+}
+
+export async function bulkDeleteWorks(ids: number[]): Promise<ActionResult> {
+  const unauth = await guard();
+  if (unauth) return unauth;
+  if (ids.length === 0) return { ok: true };
+  const supabase = createAdminClient();
+  const del = await supabase.from("works").delete().in("id", ids);
+  if (del.error)
+    return { ok: false, error: `Gagal menghapus karya: ${del.error.message}` };
+  revalidatePublic();
+  return { ok: true };
+}
+
 // ===================== CLIENTS =====================
 export type ClientInput = {
   name: string;

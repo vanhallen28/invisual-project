@@ -1,27 +1,12 @@
-INVISUAL — paket update #14 (Kotak masuk pesan + notifikasi email)
+INVISUAL — paket update #22 (Rapikan: hapus logo ganda di sidebar)
 
-- Halaman /admin/messages: baca semua pesan dari form kontak, tandai
-  dibaca/belum, Balas (buka email ke pengirim), Hapus.
-- Tautan "Pesan" di header admin dengan badge jumlah pesan belum dibaca.
-- Form kontak: kirim email notifikasi lewat Resend (aktif jika key diisi).
+APA YANG BERUBAH
+- Wordmark "INVISUAL" di dalam sidebar admin DIHAPUS (tadinya menumpuk dengan
+  logo besar situs di atasnya). Tombol ciut/perlebar tetap ada, kini rata kanan.
+- Wordmark "INVISUAL" pada bilah atas versi HP juga dihapus (alasan sama).
 
-LANGKAH 1 — Jalankan SQL di Supabase:
-  Supabase -> SQL Editor -> tempel isi "messages-read.sql" -> Run.
-
-LANGKAH 2 — Pasang (dari FOLDER ROOT proyek):
-  unzip -o invisual-update-14.zip
+CARA PASANG (dari FOLDER ROOT proyek):
+  unzip -o invisual-update-22.zip
   rm -rf .next && npm run dev
 
-Tanpa npm install. Inbox langsung berfungsi.
-
---- MENGAKTIFKAN EMAIL NOTIFIKASI (Resend) ---
-Email hanya terkirim jika RESEND_API_KEY diisi. Setelah punya akun Resend:
-1) Tambahkan ke file .env.local (dan ke Environment Variables di Vercel):
-     RESEND_API_KEY=re_xxxxxxxx
-     CONTACT_NOTIFY_TO=business@invisual.studio     (email tujuan notifikasi)
-     CONTACT_NOTIFY_FROM=Invisual <noreply@invisual.studio>
-   Catatan: "from" dengan domain sendiri (noreply@invisual.studio) butuh
-   verifikasi domain di Resend. Untuk uji cepat, boleh pakai:
-     CONTACT_NOTIFY_FROM=Invisual <onboarding@resend.dev>
-   (hanya bisa kirim ke email akun Resend Anda sendiri).
-2) Restart dev / redeploy. Kirim pesan uji dari /contact -> cek email.
+- Tanpa perubahan database. Tanpa npm install.

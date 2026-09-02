@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { AdminShell } from "../_components/admin-shell";
+import { getUnreadCount } from "@/lib/admin-unread";
 import { createAdminClient } from "@/lib/supabase/admin";
 import HomeForm from "./home-form";
 
@@ -12,22 +13,18 @@ export default async function AdminHomePage() {
     .eq("id", 1)
     .maybeSingle();
 
+  const unread = await getUnreadCount();
+
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Konten Beranda</h1>
-        <Link
-          href="/admin"
-          className="text-sm underline hover:text-[#416fd8] dark:hover:text-[#f65294]"
-        >
-          ← Kembali ke Admin
-        </Link>
-      </div>
+    <AdminShell active="home" unread={unread}>
+      <div className="mx-auto max-w-3xl">
+        <h1 className="mb-6 text-2xl font-bold md:text-3xl">Konten Beranda</h1>
 
       <HomeForm
         initialHeroUrl={data?.hero_video_url ?? ""}
         initialIntro={data?.intro_text ?? ""}
       />
-    </div>
+      </div>
+    </AdminShell>
   );
 }

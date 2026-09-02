@@ -1,9 +1,12 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2, Mail, MailOpen } from "lucide-react";
+import { Trash2, Mail, MailOpen, Inbox, Search } from "lucide-react";
 import { markMessageRead, deleteMessage } from "./actions";
+import { Pagination } from "../_components/pagination";
+import { useToast } from "../_components/toast";
+import { useConfirm } from "../_components/confirm-dialog";
 
 type Msg = {
     id: number;
@@ -16,27 +19,78 @@ type Msg = {
 
 export default function MessagesClient({ messages }: { messages: Msg[] }) {
     const router = useRouter();
+    const toast = useToast();
+    const confirm = useConfirm();
     const [pending, start] = useTransition();
     const refresh = () => start(() => router.refresh());
+    const [query, setQuery] = useState("");
+    const [page, setPage] = useState(1);
+
+    const q = query.trim().toLowerCase();
+    const filtered = q
+        ? messages.filter(
+              (m) =>
+                  m.name.toLowerCase().includes(q) ||
+                  m.email.toLowerCase().includes(q) ||
+                  m.message.toLowerCase().includes(q)
+          )
+        : messages;
+    const [prevQuery, setPrevQuery] = useState(query);
+    if (query !== prevQuery) {
+        setPrevQuery(query);
+        setPage(1);
+    }
+    const PAGE_SIZE = 10;
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    const current = Math.min(page, totalPages);
+    const pageItems = filtered.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
 
     async function toggleRead(m: Msg) {
         const res = await markMessageRead(m.id, !m.read);
-        if (!res.ok) return window.alert(res.error);
+        if (!res.ok) return toast.show(res.error ?? "Gagal memperbarui.", "error");
         refresh();
     }
     async function del(id: number) {
-        if (!window.confirm("Hapus pesan ini?")) return;
+        const ok = await confirm({
+            title: "Hapus pesan",
+            message: "Hapus pesan ini?",
+            confirmText: "Hapus",
+            danger: true,
+        });
+        if (!ok) return;
         const res = await deleteMessage(id);
-        if (!res.ok) return window.alert(res.error);
+        if (!res.ok) return toast.show(res.error ?? "Gagal menghapus.", "error");
         refresh();
+        toast.show("Pesan dihapus");
     }
 
     if (messages.length === 0)
-        return <p className="text-sm text-muted-foreground">Belum ada pesan.</p>;
+        return (
+            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
+                <Inbox className="mb-3 h-10 w-10 text-muted-foreground/50" />
+                <p className="text-sm text-muted-foreground">Belum ada pesan masuk.</p>
+            </div>
+        );
 
     return (
-        <ul className="space-y-3">
-            {messages.map((m) => (
+        <div className="space-y-4">
+            <div className="relative w-full sm:max-w-xs">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Cari pesan…"
+                    className="w-full rounded-md border bg-transparent py-2 pl-9 pr-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+            </div>
+            {filtered.length === 0 ? (
+                <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
+                    Tidak ada pesan yang cocok.
+                </p>
+            ) : (
+                <>
+                    <ul className="space-y-3">
+                        {pageItems.map((m) => (
                 <li
                     key={m.id}
                     className={`rounded-lg border p-4 ${m.read ? "" : "border-l-4 border-l-[#416fd8] dark:border-l-[#f65294]"}`}
@@ -97,7 +151,16 @@ export default function MessagesClient({ messages }: { messages: Msg[] }) {
                         </button>
                     </div>
                 </li>
-            ))}
-        </ul>
+                        ))}
+                    </ul>
+                    <Pagination
+                        page={current}
+                        total={filtered.length}
+                        pageSize={PAGE_SIZE}
+                        onPage={setPage}
+                    />
+                </>
+            )}
+        </div>
     );
 }
