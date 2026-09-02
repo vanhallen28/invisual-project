@@ -1,12 +1,25 @@
-INVISUAL — paket update #22 (Rapikan: hapus logo ganda di sidebar)
+INVISUAL — paket update #23 (PERBAIKAN build Vercel: FAQ tanpa @dnd-kit)
 
-APA YANG BERUBAH
-- Wordmark "INVISUAL" di dalam sidebar admin DIHAPUS (tadinya menumpuk dengan
-  logo besar situs di atasnya). Tombol ciut/perlebar tetap ada, kini rata kanan.
-- Wordmark "INVISUAL" pada bilah atas versi HP juga dihapus (alasan sama).
+MASALAH
+- Build Vercel gagal: "Module not found: Can't resolve '@dnd-kit/core'"
+  (juga /sortable dan /utilities). Penyebab: paket @dnd-kit tidak tercatat
+  di package.json yang ada di GitHub, jadi Vercel tidak bisa menemukannya.
 
-CARA PASANG (dari FOLDER ROOT proyek):
-  unzip -o invisual-update-22.zip
-  rm -rf .next && npm run dev
+PERBAIKAN (paket ini)
+- Halaman /admin/faq dikembalikan ke versi TANPA library:
+  urut memakai tombol panah naik/turun (seperti sebelumnya). Fitur lain tetap:
+  tambah, edit di tempat, hapus, pencarian, toast, konfirmasi.
+- Tidak ada lagi ketergantungan @dnd-kit -> build Vercel akan lolos.
 
-- Tanpa perubahan database. Tanpa npm install.
+CARA PASANG & DEPLOY:
+  unzip -o invisual-update-23.zip
+  rm -rf .next && npm run dev        (untuk cek lokal, opsional)
+  lalu commit & push ke GitHub. Vercel akan build ulang dan berhasil.
+
+- Tanpa npm install. Tanpa perubahan database.
+
+--- OPSIONAL: kalau tetap mau drag-and-drop nanti ---
+Jalankan di folder proyek (SEKALI), lalu commit package.json + package-lock.json:
+  npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
+Pastikan file package.json DAN package-lock.json ikut ter-commit & ter-push,
+supaya Vercel ikut memasang paketnya. Baru pasang kembali versi drag-and-drop.

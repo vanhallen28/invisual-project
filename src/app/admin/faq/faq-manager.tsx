@@ -1,25 +1,8 @@
 "use client";
 
-import { useState, useTransition, type CSSProperties, type ReactNode } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { GripVertical, Pencil, Trash2, Plus, HelpCircle, Search } from "lucide-react";
-import {
-    DndContext,
-    closestCenter,
-    PointerSensor,
-    KeyboardSensor,
-    useSensor,
-    useSensors,
-    type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-    SortableContext,
-    verticalListSortingStrategy,
-    useSortable,
-    arrayMove,
-    sortableKeyboardCoordinates,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { ChevronUp, ChevronDown, Pencil, Trash2, Plus, HelpCircle, Search } from "lucide-react";
 import { createFaq, updateFaq, deleteFaq, reorderFaqs } from "./actions";
 import { useToast } from "../_components/toast";
 import { useConfirm } from "../_components/confirm-dialog";
@@ -36,38 +19,21 @@ export default function FaqManager({ faqs }: { faqs: Faq[] }) {
     const toast = useToast();
     const confirm = useConfirm();
     const [pending, start] = useTransition();
-
-    // form tambah
     const [q, setQ] = useState("");
     const [a, setA] = useState("");
-    // edit di tempat
     const [editId, setEditId] = useState<number | null>(null);
     const [eq, setEq] = useState("");
     const [ea, setEa] = useState("");
-    // pencarian
     const [query, setQuery] = useState("");
-    // urutan lokal (untuk drag optimistik), disinkron dari prop
-    const [items, setItems] = useState<Faq[]>(faqs);
-    const [prevFaqs, setPrevFaqs] = useState<Faq[]>(faqs);
-    if (faqs !== prevFaqs) {
-        setPrevFaqs(faqs);
-        setItems(faqs);
-    }
-
-    const sensors = useSensors(
-        useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-    );
 
     const qlc = query.trim().toLowerCase();
     const filtered = qlc
-        ? items.filter(
+        ? faqs.filter(
               (f) =>
                   f.question.toLowerCase().includes(qlc) ||
                   f.answer.toLowerCase().includes(qlc)
           )
-        : items;
-    const canReorder = !qlc;
+        : faqs;
 
     const refresh = () => start(() => router.refresh());
 
@@ -100,42 +66,15 @@ export default function FaqManager({ faqs }: { faqs: Faq[] }) {
         refresh();
         toast.show("FAQ dihapus");
     }
-    async function onDragEnd(e: DragEndEvent) {
-        const { active, over } = e;
-        if (!over || active.id === over.id) return;
-        const oldIndex = items.findIndex((f) => f.id === active.id);
-        const newIndex = items.findIndex((f) => f.id === over.id);
-        if (oldIndex < 0 || newIndex < 0) return;
-        const prev = items;
-        const next = arrayMove(items, oldIndex, newIndex);
-        setItems(next); // optimistik
-        const res = await reorderFaqs(next.map((f) => f.id));
-        if (!res.ok) {
-            setItems(prev);
-            return toast.show(res.error ?? "Gagal mengurutkan.", "error");
-        }
+    async function move(index: number, dir: -1 | 1) {
+        const arr = [...faqs];
+        const j = index + dir;
+        if (j < 0 || j >= arr.length) return;
+        [arr[index], arr[j]] = [arr[j], arr[index]];
+        const res = await reorderFaqs(arr.map((f) => f.id));
+        if (!res.ok) return toast.show(res.error ?? "Gagal mengurutkan.", "error");
         refresh();
     }
-
-    function startEdit(f: Faq) {
-        setEditId(f.id);
-        setEq(f.question);
-        setEa(f.answer);
-    }
-
-    const rowProps = (f: Faq) => ({
-        f,
-        isEditing: editId === f.id,
-        eq,
-        ea,
-        setEq,
-        setEa,
-        pending,
-        onStartEdit: () => startEdit(f),
-        onSaveEdit: () => saveEdit(f.id),
-        onCancelEdit: () => setEditId(null),
-        onDelete: () => del(f.id),
-    });
 
     return (
         <div className="space-y-8">
@@ -165,7 +104,7 @@ export default function FaqManager({ faqs }: { faqs: Faq[] }) {
             </div>
 
             {/* Cari */}
-            {items.length > 0 && (
+            {faqs.length > 0 && (
                 <div className="relative w-full sm:max-w-xs">
                     <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <input
@@ -178,7 +117,7 @@ export default function FaqManager({ faqs }: { faqs: Faq[] }) {
             )}
 
             {/* Daftar */}
-            {items.length === 0 ? (
+            {faqs.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-12 text-center">
                     <HelpCircle className="mb-3 h-9 w-9 text-muted-foreground/50" />
                     <p className="text-sm text-muted-foreground">
@@ -189,153 +128,100 @@ export default function FaqManager({ faqs }: { faqs: Faq[] }) {
                 <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
                     Tidak ada FAQ yang cocok.
                 </p>
-            ) : canReorder ? (
-                <>
-                    <p className="text-xs text-muted-foreground">
-                        Seret ikon titik-titik untuk mengubah urutan.
-                    </p>
-                    <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={onDragEnd}
-                    >
-                        <SortableContext
-                            items={filtered.map((f) => f.id)}
-                            strategy={verticalListSortingStrategy}
-                        >
-                            <ul className="space-y-3">
-                                {filtered.map((f) => (
-                                    <SortableFaqRow key={f.id} {...rowProps(f)} />
-                                ))}
-                            </ul>
-                        </SortableContext>
-                    </DndContext>
-                </>
             ) : (
-                <ul className="space-y-3">
-                    {filtered.map((f) => (
-                        <FaqRow key={f.id} {...rowProps(f)} />
-                    ))}
-                </ul>
+                <>
+                    {!qlc && (
+                        <p className="text-xs text-muted-foreground">
+                            Pakai panah naik/turun untuk mengubah urutan.
+                        </p>
+                    )}
+                    <ul className="space-y-3">
+                        {filtered.map((f, i) => (
+                            <li key={f.id} className="rounded-lg border p-4">
+                                {editId === f.id ? (
+                                    <div className="space-y-3">
+                                        <input
+                                            value={eq}
+                                            onChange={(e) => setEq(e.target.value)}
+                                            className={inputClass}
+                                        />
+                                        <textarea
+                                            value={ea}
+                                            onChange={(e) => setEa(e.target.value)}
+                                            rows={3}
+                                            className={`${inputClass} resize-y`}
+                                        />
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => saveEdit(f.id)}
+                                                disabled={pending}
+                                                className="rounded-full bg-[#416fd8] px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-60 dark:bg-[#f65294]"
+                                            >
+                                                Simpan
+                                            </button>
+                                            <button
+                                                onClick={() => setEditId(null)}
+                                                className="rounded-full border px-4 py-1.5 text-sm"
+                                            >
+                                                Batal
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-start gap-3">
+                                        {!qlc && (
+                                            <div className="flex flex-col gap-1 pt-1">
+                                                <button
+                                                    onClick={() => move(i, -1)}
+                                                    disabled={i === 0 || pending}
+                                                    aria-label="Naik"
+                                                    className="text-muted-foreground hover:text-foreground disabled:opacity-30"
+                                                >
+                                                    <ChevronUp className="h-4 w-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => move(i, 1)}
+                                                    disabled={i === faqs.length - 1 || pending}
+                                                    aria-label="Turun"
+                                                    className="text-muted-foreground hover:text-foreground disabled:opacity-30"
+                                                >
+                                                    <ChevronDown className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        )}
+                                        <div className="min-w-0 flex-1">
+                                            <p className="font-medium">{f.question}</p>
+                                            <p className="mt-1 whitespace-pre-line text-sm text-muted-foreground">
+                                                {f.answer}
+                                            </p>
+                                        </div>
+                                        <div className="flex shrink-0 gap-1.5">
+                                            <button
+                                                onClick={() => {
+                                                    setEditId(f.id);
+                                                    setEq(f.question);
+                                                    setEa(f.answer);
+                                                }}
+                                                aria-label="Edit"
+                                                className="inline-flex h-8 w-8 items-center justify-center rounded-md border text-muted-foreground hover:bg-muted"
+                                            >
+                                                <Pencil className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => del(f.id)}
+                                                aria-label="Hapus"
+                                                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-red-500/40 text-red-500 hover:bg-red-500 hover:text-white"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
+                </>
             )}
         </div>
-    );
-}
-
-type RowProps = {
-    f: Faq;
-    isEditing: boolean;
-    eq: string;
-    ea: string;
-    setEq: (v: string) => void;
-    setEa: (v: string) => void;
-    pending: boolean;
-    onStartEdit: () => void;
-    onSaveEdit: () => void;
-    onCancelEdit: () => void;
-    onDelete: () => void;
-};
-
-function SortableFaqRow(props: RowProps) {
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-        useSortable({ id: props.f.id });
-    const style: CSSProperties = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.5 : 1,
-    };
-    const handle = (
-        <button
-            type="button"
-            {...attributes}
-            {...listeners}
-            aria-label="Seret untuk mengurutkan"
-            className="mt-0.5 shrink-0 cursor-grab touch-none text-muted-foreground hover:text-foreground active:cursor-grabbing"
-        >
-            <GripVertical className="h-4 w-4" />
-        </button>
-    );
-    return <FaqRow {...props} nodeRef={setNodeRef} style={style} handle={handle} />;
-}
-
-function FaqRow({
-    f,
-    isEditing,
-    eq,
-    ea,
-    setEq,
-    setEa,
-    pending,
-    onStartEdit,
-    onSaveEdit,
-    onCancelEdit,
-    onDelete,
-    nodeRef,
-    style,
-    handle,
-}: RowProps & {
-    nodeRef?: (el: HTMLElement | null) => void;
-    style?: CSSProperties;
-    handle?: ReactNode;
-}) {
-    return (
-        <li ref={nodeRef} style={style} className="rounded-lg border bg-background p-4">
-            {isEditing ? (
-                <div className="space-y-3">
-                    <input
-                        value={eq}
-                        onChange={(e) => setEq(e.target.value)}
-                        className={inputClass}
-                    />
-                    <textarea
-                        value={ea}
-                        onChange={(e) => setEa(e.target.value)}
-                        rows={3}
-                        className={`${inputClass} resize-y`}
-                    />
-                    <div className="flex gap-2">
-                        <button
-                            onClick={onSaveEdit}
-                            disabled={pending}
-                            className="rounded-full bg-[#416fd8] px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-60 dark:bg-[#f65294]"
-                        >
-                            Simpan
-                        </button>
-                        <button
-                            onClick={onCancelEdit}
-                            className="rounded-full border px-4 py-1.5 text-sm"
-                        >
-                            Batal
-                        </button>
-                    </div>
-                </div>
-            ) : (
-                <div className="flex items-start gap-3">
-                    {handle}
-                    <div className="min-w-0 flex-1">
-                        <p className="font-medium">{f.question}</p>
-                        <p className="mt-1 whitespace-pre-line text-sm text-muted-foreground">
-                            {f.answer}
-                        </p>
-                    </div>
-                    <div className="flex shrink-0 gap-1.5">
-                        <button
-                            onClick={onStartEdit}
-                            aria-label="Edit"
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-md border text-muted-foreground hover:bg-muted"
-                        >
-                            <Pencil className="h-4 w-4" />
-                        </button>
-                        <button
-                            onClick={onDelete}
-                            aria-label="Hapus"
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-red-500/40 text-red-500 hover:bg-red-500 hover:text-white"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </button>
-                    </div>
-                </div>
-            )}
-        </li>
     );
 }
