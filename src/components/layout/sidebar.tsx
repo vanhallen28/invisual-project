@@ -44,6 +44,8 @@ export default function Sidebar({
                                     alt="Invisual Logo"
                                     fill
                                     priority
+                                    unoptimized
+                                    sizes="110px"
                                     className="object-contain"
                                 />
                             </div>

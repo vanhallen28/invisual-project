@@ -4,6 +4,7 @@ import { pageMetadata } from "@/lib/seo";
 import MapSection from "./_components/map";
 import HeadOfficeSection from "./_components/head-office";
 import InquiriesSection from "./_components/inquiries";
+import ContactForm from "./_components/contact-form";
 import ReachUsSection from "./_components/reach-us";
 import DescriptionSection from "./_components/description";
 import FooterSection from "./_components/footer";
@@ -22,6 +23,7 @@ export default function ContactPage() {
             <HeadOfficeSection />
             <DescriptionSection />
             <InquiriesSection />
+            <ContactForm />
             <ReachUsSection />
             <FooterSection />
         </div>

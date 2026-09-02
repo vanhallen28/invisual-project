@@ -4,6 +4,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import Header from "@/components/layout/header";
 import FooterWrapper from "@/components/layout/footer-wrapper";
+import { Analytics } from "@vercel/analytics/next";
+import PageViewTracker from "@/components/analytics/page-view-tracker";
 import { site } from "@/configs/site";
 import { absoluteUrl } from "@/lib/seo";
 
@@ -79,6 +81,8 @@ export default function RootLayout({
                         <FooterWrapper />
                     </main>
                 </ThemeProvider>
+                <Analytics />
+                <PageViewTracker />
             </body>
         </html>
     );

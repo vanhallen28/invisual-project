@@ -1,19 +1,10 @@
-"use client";
+import type { ServiceCategory } from "@/lib/about-server";
 
-import { useEffect, useState } from "react";
-import { getServiceCategories, type ServiceCategory } from "@/services/about";
-
-export default function ServicesSection() {
-    const [categories, setCategories] = useState<ServiceCategory[]>([]);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            const data = await getServiceCategories();
-            setCategories(data);
-        };
-        fetchData();
-    }, []);
-
+export default function ServicesSection({
+    categories,
+}: {
+    categories: ServiceCategory[];
+}) {
     return (
         <section className="px-4 md:px-8">
             <h1 className="text-3xl font-bold text-primary mb-2 lg:text-4xl">

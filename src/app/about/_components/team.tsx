@@ -1,22 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { getTeamMembers, type TeamMember } from "@/services/about";
+import type { TeamMember } from "@/lib/about-server";
 
-export default function TeamSection() {
-    const [members, setMembers] = useState<TeamMember[]>([]);
+export default function TeamSection({ members }: { members: TeamMember[] }) {
     const [showMore, setShowMore] = useState(false);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            const data = await getTeamMembers();
-            setMembers(data);
-        };
-        fetchData();
-    }, []);
 
     // 12 pertama tampil dulu, sisanya di balik "Show More" (urut order_index).
     const initialMembers = members.slice(0, 12);

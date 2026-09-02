@@ -1,0 +1,11 @@
+INVISUAL — paket update #7 (SSR halaman About)
+
+Hero, Services, dan Team di halaman About kini di-render di server (SSR),
+tidak lagi fetch di browser — jadi tidak ada lagi error "Failed to fetch"
+di konsol dan halaman tampil lebih cepat.
+
+Pasang (dari FOLDER ROOT proyek):
+  unzip -o invisual-update-7.zip
+  rm -rf .next && npm run dev
+
+Tanpa SQL, tanpa npm install.

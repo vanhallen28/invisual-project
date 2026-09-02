@@ -1,3 +1,199 @@
+#!/usr/bin/env bash
+# Refactor #1: SSR halaman detail Works (+ optimasi gambar galeri + aksesibilitas).
+# Cara pakai: taruh file ini di FOLDER ROOT proyek, lalu jalankan:  bash apply-ssr.sh
+set -e
+cd "$(dirname "$0")"
+if [ ! -f package.json ]; then echo "ERROR: jalankan dari folder root proyek (package.json tidak ada)"; exit 1; fi
+mkdir -p src/lib "src/app/works/[slug]"
+
+echo "-> menulis src/lib/works-server.ts"
+cat > 'src/lib/works-server.ts' << 'WS_EOF_9271'
+// src/lib/works-server.ts
+// Pengambilan data "works" untuk Server Component.
+// Memakai klien Supabase biasa (anon, tanpa cookie) supaya aman dijalankan di
+// server — berbeda dari src/services/works.ts yang memakai browser client.
+import { createClient } from "@supabase/supabase-js";
+import type { Work } from "@/services/works";
+
+function db() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { auth: { persistSession: false } }
+  );
+}
+
+function normalizeWork(row: any): Work {
+  return {
+    id: Number(row.id),
+    title: row.title,
+    slug: row.slug,
+    description: row.description ?? undefined,
+    cover_url: row.cover_url ?? undefined,
+    created_at: row.created_at ?? undefined,
+    featured: row.featured ?? false,
+    details: Array.isArray(row.details) ? row.details : [],
+    industry: row.industry
+      ? { id: Number(row.industry.id), name: row.industry.name }
+      : undefined,
+    scope: row.scope
+      ? { id: Number(row.scope.id), name: row.scope.name }
+      : undefined,
+    client: row.client
+      ? {
+          id: Number(row.client.id),
+          name: row.client.name,
+          logo_url: row.client.logo_url ?? undefined,
+          industry: row.client.industry
+            ? {
+                id: Number(row.client.industry.id),
+                name: row.client.industry.name,
+              }
+            : undefined,
+        }
+      : undefined,
+    hero: row.work_media?.hero ?? null,
+    media: row.work_media?.media ?? [],
+  };
+}
+
+// Ambil satu karya lengkap (untuk halaman detail).
+export async function getWorkFull(slug: string): Promise<Work | null> {
+  const { data, error } = await db()
+    .from("works")
+    .select(
+      `
+      *,
+      industry:industries ( id, name ),
+      scope:scopes ( id, name ),
+      client:clients (
+        id, name, logo_url,
+        industry:industries ( id, name )
+      ),
+      work_media ( hero, media )
+    `
+    )
+    .eq("slug", slug)
+    .single();
+
+  if (error || !data) return null;
+
+  const workMedia = (data as any).work_media?.[0] ?? null;
+  return normalizeWork({
+    ...data,
+    work_media: workMedia ?? { hero: null, media: [] },
+  });
+}
+
+// Daftar ringan untuk menentukan "proyek berikutnya".
+export type WorkNav = { slug: string; title: string; cover_url: string | null };
+
+export async function getWorksNav(): Promise<WorkNav[]> {
+  const { data } = await db()
+    .from("works")
+    .select("slug, title, cover_url, created_at")
+    .order("created_at", { ascending: false });
+
+  return (
+    (data as any[] | null)?.map((r) => ({
+      slug: r.slug,
+      title: r.title,
+      cover_url: r.cover_url ?? null,
+    })) ?? []
+  );
+}
+WS_EOF_9271
+
+echo "-> menulis src/app/works/[slug]/page.tsx"
+cat > 'src/app/works/[slug]/page.tsx' << 'PG_EOF_9271'
+// src/app/works/[slug]/page.tsx
+// Server component: metadata per proyek + JSON-LD + render konten (SSR).
+// Data karya diambil di server lalu dioper sebagai props ke <WorkDetail />,
+// sehingga konten sudah ada di HTML awal (cepat & terbaca mesin pencari).
+import type { Metadata } from "next";
+import { cache } from "react";
+import { notFound } from "next/navigation";
+import { ogImage, pageMetadata, absoluteUrl } from "@/lib/seo";
+import { site } from "@/configs/site";
+import { getWorkFull, getWorksNav } from "@/lib/works-server";
+import { WorkDetail } from "./work-detail";
+
+// cache() menyatukan pemanggilan generateMetadata + komponen jadi satu query.
+const getWork = cache(getWorkFull);
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const work = await getWork(slug);
+
+  if (!work) {
+    return {
+      title: "Work not found",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  return pageMetadata({
+    title: work.title,
+    description: work.description ?? site.description,
+    path: `/works/${work.slug}`,
+    image: ogImage(work.cover_url),
+    type: "article",
+  });
+}
+
+export default async function WorkDetailRoute({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const [work, nav] = await Promise.all([getWork(slug), getWorksNav()]);
+
+  if (!work) notFound();
+
+  // Proyek berikutnya (berputar ke awal saat di proyek terakhir).
+  let nextWork: { slug: string; title: string; cover_url: string | null } | null =
+    null;
+  if (nav.length > 1) {
+    const idx = nav.findIndex((w) => w.slug === slug);
+    const cand = idx === -1 ? nav[0] : nav[(idx + 1) % nav.length];
+    nextWork = cand.slug === slug ? null : cand;
+  }
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: work.title,
+    headline: work.title,
+    description: work.description ?? undefined,
+    image: work.cover_url ? ogImage(work.cover_url) : undefined,
+    url: absoluteUrl(`/works/${work.slug}`),
+    datePublished: work.created_at ?? undefined,
+    creator: {
+      "@type": "Organization",
+      name: site.name,
+      url: site.url,
+    },
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <WorkDetail work={work} nextWork={nextWork} />
+    </>
+  );
+}
+PG_EOF_9271
+
+echo "-> menulis src/app/works/[slug]/work-detail.tsx"
+cat > 'src/app/works/[slug]/work-detail.tsx' << 'WD_EOF_9271'
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -319,3 +515,7 @@ function GalleryItem({
         </div>
     );
 }
+WD_EOF_9271
+
+echo ""
+echo "Selesai. Selanjutnya jalankan:  rm -rf .next && npm run dev"

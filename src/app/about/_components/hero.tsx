@@ -1,20 +1,7 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Image from "next/image";
-import { getAboutIntro, type AboutIntro } from "@/services/about";
+import type { AboutIntro } from "@/lib/about-server";
 
-export default function HeroSection() {
-    const [intro, setIntro] = useState<AboutIntro | null>(null);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            const data = await getAboutIntro();
-            setIntro(data);
-        };
-        fetchData();
-    }, []);
-
+export default function HeroSection({ intro }: { intro: AboutIntro | null }) {
     if (!intro) return null;
 
     return (

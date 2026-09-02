@@ -1,20 +1,7 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Image from "next/image";
-import { getClients } from "@/services/clients";
+import type { ClientItem } from "@/lib/works-server";
 
-export default function ClientsSection() {
-    const [clients, setClients] = useState<any[]>([]);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            const data = await getClients();
-            setClients(data);
-        };
-        fetchData();
-    }, []);
-
+export default function ClientsSection({ clients }: { clients: ClientItem[] }) {
     return (
         <section className="px-4 md:px-8">
             <h1 className="text-3xl font-bold text-primary mb-2 lg:text-4xl">
@@ -27,7 +14,6 @@ export default function ClientsSection() {
                         key={client.id}
                         className="border-b border-accent-foreground p-3 transition-colors flex items-center gap-3"
                     >
-                        {/* 🖼️ Logo */}
                         {client.logo_url && (
                             <div className="relative w-20 h-20 flex-shrink-0">
                                 <Image
@@ -35,12 +21,11 @@ export default function ClientsSection() {
                                     alt={`${client.name} logo`}
                                     fill
                                     className="object-contain rounded"
-                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                    sizes="80px"
                                 />
                             </div>
                         )}
 
-                        {/* 📄 Teks */}
                         <div className="flex flex-col">
                             <p className="text-xl font-medium text-foreground">
                                 {client.name}

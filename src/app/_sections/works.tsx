@@ -1,25 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { getWorks } from "@/services/works";
+import type { WorkListItem } from "@/lib/works-server";
 
-export default function WorksSection() {
-    const [works, setWorks] = useState<any[]>([]);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            const data = await getWorks();
-            // Hanya karya yang ditandai "Tampil di home" lewat /admin.
-            // getWorks() sudah urut terbaru-dulu, jadi yang terbaru di depan.
-            const featured = data.filter((work) => work.featured);
-            setWorks(featured);
-        };
-        fetchData();
-    }, []);
-
+export default function WorksSection({ works }: { works: WorkListItem[] }) {
     return (
         <section className="px-4 md:px-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
@@ -33,32 +19,27 @@ export default function WorksSection() {
                     >
                         <Link
                             href={`/works/${work.slug}`}
-                            className="group block overflow-hidden"
+                            className="group block"
                         >
-                            <div className="relative w-full aspect-video overflow-hidden rounded-md border border-transparent group-hover:border-primary transition-all duration-300">
+                            <div className="relative w-full aspect-[4/3] overflow-hidden rounded-md">
                                 <Image
                                     src={work.cover_url || "/placeholder.png"}
                                     alt={work.title}
                                     fill
-                                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                                    sizes="(max-width: 640px) 100vw, 50vw"
+                                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                                 />
-
-                                {/* Overlay muncul saat hover */}
-                                <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
-                                    <span className="text-white text-lg tracking-wide">
-                                        View Work →
-                                    </span>
-                                </div>
                             </div>
 
                             <div className="mt-2 px-1">
-                                <p className="text-xl font-semibold text-foreground transition-colors duration-300 group-hover:text-primary">
+                                <p className="text-xl font-semibold text-foreground">
                                     {work.title}
                                 </p>
                                 <p className="text-sm">
                                     {work.scope?.name || "Uncategorized"} •{" "}
-                                    {work.client?.industry?.name || "General"}
+                                    {work.industry?.name ||
+                                        work.client?.industry?.name ||
+                                        "General"}
                                 </p>
                             </div>
                         </Link>

@@ -1,5 +1,6 @@
 // src/app/admin/page.tsx
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { isAdmin } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -133,16 +134,30 @@ export default async function AdminPage() {
               Perubahan langsung tampil di situs setelah disimpan.
             </p>
           </div>
-          <form action={logout}>
-            <button
-              type="submit"
-              aria-label="Keluar"
-              title="Keluar"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-500/40 text-red-500 transition-colors hover:bg-red-500 hover:text-white"
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin/home"
+              className="rounded-full border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
             >
-              <LogOut className="h-5 w-5" />
-            </button>
-          </form>
+              Beranda
+            </Link>
+            <Link
+              href="/admin/stats"
+              className="rounded-full border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+            >
+              Statistik
+            </Link>
+            <form action={logout}>
+              <button
+                type="submit"
+                aria-label="Keluar"
+                title="Keluar"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-500/40 text-red-500 transition-colors hover:bg-red-500 hover:text-white"
+              >
+                <LogOut className="h-5 w-5" />
+              </button>
+            </form>
+          </div>
         </header>
 
         <AdminDashboard

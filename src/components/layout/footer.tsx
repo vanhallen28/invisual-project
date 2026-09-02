@@ -76,6 +76,7 @@ export default function Footer() {
                         width={40}
                         height={40}
                         priority
+                        unoptimized
                     />
                     <p className="text-sm text-shadow-muted-foreground">
                         © Invisual Studio 2025 - All Rights Reserved

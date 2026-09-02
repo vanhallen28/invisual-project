@@ -53,6 +53,8 @@ export default function Navbar() {
                             alt="Invisual Logo"
                             fill
                             priority
+                            unoptimized
+                            sizes="110px"
                             className="object-contain"
                         />
                     </div>
