@@ -11,6 +11,9 @@ import { getFaqsServer } from "@/lib/faq-server";
 
 export const metadata: Metadata = pageMetadata({ path: "/" });
 
+// Segarkan data dari database secara berkala (mis. perubahan lewat SQL).
+export const revalidate = 60;
+
 export default async function Page() {
     const [home, works, clients, faqs] = await Promise.all([
         getHomeContent(),

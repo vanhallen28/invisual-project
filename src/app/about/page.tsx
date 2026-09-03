@@ -9,6 +9,8 @@ import {
     getTestimonialsServer,
 } from "@/lib/about-server";
 
+export const revalidate = 60;
+
 export default async function AboutPage() {
     const [intro, categories, members, testimonials] = await Promise.all([
         getAboutIntroServer(),
