@@ -1,13 +1,25 @@
-INVISUAL — paket update #25 (Testimoni: jeda saat kursor di atasnya)
+INVISUAL — paket update #26 (Statistik: 24 jam + lokasi + sumber kunjungan)
 
 APA YANG BERUBAH
-- Carousel testimoni (halaman About) yang bergerak otomatis kini BERHENTI
-  saat kursor berada di area testimoni, dan LANJUT bergerak lagi saat kursor
-  keluar dari area tersebut.
+- Kartu baru "24 jam terakhir".
+- Bagian "Lokasi teratas" (negara pengunjung, lengkap bendera & nama).
+- Bagian "Sumber kunjungan" (dari mana pengunjung datang: Google, Instagram,
+  langsung, dll).
 
-CARA PASANG (dari FOLDER ROOT proyek):
-  unzip -o invisual-update-25.zip
+LANGKAH 1 — Tambah kolom di database (jalankan SQL, sekali):
+  Supabase -> SQL Editor -> tempel isi "page-views-geo.sql" -> Run.
+
+LANGKAH 2 — Pasang kode (dari FOLDER ROOT proyek):
+  unzip -o invisual-update-26.zip
   rm -rf .next && npm run dev
   (untuk live: commit & push ke GitHub)
 
-- Tanpa npm install. Tanpa perubahan database.
+- Tanpa npm install.
+
+PENTING soal LOKASI:
+- Lokasi pengunjung diambil dari jaringan Vercel, jadi hanya terisi di situs
+  LIVE (produksi/Vercel). Di localhost akan tercatat "Tidak diketahui".
+- Data lokasi & sumber mulai terkumpul SETELAH update ini live. Kunjungan lama
+  (sebelum ini) tidak punya data lokasi/sumber.
+- URUTAN PENTING: jalankan SQL (Langkah 1) DULU sebelum pasang kode, agar
+  statistik lain tidak sempat kosong.
