@@ -19,9 +19,11 @@ export function TestimonialCarousel({
     testimonials: Testimonial[]
 }) {
     const carouselRef = useRef<HTMLDivElement>(null)
+    const pausedRef = useRef(false)
 
     useEffect(() => {
         const interval = setInterval(() => {
+            if (pausedRef.current) return
             const nextButton = carouselRef.current?.querySelector(
                 '[data-testid="carousel-next"]'
             ) as HTMLButtonElement
@@ -32,11 +34,19 @@ export function TestimonialCarousel({
     }, [])
 
     return (
-        <Carousel
-            opts={{ align: "start", loop: true }}
-            className="w-full mt-6 relative"
-            ref={carouselRef}
+        <div
+            onMouseEnter={() => {
+                pausedRef.current = true
+            }}
+            onMouseLeave={() => {
+                pausedRef.current = false
+            }}
         >
+            <Carousel
+                opts={{ align: "start", loop: true }}
+                className="w-full mt-6 relative"
+                ref={carouselRef}
+            >
             <CarouselContent className="-ml-4">
                 {testimonials.map((t, i) => (
                     <CarouselItem
@@ -61,5 +71,6 @@ export function TestimonialCarousel({
             <CarouselPrevious className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 cursor-pointer" data-testid="carousel-prev" />
             <CarouselNext className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 cursor-pointer" data-testid="carousel-next" />
         </Carousel>
+        </div>
     )
 }

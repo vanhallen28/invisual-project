@@ -1,22 +1,13 @@
-INVISUAL — paket update #24 (Halaman publik menyegarkan konten otomatis)
+INVISUAL — paket update #25 (Testimoni: jeda saat kursor di atasnya)
 
-MASALAH
-- Setelah mengubah konten langsung lewat SQL (mis. FAQ), halaman utama masih
-  menampilkan versi lama karena di-cache statis. (Edit lewat /admin sudah
-  otomatis refresh; hanya perubahan SQL langsung yang tidak.)
+APA YANG BERUBAH
+- Carousel testimoni (halaman About) yang bergerak otomatis kini BERHENTI
+  saat kursor berada di area testimoni, dan LANJUT bergerak lagi saat kursor
+  keluar dari area tersebut.
 
-PERBAIKAN
-- Halaman Utama & About kini menyegarkan datanya dari database secara berkala
-  (maksimal tiap 60 detik). Jadi perubahan langsung-DB akan tampil sendiri
-  dalam waktu singkat. Edit lewat /admin tetap tampil seketika.
-
-CARA PASANG & DEPLOY:
-  unzip -o invisual-update-24.zip
-  rm -rf .next && npm run dev        (cek lokal, opsional)
-  lalu commit & push ke GitHub -> Vercel build ulang.
-  Setelah deploy, halaman utama akan menampilkan FAQ Inggris.
+CARA PASANG (dari FOLDER ROOT proyek):
+  unzip -o invisual-update-25.zip
+  rm -rf .next && npm run dev
+  (untuk live: commit & push ke GitHub)
 
 - Tanpa npm install. Tanpa perubahan database.
-
-CATATAN: kalau ingin melihat FAQ Inggris SEKARANG tanpa menunggu deploy,
-buka /admin/faq -> Edit salah satu FAQ -> Simpan (memicu refresh halaman utama).
