@@ -39,3 +39,21 @@ export async function deleteMessage(id: number): Promise<R> {
     return { ok: false, error: "Gagal menghapus." };
   }
 }
+
+export async function setMessageImportant(
+  id: number,
+  important: boolean
+): Promise<R> {
+  try {
+    const supabase = createAdminClient();
+    const { error } = await supabase
+      .from("contact_messages")
+      .update({ important })
+      .eq("id", id);
+    if (error) return { ok: false, error: error.message };
+    bump();
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Gagal memperbarui." };
+  }
+}

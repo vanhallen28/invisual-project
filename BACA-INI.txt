@@ -1,25 +1,22 @@
-INVISUAL — paket update #26 (Statistik: 24 jam + lokasi + sumber kunjungan)
+INVISUAL — paket update #29 (Inbox: CSV + tandai penting  •  Alt-text galeri)
 
-APA YANG BERUBAH
-- Kartu baru "24 jam terakhir".
-- Bagian "Lokasi teratas" (negara pengunjung, lengkap bendera & nama).
-- Bagian "Sumber kunjungan" (dari mana pengunjung datang: Google, Instagram,
-  langsung, dll).
+BAGIAN A — INBOX /admin/messages
+- Tombol "Ekspor CSV": unduh semua pesan sebagai file .csv (buka di Excel/Sheets).
+- Tombol bintang "Tandai penting" di tiap pesan + penanda bintang di judul.
+- Filter "Penting saja" untuk menampilkan hanya pesan penting.
 
-LANGKAH 1 — Tambah kolom di database (jalankan SQL, sekali):
-  Supabase -> SQL Editor -> tempel isi "page-views-geo.sql" -> Run.
+BAGIAN B — ALT-TEXT
+- Gambar galeri proyek yang tadinya beralt kosong kini memakai judul karya
+  sebagai teks alternatif (lebih baik untuk SEO Google & pembaca layar).
+  (Gambar lain—logo, klien, tim, karya—sudah punya alt sebelumnya.)
+
+LANGKAH 1 — Tambah kolom (jalankan SQL, sekali):
+  Supabase -> SQL Editor -> tempel isi "messages-important.sql" -> Run.
 
 LANGKAH 2 — Pasang kode (dari FOLDER ROOT proyek):
-  unzip -o invisual-update-26.zip
+  unzip -o invisual-update-29.zip
   rm -rf .next && npm run dev
   (untuk live: commit & push ke GitHub)
 
 - Tanpa npm install.
-
-PENTING soal LOKASI:
-- Lokasi pengunjung diambil dari jaringan Vercel, jadi hanya terisi di situs
-  LIVE (produksi/Vercel). Di localhost akan tercatat "Tidak diketahui".
-- Data lokasi & sumber mulai terkumpul SETELAH update ini live. Kunjungan lama
-  (sebelum ini) tidak punya data lokasi/sumber.
-- URUTAN PENTING: jalankan SQL (Langkah 1) DULU sebelum pasang kode, agar
-  statistik lain tidak sempat kosong.
+- Jalankan SQL (Langkah 1) DULU sebelum pasang kode, agar inbox tidak error.

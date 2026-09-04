@@ -2,7 +2,7 @@
 // src/app/admin/_components/admin-dashboard.tsx
 import { Children, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, Trash2, Loader2, Search, Home, Eye, EyeOff, ExternalLink } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Search, Home, Eye, EyeOff, ExternalLink, ChevronUp, ChevronDown } from "lucide-react";
 import { cldOptimized } from "@/lib/cloudinary";
 import { type Option } from "./form-ui";
 import { WorkForm, type WorkInitial } from "./work-form";
@@ -19,6 +19,9 @@ import {
   setWorkPublished,
   bulkSetWorksPublished,
   bulkDeleteWorks,
+  reorderTestimonials,
+  reorderTeamMembers,
+  reorderServiceCategories,
   deleteTeamMember,
   deleteServiceCategory,
 } from "../actions";
@@ -176,6 +179,27 @@ export function AdminDashboard({
     setSelected(new Set());
     router.refresh();
     toast.show("Karya dihapus");
+  }
+
+  async function moveItem(
+    kind: "testimonials" | "team" | "services",
+    arr: { id: number }[],
+    index: number,
+    dir: -1 | 1
+  ) {
+    const j = index + dir;
+    if (j < 0 || j >= arr.length) return;
+    const ids = arr.map((x) => x.id);
+    [ids[index], ids[j]] = [ids[j], ids[index]];
+    const res =
+      kind === "testimonials"
+        ? await reorderTestimonials(ids)
+        : kind === "team"
+          ? await reorderTeamMembers(ids)
+          : await reorderServiceCategories(ids);
+    if (!res.ok) return toast.show(res.error ?? "Gagal mengurutkan.", "error");
+    router.refresh();
+    toast.show("Urutan diperbarui");
   }
 
   const q = query.trim().toLowerCase();
@@ -359,7 +383,7 @@ export function AdminDashboard({
               q ? "Tidak ada testimoni yang cocok." : "Belum ada testimoni."
             }
           >
-            {testiF.map((t) => (
+            {testiF.map((t, i) => (
               <Row
                 key={t.id}
                 title={t.name}
@@ -368,6 +392,16 @@ export function AdminDashboard({
                   60
                 )}${t.quote.length > 60 ? "…" : ""}"`}
                 busy={busyId === t.id}
+                reorder={
+                  q
+                    ? undefined
+                    : {
+                        onUp: () => moveItem("testimonials", testiF, i, -1),
+                        onDown: () => moveItem("testimonials", testiF, i, 1),
+                        isFirst: i === 0,
+                        isLast: i === testiF.length - 1,
+                      }
+                }
                 onEdit={() => setForm({ mode: "edit", item: t })}
                 onDelete={() => remove("testimonials", t.id, t.name)}
               />
@@ -393,13 +427,23 @@ export function AdminDashboard({
             isEmpty={teamF.length === 0}
             emptyText={q ? "Tidak ada anggota yang cocok." : "Belum ada anggota."}
           >
-            {teamF.map((m) => (
+            {teamF.map((m, i) => (
               <Row
                 key={m.id}
                 thumb={m.image_url ? cldOptimized(m.image_url, 160) : null}
                 title={m.name}
                 subtitle={m.role ?? "—"}
                 busy={busyId === m.id}
+                reorder={
+                  q
+                    ? undefined
+                    : {
+                        onUp: () => moveItem("team", teamF, i, -1),
+                        onDown: () => moveItem("team", teamF, i, 1),
+                        isFirst: i === 0,
+                        isLast: i === teamF.length - 1,
+                      }
+                }
                 onEdit={() => setForm({ mode: "edit", item: m })}
                 onDelete={() => remove("team", m.id, m.name)}
               />
@@ -427,12 +471,22 @@ export function AdminDashboard({
               q ? "Tidak ada kategori yang cocok." : "Belum ada kategori."
             }
           >
-            {servicesF.map((s) => (
+            {servicesF.map((s, i) => (
               <Row
                 key={s.id}
                 title={s.name}
                 subtitle={`${s.items.length} item`}
                 busy={busyId === s.id}
+                reorder={
+                  q
+                    ? undefined
+                    : {
+                        onUp: () => moveItem("services", servicesF, i, -1),
+                        onDown: () => moveItem("services", servicesF, i, 1),
+                        isFirst: i === 0,
+                        isLast: i === servicesF.length - 1,
+                      }
+                }
                 onEdit={() => setForm({ mode: "edit", item: s })}
                 onDelete={() => remove("services", s.id, s.name)}
               />
@@ -530,6 +584,7 @@ function Row({
   status,
   viewHref,
   select,
+  reorder,
 }: {
   thumb?: string | null;
   title: string;
@@ -541,9 +596,38 @@ function Row({
   status?: { on: boolean; busy?: boolean; onToggle: () => void };
   viewHref?: string;
   select?: { checked: boolean; onToggle: () => void };
+  reorder?: {
+    onUp: () => void;
+    onDown: () => void;
+    isFirst: boolean;
+    isLast: boolean;
+    busy?: boolean;
+  };
 }) {
   return (
     <li className="group flex items-center gap-3 rounded-md border p-3 transition-colors hover:bg-muted/40">
+      {reorder ? (
+        <div className="flex shrink-0 flex-col gap-0.5">
+          <button
+            type="button"
+            onClick={reorder.onUp}
+            disabled={reorder.isFirst || reorder.busy}
+            aria-label="Naik"
+            className="text-muted-foreground hover:text-foreground disabled:opacity-30"
+          >
+            <ChevronUp className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={reorder.onDown}
+            disabled={reorder.isLast || reorder.busy}
+            aria-label="Turun"
+            className="text-muted-foreground hover:text-foreground disabled:opacity-30"
+          >
+            <ChevronDown className="h-4 w-4" />
+          </button>
+        </div>
+      ) : null}
       {select ? (
         <input
           type="checkbox"

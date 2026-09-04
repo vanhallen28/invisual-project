@@ -9,7 +9,7 @@ export default async function AdminMessagesPage() {
   const supabase = createAdminClient();
   const { data } = await supabase
     .from("contact_messages")
-    .select("id, name, email, message, read, created_at")
+    .select("id, name, email, message, read, important, created_at")
     .order("created_at", { ascending: false });
 
   const unread = await getUnreadCount();

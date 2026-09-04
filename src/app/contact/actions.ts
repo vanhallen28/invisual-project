@@ -1,6 +1,8 @@
 "use server";
 
+import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 export type ContactState = { ok: boolean; error?: string };
 
@@ -26,6 +28,15 @@ export async function submitContactMessage(
   }
   if (name.length > 120 || email.length > 200 || message.length > 5000) {
     return { ok: false, error: "Isian terlalu panjang." };
+  }
+
+  // Rate limit: maks 3 pengiriman / 10 menit / IP.
+  const ip = getClientIp(await headers());
+  if (!rateLimit(`contact:${ip}`, 3, 10 * 60_000)) {
+    return {
+      ok: false,
+      error: "Terlalu banyak percobaan. Silakan coba lagi beberapa menit lagi.",
+    };
   }
 
   try {

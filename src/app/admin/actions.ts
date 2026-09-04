@@ -619,3 +619,35 @@ export async function updateAboutIntro(input: IntroInput): Promise<ActionResult>
   revalidatePath("/about");
   return { ok: true };
 }
+
+// ===================== REORDER (urutan) =====================
+async function applyOrder(
+  table: "testimonials" | "team_members" | "service_categories",
+  ids: number[]
+): Promise<ActionResult> {
+  const unauth = await guard();
+  if (unauth) return unauth;
+  const supabase = createAdminClient();
+  const results = await Promise.all(
+    ids.map((id, i) =>
+      supabase.from(table).update({ order_index: i }).eq("id", id)
+    )
+  );
+  const failed = results.find((r) => r.error);
+  if (failed?.error)
+    return { ok: false, error: `Gagal mengurutkan: ${failed.error.message}` };
+  revalidatePublic();
+  return { ok: true };
+}
+
+export async function reorderTestimonials(ids: number[]): Promise<ActionResult> {
+  return applyOrder("testimonials", ids);
+}
+export async function reorderTeamMembers(ids: number[]): Promise<ActionResult> {
+  return applyOrder("team_members", ids);
+}
+export async function reorderServiceCategories(
+  ids: number[]
+): Promise<ActionResult> {
+  return applyOrder("service_categories", ids);
+}

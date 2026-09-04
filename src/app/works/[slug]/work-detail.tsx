@@ -157,6 +157,7 @@ export function WorkDetail({
                                 <GalleryItem
                                     key={i}
                                     media={m}
+                                    title={work.title}
                                     onClick={() => openLightbox(i)}
                                 />
                             ))}
@@ -226,13 +227,13 @@ export function WorkDetail({
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
                                 src={sortedMedia[currentIndex].url}
-                                alt={sortedMedia[currentIndex].caption ?? ""}
+                                alt={sortedMedia[currentIndex].caption || work.title}
                                 className="w-full h-full object-contain"
                             />
                         ) : (
                             <Image
                                 src={sortedMedia[currentIndex].url}
-                                alt={sortedMedia[currentIndex].caption ?? ""}
+                                alt={sortedMedia[currentIndex].caption || work.title}
                                 fill
                                 className="object-contain"
                             />
@@ -248,9 +249,11 @@ export function WorkDetail({
 function GalleryItem({
     media,
     onClick,
+    title,
 }: {
     media: any;
     onClick: () => void;
+    title: string;
 }) {
     const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -295,7 +298,7 @@ function GalleryItem({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                     src={cld(media.url, 1400)}
-                    alt={media.caption ?? ""}
+                    alt={media.caption || title}
                     className="w-full h-auto"
                 />
             ) : media.type === "gif" ? (
@@ -303,7 +306,7 @@ function GalleryItem({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                     src={media.url}
-                    alt={media.caption ?? ""}
+                    alt={media.caption || title}
                     className="w-full h-auto"
                 />
             ) : (
