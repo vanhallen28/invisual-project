@@ -1,22 +1,21 @@
-INVISUAL — paket update #29 (Inbox: CSV + tandai penting  •  Alt-text galeri)
+INVISUAL — paket update #30 (Dua Meta Pixel)
 
-BAGIAN A — INBOX /admin/messages
-- Tombol "Ekspor CSV": unduh semua pesan sebagai file .csv (buka di Excel/Sheets).
-- Tombol bintang "Tandai penting" di tiap pesan + penanda bintang di judul.
-- Filter "Penting saja" untuk menampilkan hanya pesan penting.
+APA YANG BERUBAH
+- Selain pixel lama (1609033154229598), kini terpasang juga pixel baru
+  (3626732550830189). Keduanya di-init, jadi PageView (awal & saat pindah
+  halaman) otomatis terkirim ke KEDUA pixel.
+- Tetap tunduk pada consent: pixel hanya aktif jika pengunjung klik "Terima".
 
-BAGIAN B — ALT-TEXT
-- Gambar galeri proyek yang tadinya beralt kosong kini memakai judul karya
-  sebagai teks alternatif (lebih baik untuk SEO Google & pembaca layar).
-  (Gambar lain—logo, klien, tim, karya—sudah punya alt sebelumnya.)
-
-LANGKAH 1 — Tambah kolom (jalankan SQL, sekali):
-  Supabase -> SQL Editor -> tempel isi "messages-important.sql" -> Run.
-
-LANGKAH 2 — Pasang kode (dari FOLDER ROOT proyek):
-  unzip -o invisual-update-29.zip
+CARA PASANG (dari FOLDER ROOT proyek):
+  unzip -o invisual-update-30.zip
   rm -rf .next && npm run dev
   (untuk live: commit & push ke GitHub)
 
-- Tanpa npm install.
-- Jalankan SQL (Langkah 1) DULU sebelum pasang kode, agar inbox tidak error.
+- Tanpa npm install. Tanpa perubahan database.
+
+CATATAN:
+- Bagian <noscript> dari kode Facebook sengaja TIDAK dipasang, karena tidak
+  bisa mengikuti persetujuan cookie (akan aktif tanpa izin). Versi berbasis
+  JavaScript ini sudah mencakup kedua pixel dan menghormati consent.
+- Cek dengan ekstensi Chrome "Meta Pixel Helper" di situs live: harusnya
+  terdeteksi 2 pixel setelah Anda menekan "Terima" pada banner cookie.

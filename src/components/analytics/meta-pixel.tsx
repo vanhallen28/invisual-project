@@ -4,7 +4,8 @@
 import { useEffect } from "react";
 import { getConsent } from "@/lib/consent";
 
-const PIXEL_ID = "1609033154229598";
+// Dua Meta Pixel: event otomatis terkirim ke keduanya.
+const PIXEL_IDS = ["1609033154229598", "3626732550830189"];
 
 function loadPixel() {
     const w = window as any;
@@ -24,7 +25,7 @@ function loadPixel() {
     t.src = "https://connect.facebook.net/en_US/fbevents.js";
     const s = document.getElementsByTagName("script")[0];
     s.parentNode?.insertBefore(t, s);
-    w.fbq("init", PIXEL_ID);
+    for (const id of PIXEL_IDS) w.fbq("init", id);
     w.fbq("track", "PageView");
 }
 
