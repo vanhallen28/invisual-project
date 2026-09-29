@@ -1,7 +1,7 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 import type {
     ContactContent,
     FooterContent,
@@ -61,7 +61,7 @@ export async function updateFooterContent(input: FooterContent): Promise<R> {
             updated_at: new Date().toISOString(),
         });
         if (error) return { ok: false, error: error.message };
-        revalidateTag("footer-content");
+        revalidatePath("/", "layout");
         revalidatePath("/contact");
         return { ok: true };
     } catch {
