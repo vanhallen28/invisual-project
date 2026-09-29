@@ -1,21 +1,27 @@
-INVISUAL — paket update #30 (Dua Meta Pixel)
+INVISUAL — paket update #33 (Form "Start a Project" Bahasa Inggris + kotak masuk admin)
 
-APA YANG BERUBAH
-- Selain pixel lama (1609033154229598), kini terpasang juga pixel baru
-  (3626732550830189). Keduanya di-init, jadi PageView (awal & saat pindah
-  halaman) otomatis terkirim ke KEDUA pixel.
-- Tetap tunduk pada consent: pixel hanya aktif jika pengunjung klik "Terima".
+APA INI (lengkap & mandiri)
+- Form "Mulai Proyek" sekarang dalam BAHASA INGGRIS (semua pertanyaan, pilihan,
+  tombol, pesan). Sudah terpasang di halaman utama (page.tsx disertakan).
+- BAGIAN 2: menu baru "Proyek Masuk" di sidebar /admin -> kotak masuk berisi
+  semua inquiry (nama, email, perusahaan, jenis proyek, budget, timeline, pesan)
+  dengan: tandai dibaca, tandai penting, hapus, cari, filter "Penting saja",
+  dan Ekspor CSV. (Pola sama seperti inbox Pesan.)
+- Halaman Ringkasan admin dapat kartu "Proyek masuk baru".
 
-CARA PASANG (dari FOLDER ROOT proyek):
-  unzip -o invisual-update-30.zip
-  rm -rf .next && npm run dev
+LANGKAH 1 — Tabel (jalankan SQL, sekali; lewati jika sudah dari update #32):
+  Supabase -> SQL Editor -> tempel isi "project-inquiries.sql" -> Run.
+
+LANGKAH 2 — Pasang (dari FOLDER ROOT proyek):
+  unzip -o invisual-update-33.zip
+  rm -rf .next node_modules/.cache
+  npm run dev
   (untuk live: commit & push ke GitHub)
 
-- Tanpa npm install. Tanpa perubahan database.
+- Tanpa npm install.
+- Kalau muncul error font Turbopack (@vercel/turbopack-next/.../font), itu cache:
+  rm -rf .next node_modules/.cache && npm run dev  (atau reset penuh:
+  rm -rf .next node_modules && npm install && npm run dev)
 
-CATATAN:
-- Bagian <noscript> dari kode Facebook sengaja TIDAK dipasang, karena tidak
-  bisa mengikuti persetujuan cookie (akan aktif tanpa izin). Versi berbasis
-  JavaScript ini sudah mencakup kedua pixel dan menghormati consent.
-- Cek dengan ekstensi Chrome "Meta Pixel Helper" di situs live: harusnya
-  terdeteksi 2 pixel setelah Anda menekan "Terima" pada banner cookie.
+Cek: halaman utama -> form "Have a project? Tell us about it" (Inggris).
+Kirim satu inquiry -> /admin -> menu "Proyek Masuk" -> muncul di daftar.

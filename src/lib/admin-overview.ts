@@ -20,6 +20,8 @@ export type OverviewData = {
   faqs: number;
   messages: number;
   unread: number;
+  inquiries: number;
+  inquiriesNew: number;
   visitsTotal: number;
   visits7: number;
   recentMessages: RecentMessage[];
@@ -40,6 +42,8 @@ export async function getOverviewData(): Promise<OverviewData> {
     unreadRes,
     stats,
     recentRes,
+    inqRes,
+    inqNewRes,
   ] = await Promise.all([
     supabase.from("works").select("*", { count: "exact", head: true }),
     supabase.from("works").select("*", { count: "exact", head: true }).eq("published", true),
@@ -56,6 +60,11 @@ export async function getOverviewData(): Promise<OverviewData> {
       .select("id, name, email, read, created_at")
       .order("created_at", { ascending: false })
       .limit(5),
+    supabase.from("project_inquiries").select("*", { count: "exact", head: true }),
+    supabase
+      .from("project_inquiries")
+      .select("*", { count: "exact", head: true })
+      .eq("read", false),
   ]);
 
   const works = worksRes.count ?? 0;
@@ -72,6 +81,8 @@ export async function getOverviewData(): Promise<OverviewData> {
     faqs: faqsRes.count ?? 0,
     messages: msgRes.count ?? 0,
     unread: unreadRes.count ?? 0,
+    inquiries: inqRes.count ?? 0,
+    inquiriesNew: inqNewRes.count ?? 0,
     visitsTotal: stats.total,
     visits7: stats.last7,
     recentMessages: (recentRes.data as RecentMessage[] | null) ?? [],

@@ -1,0 +1,40 @@
+INVISUAL — update #36 (Form Proyek bisa diatur dari dashboard admin)
+
+APA INI
+- Semua PERTANYAAN pada form "Start a Project" (di halaman Contact) kini
+  disimpan di database dan bisa diatur dari /admin -> menu baru "Form Proyek".
+- Yang bisa diatur admin untuk tiap pertanyaan:
+    • teks pertanyaan, sub-teks, dan placeholder
+    • pilihan jawaban (untuk pertanyaan pilihan: jenis proyek, budget, timeline)
+    • wajib / opsional
+    • tampilkan / sembunyikan dari form (ikon mata)
+    • urutan (panah naik/turun)
+- Juga bisa mengubah copy layar PEMBUKA (welcome) dan layar TERIMA KASIH.
+- Pertanyaan inti (Nama, Email, Pesan) selalu aktif & wajib (tidak bisa dimatikan),
+  karena dipakai untuk membalas email Anda.
+
+LANGKAH 1 — Buat tabel (jalankan SEKALI):
+  Supabase -> SQL Editor -> tempel isi file "inquiry-form-setup.sql" -> Run.
+  (Aman dijalankan ulang. Di-seed dengan teks yang sekarang, jadi tampilan
+   tidak berubah sampai Anda mengeditnya.)
+
+LANGKAH 2 — Pasang (dari FOLDER ROOT proyek):
+  unzip -o invisual-update-36.zip
+  rm -rf .next node_modules/.cache
+  npm run dev
+  (untuk live: commit & push ke GitHub)
+
+- Tanpa npm install.
+- Sebelum SQL dijalankan: form tetap jalan normal memakai teks bawaan; menu
+  "Form Proyek" akan menampilkan pesan untuk menjalankan SQL dulu.
+
+CEK
+- /admin -> "Form Proyek": ubah salah satu pertanyaan -> Simpan.
+- Buka /contact -> klik "Start a project" -> perubahan tampil (maks. ~1 menit,
+  atau langsung setelah simpan).
+
+CATATAN
+- Ini mengatur pertanyaan yang SUDAH ADA (edit, urutan, tampil/sembunyi, pilihan).
+- Menambah pertanyaan yang benar-benar BARU (kolom data baru) butuh penyesuaian
+  penyimpanan + kotak masuk admin — bisa dikerjakan sebagai langkah berikutnya
+  bila diperlukan.

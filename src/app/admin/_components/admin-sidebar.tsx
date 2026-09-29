@@ -12,7 +12,9 @@ import {
     AlignLeft,
     Home,
     HelpCircle,
+    ListChecks,
     Mail,
+    ClipboardList,
     BarChart3,
     ExternalLink,
     LogOut,
@@ -31,7 +33,9 @@ export type NavKey =
     | "intro"
     | "home"
     | "faq"
+    | "inquiry-form"
     | "messages"
+    | "inquiries"
     | "stats";
 
 type ItemDef = { key: NavKey; label: string; href: string; icon: ReactNode };
@@ -53,12 +57,14 @@ const GROUPS: { title: string; items: ItemDef[] }[] = [
         items: [
             { key: "home", label: "Beranda", href: "/admin/home", icon: <Home className="h-[18px] w-[18px]" /> },
             { key: "faq", label: "FAQ", href: "/admin/faq", icon: <HelpCircle className="h-[18px] w-[18px]" /> },
+            { key: "inquiry-form", label: "Form Proyek", href: "/admin/inquiry-form", icon: <ListChecks className="h-[18px] w-[18px]" /> },
         ],
     },
     {
         title: "Lainnya",
         items: [
             { key: "messages", label: "Pesan", href: "/admin/messages", icon: <Mail className="h-[18px] w-[18px]" /> },
+            { key: "inquiries", label: "Proyek Masuk", href: "/admin/inquiries", icon: <ClipboardList className="h-[18px] w-[18px]" /> },
             { key: "stats", label: "Statistik", href: "/admin/stats", icon: <BarChart3 className="h-[18px] w-[18px]" /> },
         ],
     },

@@ -8,6 +8,7 @@ import {
     List,
     HelpCircle,
     Mail,
+    ClipboardList,
     Eye,
 } from "lucide-react";
 import type { OverviewData } from "@/lib/admin-overview";
@@ -37,6 +38,14 @@ export function AdminOverview({ data }: { data: OverviewData }) {
                     value={data.unread}
                     sub={`dari ${data.messages} total`}
                     highlight={data.unread > 0}
+                />
+                <Metric
+                    href="/admin/inquiries"
+                    icon={<ClipboardList className="h-4 w-4" />}
+                    label="Proyek masuk baru"
+                    value={data.inquiriesNew}
+                    sub={`dari ${data.inquiries} total`}
+                    highlight={data.inquiriesNew > 0}
                 />
                 <Metric
                     href="/admin/stats"
