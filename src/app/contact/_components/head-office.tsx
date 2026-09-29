@@ -8,7 +8,7 @@ export default function HeadOfficeSection() {
                     </h2>
                     <div className="md:col-span-9">
                         <address className="max-w-xl text-2xl font-medium not-italic leading-snug md:text-3xl">
-                            Jl. Golf Bar. XVII No.8, Sukamiskin, Kec. Arcamanik,
+                            Jl. Golf Barat XVII No.8, Sukamiskin, Kec. Arcamanik,
                             Kota Bandung, Jawa Barat 40293
                         </address>
                         <a
