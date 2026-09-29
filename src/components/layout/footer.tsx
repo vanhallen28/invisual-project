@@ -3,21 +3,23 @@
 import Link from "next/link";
 import Image from "next/image";
 import { DarkmodeToggle } from "../common/darkmode-toggle";
-import { ConnectLinks, ContactLinks } from "@/configs/links";
+import {
+    DEFAULT_FOOTER_CONTENT,
+    type FooterContent,
+} from "@/lib/contact-content-types";
 
-export default function Footer() {
+export default function Footer({ content }: { content?: FooterContent }) {
+    const c = content ?? DEFAULT_FOOTER_CONTENT;
+
     return (
         <footer className="mt-16 bg-neutral-800 text-white dark:bg-primary">
             <div className="flex flex-col gap-12 px-4 py-6 md:flex-row md:px-7 md:py-7">
-                {/* Kolom kiri (teks + toggle di mobile) */}
+                {/* Kolom kiri (tagline + toggle di mobile) */}
                 <div className="flex w-full flex-col md:w-1/2">
                     <div className="flex w-full items-start justify-between">
-                        <p className="text-2xl font-semibold leading-relaxed lg:text-3xl">
-                            We help brands look <br />
-                            good, feel relevant, and <br />
-                            be recognizable.
+                        <p className="max-w-md text-2xl font-semibold leading-relaxed lg:text-3xl">
+                            {c.tagline}
                         </p>
-                        {/* Toggle tampil di kanan atas (mobile), pindah ke kanan di desktop */}
                         <div className="pt-2 md:hidden">
                             <DarkmodeToggle aria-label="Toggle dark mode" />
                         </div>
@@ -26,40 +28,44 @@ export default function Footer() {
 
                 {/* Kolom kanan */}
                 <div className="flex w-full flex-col gap-8 md:w-1/2 md:flex-row md:justify-between">
-                    {/* Sub-kolom: Business + Head Office */}
                     <div className="flex w-full flex-col gap-8">
-                        <div>
-                            <h2 className="mb-2 font-bold">Business</h2>
-                            <div className="flex flex-col gap-1">
-                                {ContactLinks.map((item) => (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-neutral-300 hover:underline underline-offset-4"
-                                    >
-                                        {item.label}
-                                    </Link>
-                                ))}
+                        {c.business_links.length > 0 && (
+                            <div>
+                                <h2 className="mb-2 font-bold">Business</h2>
+                                <div className="flex flex-col gap-1">
+                                    {c.business_links.map((item) => (
+                                        <Link
+                                            key={item.label + item.href}
+                                            href={item.href}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-neutral-300 underline-offset-4 hover:underline"
+                                        >
+                                            {item.label}
+                                        </Link>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
-                        <div>
-                            <h2 className="mb-2 font-bold">Head Office</h2>
-                            <Link
-                                target="_blank"
-                                className="text-neutral-300 hover:underline underline-offset-4"
-                                href="https://maps.app.goo.gl/JWWyRCD4Y2AmDobQ9"
-                            >
-                                <p>Jl. Golf Bar. XVII No.8, ,</p>
-                                <p>Sukamiskin, Kec. Arcamanik,</p>
-                                <p>Kota Bandung, Jawa Barat 40293</p>
-                            </Link>
-                        </div>
+                        {c.office_text && (
+                            <div>
+                                <h2 className="mb-2 font-bold">{c.office_heading}</h2>
+                                <Link
+                                    target="_blank"
+                                    className="text-neutral-300 underline-offset-4 hover:underline"
+                                    href={c.office_href || "#"}
+                                >
+                                    {c.office_text.split("\n").map((line, i) => (
+                                        <span key={i} className="block">
+                                            {line}
+                                        </span>
+                                    ))}
+                                </Link>
+                            </div>
+                        )}
                     </div>
 
-                    {/* Sub-kolom: Toggle (hanya muncul di desktop kanan) */}
                     <div className="hidden w-full justify-start md:flex md:justify-end">
                         <DarkmodeToggle aria-label="Toggle dark mode" />
                     </div>
@@ -79,19 +85,19 @@ export default function Footer() {
                         unoptimized
                     />
                     <p className="text-sm text-shadow-muted-foreground">
-                        © Invisual Studio 2025 - All Rights Reserved
+                        {c.copyright}
                     </p>
                 </div>
 
-                {/* Connect Links (dinamis) */}
+                {/* Connect Links */}
                 <div className="flex gap-7 text-sm">
-                    {ConnectLinks.map((item) => (
+                    {c.connect_links.map((item) => (
                         <Link
-                            key={item.href}
+                            key={item.label + item.href}
                             href={item.href}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-neutral-300 hover:underline underline-offset-4"
+                            className="text-neutral-300 underline-offset-4 hover:underline"
                         >
                             {item.label}
                         </Link>

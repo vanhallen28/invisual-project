@@ -1,26 +1,22 @@
-"use client";
-
 import Link from "next/link";
+import type { ContactContent } from "@/lib/contact-content-types";
 
-const LINKS = [
-    { label: "Behance", href: "https://www.behance.net/invisualid" },
-    { label: "Instagram", href: "https://www.instagram.com/invisual_studio" },
-    { label: "LinkedIn", href: "https://www.linkedin.com/company/invisualid/" },
-    { label: "WhatsApp", href: "https://wa.me/6282295555314" },
-];
-
-export default function ReachUsSection() {
+export default function ReachUsSection({
+    content,
+}: {
+    content: ContactContent;
+}) {
     return (
         <section className="px-6 md:px-10">
             <div className="mx-auto max-w-5xl">
                 <div className="grid gap-x-8 gap-y-4 border-t border-black/10 pt-8 dark:border-white/10 md:grid-cols-12">
                     <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground md:col-span-3">
-                        Reach Us
+                        {content.reachus_label}
                     </h2>
                     <div className="flex flex-wrap gap-x-8 gap-y-3 md:col-span-9">
-                        {LINKS.map((l) => (
+                        {content.reachus_links.map((l) => (
                             <Link
-                                key={l.label}
+                                key={l.label + l.href}
                                 href={l.href}
                                 target="_blank"
                                 className="text-lg underline underline-offset-4 hover:text-primary"

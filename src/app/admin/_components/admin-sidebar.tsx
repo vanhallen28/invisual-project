@@ -12,7 +12,7 @@ import {
     AlignLeft,
     Home,
     HelpCircle,
-    ListChecks,
+    Contact,
     Mail,
     ClipboardList,
     BarChart3,
@@ -33,7 +33,7 @@ export type NavKey =
     | "intro"
     | "home"
     | "faq"
-    | "inquiry-form"
+    | "contact"
     | "messages"
     | "inquiries"
     | "stats";
@@ -57,7 +57,7 @@ const GROUPS: { title: string; items: ItemDef[] }[] = [
         items: [
             { key: "home", label: "Beranda", href: "/admin/home", icon: <Home className="h-[18px] w-[18px]" /> },
             { key: "faq", label: "FAQ", href: "/admin/faq", icon: <HelpCircle className="h-[18px] w-[18px]" /> },
-            { key: "inquiry-form", label: "Form Proyek", href: "/admin/inquiry-form", icon: <ListChecks className="h-[18px] w-[18px]" /> },
+            { key: "contact", label: "Halaman Contact", href: "/admin/contact", icon: <Contact className="h-[18px] w-[18px]" /> },
         ],
     },
     {

@@ -1,0 +1,42 @@
+INVISUAL — update #37 (Editor lengkap halaman Contact + Footer + Form, satu menu)
+
+APA INI
+- Menu admin baru "Halaman Contact" (/admin/contact) untuk mengatur SELURUH isi
+  halaman Contact:
+    • Hero (label, judul, sub-judul)
+    • Kalimat lokasi
+    • Head Office (label, alamat, telepon + link)
+    • Inquiries (Business & Jobs: judul, teks, email)
+    • Reach Us (daftar tautan sosial)
+    • Peta (URL embed Google Maps)
+    • Panel ajakan "Start a Project" (label, judul, deskripsi, tombol)
+- FOOTER kini SATU untuk seluruh situs (termasuk tampil di halaman Contact) dan
+  bisa diedit dari menu yang sama: tagline, kontak bisnis, alamat, copyright,
+  tautan sosial.
+- FORM "Start a Project" (layar pembuka, terima kasih, dan daftar pertanyaan)
+  ikut disatukan di halaman admin yang sama. Menu lama "Form Proyek" otomatis
+  dialihkan ke "Halaman Contact".
+
+LANGKAH 1 — Jalankan SQL (di Supabase -> SQL Editor):
+  a) "contact-content-setup.sql"  (WAJIB untuk update ini)
+  b) "inquiry-form-setup.sql"     (lewati bila sudah dijalankan di update #36)
+  Keduanya aman dijalankan ulang & di-seed dengan teks yang sekarang.
+
+LANGKAH 2 — Pasang (dari FOLDER ROOT proyek):
+  unzip -o invisual-update-37.zip
+  rm -rf .next node_modules/.cache
+  npm run dev
+  (untuk live: commit & push ke GitHub)
+
+- Tanpa npm install.
+- Sebelum SQL dijalankan: halaman Contact & footer tetap tampil normal dengan
+  teks bawaan; menu admin akan menampilkan pesan untuk menjalankan SQL.
+
+CATATAN TAUTAN (Reach Us / footer):
+  Format satu tautan per baris:  Nama | URL
+  Contoh:  Instagram | https://www.instagram.com/invisual_studio
+
+CEK
+- /admin -> "Halaman Contact": ubah teks apa pun -> Simpan.
+- Buka /contact -> perubahan tampil (maks. ~1 menit, atau langsung setelah simpan).
+- Footer baru tampil di semua halaman.

@@ -8,15 +8,24 @@ import type {
     InquiryQuestion,
     InquirySettings,
 } from "@/lib/inquiry-form-types";
+import type { ContactContent } from "@/lib/contact-content-types";
 
 export default function StartProjectLauncher({
     questions,
     settings,
+    content,
 }: {
     questions?: InquiryQuestion[];
     settings?: InquirySettings;
+    content?: ContactContent;
 }) {
     const [open, setOpen] = useState(false);
+    const ctaLabel = content?.cta_label || "Start a Project";
+    const ctaTitle = content?.cta_title || "Have something in mind?";
+    const ctaBody =
+        content?.cta_body ||
+        "Answer a few quick questions and we'll get back to you by email. It only takes about 5–10 minutes.";
+    const ctaButton = content?.cta_button || "Start a project";
 
     // Kunci scroll body + tutup dengan tombol Escape saat overlay terbuka.
     useEffect(() => {
@@ -41,14 +50,13 @@ export default function StartProjectLauncher({
                     <div className="grid gap-8 md:grid-cols-12 md:items-center">
                         <div className="md:col-span-8">
                             <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-                                Start a Project
+                                {ctaLabel}
                             </p>
                             <h2 className="mt-3 text-3xl font-bold leading-tight md:text-4xl">
-                                Have something in mind?
+                                {ctaTitle}
                             </h2>
                             <p className="mt-4 max-w-xl text-muted-foreground">
-                                Answer a few quick questions and we'll get back to you
-                                by email. It only takes about 5–10 minutes.
+                                {ctaBody}
                             </p>
                         </div>
                         <div className="md:col-span-4 md:text-right">
@@ -57,7 +65,7 @@ export default function StartProjectLauncher({
                                 onClick={() => setOpen(true)}
                                 className="inline-flex items-center gap-2 rounded-full bg-[#416fd8] px-7 py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 dark:bg-[#f65294]"
                             >
-                                Start a project <ArrowRight className="h-4 w-4" />
+                                {ctaButton} <ArrowRight className="h-4 w-4" />
                             </button>
                         </div>
                     </div>

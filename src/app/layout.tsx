@@ -3,7 +3,8 @@ import { Host_Grotesk } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import Header from "@/components/layout/header";
-import FooterWrapper from "@/components/layout/footer-wrapper";
+import Footer from "@/components/layout/footer";
+import { getFooterContentServer } from "@/lib/contact-content-server";
 import { Analytics } from "@vercel/analytics/next";
 import PageViewTracker from "@/components/analytics/page-view-tracker";
 import MetaPixel from "@/components/analytics/meta-pixel";
@@ -58,11 +59,12 @@ const organizationJsonLd = {
     sameAs: site.socials,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const footer = await getFooterContentServer();
     return (
         <html lang="en" className={hostGrotesk.className} suppressHydrationWarning>
             <body>
@@ -81,7 +83,7 @@ export default function RootLayout({
                     <main className="relative pt-14">
                         <Header />
                         {children}
-                        <FooterWrapper />
+                        <Footer content={footer} />
                     </main>
                 </ThemeProvider>
                 <Analytics />

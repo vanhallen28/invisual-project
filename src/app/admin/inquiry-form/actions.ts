@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 type R = { ok: boolean; error?: string };
 
 function bump() {
-    revalidatePath("/admin/inquiry-form");
+    revalidatePath("/admin/contact");
     revalidatePath("/contact");
 }
 

@@ -7,11 +7,11 @@ import InquiriesSection from "./_components/inquiries";
 import StartProjectLauncher from "./_components/start-project-launcher";
 import ReachUsSection from "./_components/reach-us";
 import DescriptionSection from "./_components/description";
-import FooterSection from "./_components/footer";
 import {
     getInquiryQuestionsServer,
     getInquirySettingsServer,
 } from "@/lib/inquiry-form-server";
+import { getContactContentServer } from "@/lib/contact-content-server";
 
 export const metadata: Metadata = pageMetadata({
     title: "Contact",
@@ -20,11 +20,12 @@ export const metadata: Metadata = pageMetadata({
     path: "/contact",
 });
 
-// Segarkan konfigurasi form dari database secara berkala.
+// Segarkan konfigurasi dari database secara berkala.
 export const revalidate = 60;
 
 export default async function ContactPage() {
-    const [questions, settings] = await Promise.all([
+    const [content, questions, settings] = await Promise.all([
+        getContactContentServer(),
         getInquiryQuestionsServer(),
         getInquirySettingsServer(),
     ]);
@@ -35,39 +36,37 @@ export default async function ContactPage() {
             <section className="px-6 pt-8 md:px-10 md:pt-14">
                 <div className="mx-auto max-w-5xl">
                     <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-                        Contact
+                        {content.hero_label}
                     </p>
-                    <h1 className="mt-4 text-4xl font-bold leading-[1.05] tracking-tight md:text-6xl">
-                        Let's create something
-                        <br className="hidden sm:block" /> worth looking at.
+                    <h1 className="mt-4 max-w-3xl text-4xl font-bold leading-[1.05] tracking-tight md:text-6xl">
+                        {content.hero_title}
                     </h1>
                     <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
-                        Brand identity, illustration, or packaging tell us what
-                        you're working on and we'll get back to you by email.
+                        {content.hero_subtitle}
                     </p>
                 </div>
             </section>
 
             {/* Primary action */}
             <div className="mt-16">
-                <StartProjectLauncher questions={questions} settings={settings} />
+                <StartProjectLauncher
+                    questions={questions}
+                    settings={settings}
+                    content={content}
+                />
             </div>
 
             {/* Details */}
             <div className="mt-16 flex flex-col gap-14">
-                <HeadOfficeSection />
-                <InquiriesSection />
-                <ReachUsSection />
+                <HeadOfficeSection content={content} />
+                <InquiriesSection content={content} />
+                <ReachUsSection content={content} />
             </div>
 
             {/* Location */}
-            <div className="mt-16 flex flex-col gap-10">
-                <DescriptionSection />
-                <MapSection />
-            </div>
-
-            <div className="mt-20">
-                <FooterSection />
+            <div className="mb-8 mt-16 flex flex-col gap-10">
+                <DescriptionSection content={content} />
+                <MapSection content={content} />
             </div>
         </div>
     );
