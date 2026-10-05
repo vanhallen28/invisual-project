@@ -1,13 +1,29 @@
 import { AdminShell } from "../_components/admin-shell";
 import { getUnreadCount } from "@/lib/admin-unread";
-import { getViewStats } from "@/lib/stats-server";
+import { getViewStats, getRangeStats } from "@/lib/stats-server";
 import StatsControls from "./stats-controls";
+import StatsRange from "./stats-range";
 
 export const dynamic = "force-dynamic";
 
-export default async function StatsPage() {
-  const stats = await getViewStats();
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+export default async function StatsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string; to?: string }>;
+}) {
+  const sp = await searchParams;
+  const from = sp.from && DATE_RE.test(sp.from) ? sp.from : undefined;
+  const to = sp.to && DATE_RE.test(sp.to) ? sp.to : undefined;
+
+  const [stats, range] = await Promise.all([
+    getViewStats(),
+    from && to ? getRangeStats(from, to) : Promise.resolve(null),
+  ]);
+
   const max = Math.max(1, ...stats.daily.map((d) => d.count));
+  const rmax = range ? Math.max(1, ...range.daily.map((d) => d.count)) : 1;
   const updatedAt = new Date().toLocaleTimeString("id-ID");
   const unread = await getUnreadCount();
 
@@ -21,6 +37,122 @@ export default async function StatsPage() {
       <p className="mb-8 text-xs text-muted-foreground">
         Diperbarui {updatedAt} · auto-refresh tiap 10 detik
       </p>
+
+      <StatsRange from={from} to={to} />
+
+      {range && (
+        <section className="mb-10 rounded-xl border p-4 md:p-6">
+          <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-lg font-bold">
+              Periode: {fmtDate(range.from)}
+              {range.from !== range.to ? ` – ${fmtDate(range.to)}` : ""}
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              <span className="text-xl font-bold text-foreground">
+                {range.total.toLocaleString("id-ID")}
+              </span>{" "}
+              kunjungan
+            </p>
+          </div>
+
+          {range.daily.length > 1 && (
+            <div className="mb-6 flex h-40 items-end gap-1 border-b">
+              {range.daily.map((d) => (
+                <div
+                  key={d.date}
+                  className="flex flex-1 flex-col items-center justify-end gap-1"
+                  title={`${d.date}: ${d.count}`}
+                >
+                  <div
+                    className="w-full rounded-t bg-[#416fd8] dark:bg-[#f65294]"
+                    style={{ height: `${(d.count / rmax) * 100}%` }}
+                  />
+                  {range.daily.length <= 45 && (
+                    <span className="text-[10px] text-muted-foreground">
+                      {d.date.slice(5)}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="grid gap-8 md:grid-cols-2">
+            <div>
+              <h3 className="mb-2 text-sm uppercase tracking-wide text-muted-foreground">
+                Halaman teratas
+              </h3>
+              {range.topPaths.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Tidak ada kunjungan pada periode ini.
+                </p>
+              ) : (
+                <ul className="divide-y">
+                  {range.topPaths.map((p) => (
+                    <li
+                      key={p.path}
+                      className="flex items-center justify-between py-2 text-sm"
+                    >
+                      <span className="truncate">{p.path}</span>
+                      <span className="font-semibold">{p.count}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="grid gap-6">
+              <div>
+                <h3 className="mb-2 text-sm uppercase tracking-wide text-muted-foreground">
+                  Lokasi teratas
+                </h3>
+                {range.topCountries.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">—</p>
+                ) : (
+                  <ul className="divide-y">
+                    {range.topCountries.map((c) => (
+                      <li
+                        key={c.label}
+                        className="flex items-center justify-between py-2 text-sm"
+                      >
+                        <span className="truncate">
+                          {flag(c.label)} {countryName(c.label)}
+                        </span>
+                        <span className="font-semibold">{c.count}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <div>
+                <h3 className="mb-2 text-sm uppercase tracking-wide text-muted-foreground">
+                  Sumber kunjungan
+                </h3>
+                {range.topReferrers.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">—</p>
+                ) : (
+                  <ul className="divide-y">
+                    {range.topReferrers.map((r) => (
+                      <li
+                        key={r.label}
+                        className="flex items-center justify-between py-2 text-sm"
+                      >
+                        <span className="truncate">{r.label}</span>
+                        <span className="font-semibold">{r.count}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {range && (
+        <div className="mb-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          Ringkasan umum
+        </div>
+      )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
         <StatCard label="24 jam terakhir" value={stats.last24} />
@@ -131,6 +263,19 @@ function StatCard({ label, value }: { label: string; value: number }) {
       <p className="mt-2 text-3xl font-bold">{value.toLocaleString("id-ID")}</p>
     </div>
   );
+}
+
+function fmtDate(d: string): string {
+  try {
+    return new Date(`${d}T12:00:00+07:00`).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "Asia/Jakarta",
+    });
+  } catch {
+    return d;
+  }
 }
 
 const regionNames =
