@@ -12,9 +12,11 @@ function todayJkt() {
 export default function StatsRange({
     from,
     to,
+    path,
 }: {
     from?: string;
     to?: string;
+    path?: string;
 }) {
     const router = useRouter();
     const today = todayJkt();
@@ -22,14 +24,25 @@ export default function StatsRange({
     const [t, setT] = useState(to ?? "");
     const active = !!(from && to);
 
+    // Bangun URL sambil mempertahankan halaman yang sedang dibuka detailnya.
+    function url(nf?: string, nt?: string) {
+        const q = new URLSearchParams();
+        if (nf && nt) {
+            q.set("from", nf);
+            q.set("to", nt);
+        }
+        if (path) q.set("path", path);
+        const s = q.toString();
+        return s ? `/admin/stats?${s}` : "/admin/stats";
+    }
     function go(nf: string, nt: string) {
         if (!nf || !nt) return;
-        router.push(`/admin/stats?from=${nf}&to=${nt}`);
+        router.push(url(nf, nt));
     }
     function clear() {
         setF("");
         setT("");
-        router.push("/admin/stats");
+        router.push(url());
     }
     function preset(days: number) {
         const base = new Date(`${today}T12:00:00+07:00`).getTime();

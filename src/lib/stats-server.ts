@@ -225,3 +225,114 @@ export async function getRangeStats(
 
   return { from, to, total, daily, topPaths, topCountries, topReferrers };
 }
+
+// ---- Detail satu halaman: negara, sumber, tren harian, kunjungan terakhir ----
+function jktToday(): string {
+  return new Date().toLocaleDateString("en-CA", { timeZone: JKT_TZ });
+}
+function jktShift(dateStr: string, days: number): string {
+  const t =
+    new Date(`${dateStr}T12:00:00.000+07:00`).getTime() + days * 86400000;
+  return new Date(t).toLocaleDateString("en-CA", { timeZone: JKT_TZ });
+}
+
+export type PathStats = {
+  path: string;
+  from: string;
+  to: string;
+  total: number;
+  daily: { date: string; count: number }[];
+  countries: { label: string; count: number }[];
+  referrers: { label: string; count: number }[];
+  recent: { at: string; country: string; source: string }[];
+};
+
+const INTERNAL_LABEL = "Dari halaman lain di situs";
+
+export async function getPathStats(
+  path: string,
+  fromInput?: string,
+  toInput?: string
+): Promise<PathStats> {
+  const supabase = createAdminClient();
+
+  // default: 30 hari terakhir (zona Jakarta)
+  let to = toInput ?? jktToday();
+  let from = fromInput ?? jktShift(to, -29);
+  if (from > to) [from, to] = [to, from];
+
+  const startUTC = new Date(`${from}T00:00:00.000+07:00`).toISOString();
+  const endUTC = new Date(`${to}T23:59:59.999+07:00`).toISOString();
+
+  const totalRes = await supabase
+    .from("page_views")
+    .select("*", { count: "exact", head: true })
+    .eq("path", path)
+    .gte("created_at", startUTC)
+    .lte("created_at", endUTC);
+  const total = totalRes.count ?? 0;
+
+  const { data } = await supabase
+    .from("page_views")
+    .select("path, created_at, country, referrer")
+    .eq("path", path)
+    .gte("created_at", startUTC)
+    .lte("created_at", endUTC)
+    .order("created_at", { ascending: false })
+    .limit(50000);
+  const rows = (data as Row[] | null) ?? [];
+
+  // tren per hari
+  const dayCount = new Map<string, number>();
+  for (const r of rows) {
+    const k = jktDateOf(r.created_at);
+    dayCount.set(k, (dayCount.get(k) ?? 0) + 1);
+  }
+  const daily: { date: string; count: number }[] = [];
+  let cur = new Date(`${from}T12:00:00.000+07:00`).getTime();
+  const endAnchor = new Date(`${to}T12:00:00.000+07:00`).getTime();
+  let guard = 0;
+  while (cur <= endAnchor && guard < 400) {
+    const key = new Date(cur).toLocaleDateString("en-CA", { timeZone: JKT_TZ });
+    daily.push({ date: key, count: dayCount.get(key) ?? 0 });
+    cur += 86400000;
+    guard++;
+  }
+
+  // negara
+  const countryCount = new Map<string, number>();
+  for (const r of rows) {
+    const c =
+      r.country && r.country.trim()
+        ? r.country.trim().toUpperCase()
+        : "Tidak diketahui";
+    countryCount.set(c, (countryCount.get(c) ?? 0) + 1);
+  }
+  const countries = [...countryCount.entries()]
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 15);
+
+  // sumber — navigasi internal ikut dihitung agar jumlahnya utuh
+  const refCount = new Map<string, number>();
+  for (const r of rows) {
+    const label = refLabel(r.referrer) ?? INTERNAL_LABEL;
+    refCount.set(label, (refCount.get(label) ?? 0) + 1);
+  }
+  const referrers = [...refCount.entries()]
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 15);
+
+  // 20 kunjungan terakhir
+  const recent = rows.slice(0, 20).map((r) => ({
+    at: r.created_at,
+    country:
+      r.country && r.country.trim()
+        ? r.country.trim().toUpperCase()
+        : "Tidak diketahui",
+    source: refLabel(r.referrer) ?? INTERNAL_LABEL,
+  }));
+
+  return { path, from, to, total, daily, countries, referrers, recent };
+}
