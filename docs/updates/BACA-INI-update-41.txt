@@ -1,0 +1,77 @@
+INVISUAL — update #41 (BLOG + CMS artikel standar SEO Google + indeks otomatis)
+
+APA INI
+- Halaman publik baru: /blog (daftar artikel + filter kategori) dan /blog/[slug]
+  (halaman artikel). Menu "Blog" otomatis muncul di navigasi situs.
+- Setiap artikel sudah "standar Google": judul & meta description, canonical,
+  Open Graph/Twitter card, gambar sampul dengan alt, structured data
+  (BlogPosting + Breadcrumb), tanggal terbit/ubah, waktu baca, artikel terkait.
+- CMS di /admin -> menu baru "Blog": tulis/edit artikel (Markdown + toolbar +
+  pratinjau), ringkasan, kategori, tag, gambar sampul, judul khusus Google,
+  checklist SEO langsung (panjang judul, meta description, sub-judul, dsb.),
+  Terbitkan / Draf, hapus.
+- Indeks otomatis saat TERBIT:
+    1) /sitemap.xml otomatis memuat artikel baru (jalur RESMI Google).
+    2) URL dikirim ke Google Indexing API (opsional, lihat LANGKAH 4).
+    3) URL dikirim ke IndexNow — Bing/Yandex/dll. (opsional, LANGKAH 5).
+  Hasilnya tercatat di daftar artikel ("Indeks: ..."). Ada juga tombol
+  "Kirim ke mesin pencari" untuk mengirim ulang kapan saja.
+
+================================================================
+LANGKAH 1 — Tabel (Supabase -> SQL Editor, jalankan sekali)
+  Tempel isi file "blog-setup.sql" -> Run.
+
+LANGKAH 2 — Pasang file + library Markdown (di FOLDER ROOT proyek)
+  unzip -o ~/Downloads/invisual-update-41.zip
+  npm install marked          <-- WAJIB kali ini (library pengubah Markdown)
+  rm -rf .next node_modules/.cache
+  npm run dev                 <-- cek lokal: buka /admin/blog dan /blog
+
+LANGKAH 3 — Deploy
+  git add -A
+  git commit -m "feat: blog + CMS artikel + indeks otomatis"
+  git push
+  (package.json & package-lock.json ikut ter-commit — penting agar Vercel
+   meng-install "marked".)
+
+LANGKAH 4 — Google Search Console (sekali)
+  a) Buka search.google.com/search-console -> properti invisual.studio
+     -> Sitemaps -> tambahkan:  https://invisual.studio/sitemap.xml
+     Ini jalur resmi: Google membaca sitemap rutin dan menemukan artikel baru.
+  b) (Opsional, mempercepat) Google Indexing API:
+     - console.cloud.google.com -> buat/pilih project -> "APIs & Services"
+       -> Enable "Web Search Indexing API".
+     - "IAM & Admin" -> "Service Accounts" -> Create -> buat key JSON -> unduh.
+     - Di Search Console -> Settings -> Users and permissions -> Add user ->
+       masukkan email service account (…@….iam.gserviceaccount.com) -> OWNER.
+     - Di Vercel -> Project -> Settings -> Environment Variables, tambah:
+         GOOGLE_INDEXING_CLIENT_EMAIL = client_email dari file JSON
+         GOOGLE_INDEXING_PRIVATE_KEY  = private_key dari file JSON
+                                        (tempel apa adanya, termasuk
+                                         -----BEGIN PRIVATE KEY----- … )
+       lalu Redeploy.
+     Catatan jujur: secara resmi API ini untuk lowongan kerja & siaran langsung.
+     Untuk blog banyak yang memakainya dan sering mempercepat, tapi tidak ada
+     jaminan dari Google. Sitemap (poin a) tetap yang utama.
+
+LANGKAH 5 — IndexNow (opsional, Bing/Yandex/Seznam/Naver)
+  - Buat kunci acak 32 karakter huruf/angka (mis. dari passwordsgenerator.net,
+    pilih huruf kecil + angka saja).
+  - Vercel -> Environment Variables:  INDEXNOW_KEY = kunci tadi  -> Redeploy.
+  - Kunci otomatis disajikan di https://invisual.studio/indexnow.txt
+
+Tanpa LANGKAH 4b & 5, blog tetap berjalan penuh; indeks mengandalkan sitemap.
+
+================================================================
+MENULIS ARTIKEL (tips standar Google)
+- Judul jelas ≤ 60 karakter; meta description 70–160 karakter.
+- Pakai sub-judul "## " untuk tiap bagian; minimal ~300 kata.
+- Gambar: unggah ke Cloudinary/Supabase Storage, tempel URL-nya; isi alt.
+- Markdown cepat: ## Sub-judul | **tebal** | *miring* | [teks](url)
+  | ![alt](url-gambar) | - poin | 1. bernomor | > kutipan
+- Checklist SEO di sisi kanan editor akan menandai yang masih kurang.
+
+CEK
+- /admin/blog -> "Tulis artikel" -> isi -> "Terbitkan".
+- Buka /blog -> artikel muncul; buka artikelnya.
+- Buka /sitemap.xml -> URL artikel ada di daftar.

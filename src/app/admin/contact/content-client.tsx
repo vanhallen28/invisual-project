@@ -97,7 +97,7 @@ export default function ContactContentClient({
                     <p className="mt-1 text-muted-foreground">
                         Buka Supabase → SQL Editor, jalankan file{" "}
                         <code className="rounded bg-black/10 px-1 dark:bg-white/10">
-                            contact-content-setup.sql
+                            supabase/sql/contact-content-setup.sql
                         </code>
                         , lalu muat ulang halaman ini. Sampai itu dilakukan, halaman
                         Contact tetap berjalan dengan teks bawaan.

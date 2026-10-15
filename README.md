@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Invisual Studio — Website & CMS
 
-## Getting Started
+Situs portofolio **invisual.studio** (Next.js 16 App Router + Supabase + Vercel)
+beserta panel admin (CMS) di `/admin`.
 
-First, run the development server:
+## Struktur folder
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+invisual-project/
+├── src/
+│   ├── app/            # halaman (/, /works, /blog, /about, /contact, /admin, …)
+│   ├── components/     # komponen UI bersama (header, footer, dsb.)
+│   ├── lib/            # akses data server, SEO, utilitas (markdown, indexing, …)
+│   ├── configs/        # konfigurasi situs & tautan navigasi
+│   └── services/       # layanan sisi client
+├── public/             # aset statis (logo, OG image, ikon)
+├── supabase/sql/       # skrip SQL (dijalankan manual di Supabase) + README urutan
+├── docs/updates/       # catatan tiap paket update (BACA-INI-*.txt)
+├── env.example         # daftar variabel lingkungan
+└── (konfigurasi: package.json, next.config.ts, tsconfig.json, eslint, postcss)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Menjalankan lokal
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+cp env.example .env.local   # lalu isi nilainya
+npm run dev                 # http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Kalau muncul error font Turbopack (`@vercel/turbopack-next/.../font`), itu cache:
 
-## Learn More
+```bash
+rm -rf .next node_modules/.cache && npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Variabel lingkungan
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Lihat `env.example`. Yang wajib: `NEXT_PUBLIC_SUPABASE_URL`,
+`NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
+Yang opsional: Resend (notifikasi email), Google Indexing API & IndexNow
+(pengiriman URL artikel blog ke mesin pencari).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Di produksi, semua diisi di **Vercel → Project → Settings → Environment Variables**.
 
-## Deploy on Vercel
+## Database (Supabase)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Skrip tabel ada di `supabase/sql/` — baca `supabase/sql/README.md` untuk urutan
+dan fungsi tiap file. Semua skrip aman dijalankan ulang.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deploy
+
+Push ke branch `main` → Vercel membangun & menayangkan otomatis.
+
+```bash
+git add -A
+git commit -m "pesan perubahan"
+git push
+```
+
+## Memasang paket update
+
+1. Unduh `invisual-update-NN.zip`, lalu dari folder root proyek:
+   `unzip -o ~/Downloads/invisual-update-NN.zip`
+2. Baca `docs/updates/BACA-INI-update-NN.txt` — bila ada SQL baru, jalankan di
+   Supabase; bila ada library baru, jalankan `npm install` sesuai petunjuk.
+3. Commit & push.
+
+## Panel admin
+
+`/admin` — Ringkasan, Karya, Klien, Testimoni, Tim, Layanan, Intro, Beranda,
+FAQ, Halaman Contact (termasuk footer & form "Start a Project"), Blog, Pesan,
+Proyek Masuk, Statistik.

@@ -121,7 +121,7 @@ export default function InquiryFormClient({
                     <p className="mt-1 text-muted-foreground">
                         Buka Supabase → SQL Editor, jalankan file{" "}
                         <code className="rounded bg-black/10 px-1 dark:bg-white/10">
-                            inquiry-form-setup.sql
+                            supabase/sql/inquiry-form-setup.sql
                         </code>
                         , lalu muat ulang halaman ini. Sampai itu dilakukan, form di
                         halaman Contact tetap berjalan dengan teks bawaan.
