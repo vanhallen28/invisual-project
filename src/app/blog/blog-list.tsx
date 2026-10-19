@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 import type { BlogPostCard } from "@/lib/blog-server";
 import { readingTime } from "@/lib/markdown";
 
@@ -22,7 +23,12 @@ export default function BlogList({ posts }: { posts: BlogPostCard[] }) {
         return [...set];
     }, [posts]);
     const [active, setActive] = useState<string | null>(null);
-    const shown = active ? posts.filter((p) => p.category === active) : posts;
+
+    // Artikel unggulan tampil besar di atas (hanya saat tidak ada filter).
+    const featured = !active ? posts.find((p) => p.featured) : undefined;
+    const shown = (active ? posts.filter((p) => p.category === active) : posts).filter(
+        (p) => p.id !== featured?.id
+    );
 
     return (
         <div>
@@ -40,10 +46,12 @@ export default function BlogList({ posts }: { posts: BlogPostCard[] }) {
                 </div>
             )}
 
-            {shown.length === 0 ? (
+            {featured && <FeaturedCard post={featured} />}
+
+            {posts.length === 0 ? (
                 <p className="text-muted-foreground">No articles yet. Check back soon.</p>
-            ) : (
-                <div className="grid gap-x-8 gap-y-12 md:grid-cols-2">
+            ) : shown.length === 0 ? null : (
+                <div className={`grid gap-x-8 gap-y-12 md:grid-cols-2 ${featured ? "mt-16" : ""}`}>
                     {shown.map((p) => (
                         <article key={p.id} className="group">
                             <Link href={`/blog/${p.slug}`} className="block">
@@ -81,6 +89,54 @@ export default function BlogList({ posts }: { posts: BlogPostCard[] }) {
                 </div>
             )}
         </div>
+    );
+}
+
+function FeaturedCard({ post: p }: { post: BlogPostCard }) {
+    return (
+        <article className="group">
+            <Link
+                href={`/blog/${p.slug}`}
+                className="grid items-center gap-8 rounded-3xl border bg-black/[0.02] p-5 transition-colors hover:bg-black/[0.035] dark:bg-white/[0.03] dark:hover:bg-white/[0.05] md:grid-cols-2 md:p-6"
+            >
+                {p.cover_url && (
+                    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border">
+                        <Image
+                            src={p.cover_url}
+                            alt={p.cover_alt || p.title}
+                            fill
+                            unoptimized
+                            priority
+                            sizes="(min-width: 768px) 50vw, 100vw"
+                            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                        />
+                    </div>
+                )}
+                <div>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs uppercase tracking-widest text-muted-foreground">
+                        <span className="text-[#416fd8] dark:text-[#f65294]">Featured</span>
+                        {p.category && <span>·</span>}
+                        {p.category && <span>{p.category}</span>}
+                        {p.published_at && <span>·</span>}
+                        {p.published_at && <span>{fmt(p.published_at)}</span>}
+                    </div>
+                    <h2 className="mt-3 text-3xl font-bold leading-[1.1] tracking-tight transition-colors group-hover:text-[#416fd8] dark:group-hover:text-[#f65294] md:text-4xl">
+                        {p.title}
+                    </h2>
+                    {p.excerpt && (
+                        <p className="mt-4 line-clamp-4 text-lg leading-relaxed text-muted-foreground">
+                            {p.excerpt}
+                        </p>
+                    )}
+                    <p className="mt-6 inline-flex items-center gap-2 text-sm font-semibold">
+                        Read article <ArrowRight className="h-4 w-4" />
+                        <span className="ml-2 font-normal text-muted-foreground">
+                            · {readingTime(p.content)} min read
+                        </span>
+                    </p>
+                </div>
+            </Link>
+        </article>
     );
 }
 

@@ -7,6 +7,7 @@
 import type { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { site } from "@/configs/site";
+import { ogPreviewUrl } from "@/lib/cloudinary-url";
 
 function db() {
   return createClient(
@@ -33,10 +34,9 @@ export function truncate(text?: string | null, max = 160): string {
 // Kalau bukan URL Cloudinary, pakai gambar OG default.
 export function ogImage(coverUrl?: string | null): string {
   if (coverUrl && coverUrl.includes("/upload/")) {
-    return coverUrl.replace(
-      "/upload/",
-      "/upload/c_fill,g_auto,w_1200,h_630,f_jpg,q_auto/"
-    );
+    // ogPreviewUrl membuang transformasi lama (mis. f_auto,q_auto) agar hasilnya
+    // selalu JPG 1200x630 yang didukung semua platform share.
+    return ogPreviewUrl(coverUrl);
   }
   return absoluteUrl(site.defaultOgImage);
 }

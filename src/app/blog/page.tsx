@@ -46,24 +46,10 @@ export default async function BlogPage() {
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
+            {/* Judul tetap ada untuk mesin pencari & pembaca layar, tanpa area hero. */}
+            <h1 className="sr-only">Blog — {site.name}</h1>
 
-            {/* Hero */}
-            <section className="px-6 pt-8 md:px-10 md:pt-14">
-                <div className="mx-auto max-w-5xl">
-                    <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-                        Blog
-                    </p>
-                    <h1 className="mt-4 max-w-3xl text-4xl font-bold leading-[1.05] tracking-tight md:text-6xl">
-                        Notes on design &amp; behind the project.
-                    </h1>
-                    <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
-                        Thinking, process, and the stories behind the work — from brand
-                        identity to illustration and packaging.
-                    </p>
-                </div>
-            </section>
-
-            <section className="mt-14 px-6 md:px-10">
+            <section className="min-h-[50vh] px-6 pb-16 pt-8 md:px-10 md:pt-12">
                 <div className="mx-auto max-w-5xl">
                     <BlogList posts={posts} />
                 </div>

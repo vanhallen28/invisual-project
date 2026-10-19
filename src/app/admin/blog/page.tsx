@@ -4,10 +4,14 @@ import { AdminShell } from "../_components/admin-shell";
 import { getUnreadCount } from "@/lib/admin-unread";
 import { createAdminClient } from "@/lib/supabase/admin";
 import BlogAdminList, { type AdminPost } from "./blog-list";
+import { flushScheduledIndexing } from "./actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminBlogPage() {
+    // Artikel terjadwal yang sudah tayang → kirim ke mesin pencari sekarang.
+    await flushScheduledIndexing();
+
     const supabase = createAdminClient();
     const { data, error } = await supabase
         .from("blog_posts")
@@ -25,7 +29,8 @@ export default async function AdminBlogPage() {
                         <h1 className="text-2xl font-bold md:text-3xl">Blog</h1>
                         <p className="mt-1 text-sm text-muted-foreground">
                             Artikel seputar design &amp; behind the project. Artikel yang
-                            terbit otomatis masuk sitemap dan dikirim ke mesin pencari.
+                            terbit otomatis masuk sitemap dan dikirim ke mesin pencari;
+                            gambar diunggah langsung ke Cloudinary dari editor.
                         </p>
                     </div>
                     <Link

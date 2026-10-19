@@ -1,5 +1,6 @@
 // Baca artikel blog untuk halaman publik (server, anon key).
-// Kebijakan RLS hanya mengizinkan artikel berstatus "published".
+// Kebijakan RLS hanya mengizinkan artikel berstatus "published"; di sini kita
+// juga menyaring artikel TERJADWAL (published_at di masa depan) agar belum tampil.
 import { createClient } from "@supabase/supabase-js";
 
 export type BlogPost = {
@@ -49,6 +50,7 @@ function anon() {
         { auth: { persistSession: false } }
     );
 }
+const now = () => new Date().toISOString();
 
 export async function getPublishedPosts(): Promise<BlogPostCard[]> {
     try {
@@ -56,6 +58,7 @@ export async function getPublishedPosts(): Promise<BlogPostCard[]> {
             .from("blog_posts")
             .select(CARD_COLS)
             .eq("status", "published")
+            .lte("published_at", now())
             .order("published_at", { ascending: false });
         return (data as BlogPostCard[] | null) ?? [];
     } catch {
@@ -70,6 +73,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
             .select("*")
             .eq("slug", slug)
             .eq("status", "published")
+            .lte("published_at", now())
             .maybeSingle();
         return (data as BlogPost | null) ?? null;
     } catch {
@@ -87,6 +91,7 @@ export async function getRelatedPosts(
             .from("blog_posts")
             .select(CARD_COLS)
             .eq("status", "published")
+            .lte("published_at", now())
             .neq("slug", excludeSlug);
         if (category) q = q.eq("category", category);
         const { data } = await q
@@ -106,6 +111,7 @@ export async function getPublishedForSitemap(): Promise<
             .from("blog_posts")
             .select("slug, updated_at, published_at")
             .eq("status", "published")
+            .lte("published_at", now())
             .order("published_at", { ascending: false });
         return (
             (data as { slug: string; updated_at: string; published_at: string | null }[] | null) ??

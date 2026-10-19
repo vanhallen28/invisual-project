@@ -13,8 +13,12 @@ import {
     EyeOff,
     AlertTriangle,
     Newspaper,
+    Copy,
+    CalendarClock,
+    Zap,
+    Star,
 } from "lucide-react";
-import { deletePost, setPostStatus, requestIndex } from "./actions";
+import { deletePost, setPostStatus, requestIndex, duplicatePost } from "./actions";
 import { useToast } from "../_components/toast";
 import { useConfirm } from "../_components/confirm-dialog";
 
@@ -42,6 +46,13 @@ function fmt(d: string | null) {
         minute: "2-digit",
     });
 }
+function isScheduled(p: AdminPost) {
+    return p.status === "published" && !!p.published_at && Date.parse(p.published_at) > Date.now();
+}
+
+type Filter = "all" | "published" | "scheduled" | "draft";
+const btn =
+    "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors hover:bg-muted disabled:opacity-60";
 
 export default function BlogAdminList({
     ready,
@@ -56,11 +67,20 @@ export default function BlogAdminList({
     const [pending, start] = useTransition();
     const refresh = () => start(() => router.refresh());
     const [query, setQuery] = useState("");
-    const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
+    const [filter, setFilter] = useState<Filter>("all");
+
+    const counts = {
+        all: posts.length,
+        published: posts.filter((p) => p.status === "published" && !isScheduled(p)).length,
+        scheduled: posts.filter(isScheduled).length,
+        draft: posts.filter((p) => p.status === "draft").length,
+    };
 
     const q = query.trim().toLowerCase();
     const shown = posts.filter((p) => {
-        if (filter !== "all" && p.status !== filter) return false;
+        if (filter === "published" && (p.status !== "published" || isScheduled(p))) return false;
+        if (filter === "scheduled" && !isScheduled(p)) return false;
+        if (filter === "draft" && p.status !== "draft") return false;
         if (!q) return true;
         return (
             p.title.toLowerCase().includes(q) ||
@@ -76,11 +96,32 @@ export default function BlogAdminList({
         refresh();
         toast.show(res.message ?? "Tersimpan");
     }
+    async function publishNow(p: AdminPost) {
+        const ok = await confirm({
+            title: "Terbitkan sekarang",
+            message: `Tayangkan “${p.title}” sekarang (abaikan jadwal ${fmt(p.published_at)})?`,
+            confirmText: "Terbitkan",
+        });
+        if (!ok) return;
+        const res = await setPostStatus(p.id, "published", { now: true });
+        if (!res.ok) return toast.show(res.error ?? "Gagal.", "error");
+        refresh();
+        toast.show(res.message ?? "Diterbitkan");
+    }
     async function sendIndex(p: AdminPost) {
         const res = await requestIndex(p.id);
         if (!res.ok) return toast.show(res.error ?? "Gagal.", "error");
         refresh();
         toast.show(res.message ?? "Terkirim");
+    }
+    async function dup(p: AdminPost) {
+        const res = await duplicatePost(p.id);
+        if (!res.ok) return toast.show(res.error ?? "Gagal menggandakan.", "error");
+        toast.show(res.message ?? "Salinan dibuat");
+        start(() => {
+            if (res.id) router.push(`/admin/blog/${res.id}`);
+            else router.refresh();
+        });
     }
     async function del(p: AdminPost) {
         const ok = await confirm({
@@ -125,6 +166,13 @@ export default function BlogAdminList({
         );
     }
 
+    const filters: { key: Filter; label: string }[] = [
+        { key: "all", label: "Semua" },
+        { key: "published", label: "Terbit" },
+        { key: "scheduled", label: "Terjadwal" },
+        { key: "draft", label: "Draf" },
+    ];
+
     return (
         <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2">
@@ -137,18 +185,19 @@ export default function BlogAdminList({
                         className="w-full rounded-md border bg-transparent py-2 pl-9 pr-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     />
                 </div>
-                {(["all", "published", "draft"] as const).map((f) => (
+                {filters.map((f) => (
                     <button
-                        key={f}
+                        key={f.key}
                         type="button"
-                        onClick={() => setFilter(f)}
+                        onClick={() => setFilter(f.key)}
                         className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
-                            filter === f
+                            filter === f.key
                                 ? "border-[#416fd8] text-[#416fd8] dark:border-[#f65294] dark:text-[#f65294]"
                                 : "hover:bg-muted"
                         }`}
                     >
-                        {f === "all" ? "Semua" : f === "published" ? "Terbit" : "Draf"}
+                        {f.label}{" "}
+                        <span className="text-xs text-muted-foreground">{counts[f.key]}</span>
                     </button>
                 ))}
             </div>
@@ -159,106 +208,143 @@ export default function BlogAdminList({
                 </p>
             ) : (
                 <ul className="space-y-3">
-                    {shown.map((p) => (
-                        <li key={p.id} className="rounded-lg border p-4">
-                            <div className="flex items-start justify-between gap-3">
-                                <div className="min-w-0">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <Link
-                                            href={`/admin/blog/${p.id}`}
-                                            className="truncate font-medium hover:underline"
-                                        >
-                                            {p.title}
-                                        </Link>
-                                        {p.status === "published" ? (
-                                            <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-emerald-600 dark:text-emerald-400">
-                                                Terbit
-                                            </span>
-                                        ) : (
-                                            <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-amber-600 dark:text-amber-400">
-                                                Draf
-                                            </span>
-                                        )}
-                                        {p.featured && (
-                                            <span className="rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
-                                                Unggulan
-                                            </span>
-                                        )}
+                    {shown.map((p) => {
+                        const scheduled = isScheduled(p);
+                        const live = p.status === "published" && !scheduled;
+                        return (
+                            <li key={p.id} className="rounded-lg border p-4">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <Link
+                                                href={`/admin/blog/${p.id}`}
+                                                className="truncate font-medium hover:underline"
+                                            >
+                                                {p.title}
+                                            </Link>
+                                            {live ? (
+                                                <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-emerald-600 dark:text-emerald-400">
+                                                    Terbit
+                                                </span>
+                                            ) : scheduled ? (
+                                                <span className="inline-flex items-center gap-1 rounded bg-sky-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-sky-600 dark:text-sky-400">
+                                                    <CalendarClock className="h-3 w-3" /> Terjadwal
+                                                </span>
+                                            ) : (
+                                                <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-amber-600 dark:text-amber-400">
+                                                    Draf
+                                                </span>
+                                            )}
+                                            {p.featured && (
+                                                <span className="inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
+                                                    <Star className="h-3 w-3" /> Unggulan
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p className="mt-1 truncate text-xs text-muted-foreground">
+                                            /blog/{p.slug}
+                                            {p.category ? ` · ${p.category}` : ""}
+                                        </p>
                                     </div>
-                                    <p className="mt-1 truncate text-xs text-muted-foreground">
-                                        /blog/{p.slug}
-                                        {p.category ? ` · ${p.category}` : ""}
-                                    </p>
+                                    <span className="shrink-0 text-right text-xs text-muted-foreground">
+                                        {live
+                                            ? `Terbit ${fmt(p.published_at)}`
+                                            : scheduled
+                                                ? `Tayang ${fmt(p.published_at)}`
+                                                : `Diubah ${fmt(p.updated_at)}`}
+                                    </span>
                                 </div>
-                                <span className="shrink-0 text-xs text-muted-foreground">
-                                    {p.status === "published"
-                                        ? `Terbit ${fmt(p.published_at)}`
-                                        : `Diubah ${fmt(p.updated_at)}`}
-                                </span>
-                            </div>
 
-                            {p.status === "published" && (
-                                <p className="mt-2 text-xs text-muted-foreground">
-                                    <span className="font-medium">Indeks:</span>{" "}
-                                    {p.index_status
-                                        ? `${p.index_status} (${fmt(p.indexed_at)})`
-                                        : "belum dikirim"}
-                                </p>
-                            )}
-
-                            <div className="mt-3 flex flex-wrap items-center gap-2">
-                                <Link
-                                    href={`/admin/blog/${p.id}`}
-                                    className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors hover:bg-muted"
-                                >
-                                    <Pencil className="h-4 w-4" /> Edit
-                                </Link>
                                 {p.status === "published" && (
-                                    <a
-                                        href={`/blog/${p.slug}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors hover:bg-muted"
-                                    >
-                                        <ExternalLink className="h-4 w-4" /> Lihat
-                                    </a>
+                                    <p className="mt-2 text-xs text-muted-foreground">
+                                        <span className="font-medium">Indeks:</span>{" "}
+                                        {p.index_status
+                                            ? scheduled
+                                                ? p.index_status
+                                                : `${p.index_status} (${fmt(p.indexed_at)})`
+                                            : "belum dikirim"}
+                                    </p>
                                 )}
-                                <button
-                                    type="button"
-                                    onClick={() => toggleStatus(p)}
-                                    disabled={pending}
-                                    className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors hover:bg-muted disabled:opacity-60"
-                                >
-                                    {p.status === "published" ? (
-                                        <>
-                                            <EyeOff className="h-4 w-4" /> Jadikan draf
-                                        </>
+
+                                <div className="mt-3 flex flex-wrap items-center gap-2">
+                                    <Link href={`/admin/blog/${p.id}`} className={btn}>
+                                        <Pencil className="h-4 w-4" /> Edit
+                                    </Link>
+                                    {live ? (
+                                        <a
+                                            href={`/blog/${p.slug}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className={btn}
+                                        >
+                                            <ExternalLink className="h-4 w-4" /> Lihat
+                                        </a>
                                     ) : (
-                                        <>
-                                            <Eye className="h-4 w-4" /> Terbitkan
-                                        </>
+                                        <a
+                                            href={`/admin/blog/${p.id}/preview`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className={btn}
+                                        >
+                                            <Eye className="h-4 w-4" /> Pratinjau
+                                        </a>
                                     )}
-                                </button>
-                                {p.status === "published" && (
+                                    {scheduled && (
+                                        <button
+                                            type="button"
+                                            onClick={() => publishNow(p)}
+                                            disabled={pending}
+                                            className={btn}
+                                        >
+                                            <Zap className="h-4 w-4" /> Terbitkan sekarang
+                                        </button>
+                                    )}
                                     <button
                                         type="button"
-                                        onClick={() => sendIndex(p)}
+                                        onClick={() => toggleStatus(p)}
                                         disabled={pending}
-                                        className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors hover:bg-muted disabled:opacity-60"
+                                        className={btn}
                                     >
-                                        <Send className="h-4 w-4" /> Kirim ke mesin pencari
+                                        {p.status === "published" ? (
+                                            <>
+                                                <EyeOff className="h-4 w-4" /> Jadikan draf
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Eye className="h-4 w-4" /> Terbitkan
+                                            </>
+                                        )}
                                     </button>
-                                )}
-                                <button
-                                    type="button"
-                                    onClick={() => del(p)}
-                                    className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-red-500/40 px-3 py-1.5 text-sm text-red-500 transition-colors hover:bg-red-500 hover:text-white"
-                                >
-                                    <Trash2 className="h-4 w-4" /> Hapus
-                                </button>
-                            </div>
-                        </li>
-                    ))}
+                                    {live && (
+                                        <button
+                                            type="button"
+                                            onClick={() => sendIndex(p)}
+                                            disabled={pending}
+                                            className={btn}
+                                        >
+                                            <Send className="h-4 w-4" /> Kirim ke mesin pencari
+                                        </button>
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={() => dup(p)}
+                                        disabled={pending}
+                                        className={btn}
+                                        title="Buat salinan sebagai draf"
+                                    >
+                                        <Copy className="h-4 w-4" /> Duplikat
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => del(p)}
+                                        className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-red-500/40 px-3 py-1.5 text-sm text-red-500 transition-colors hover:bg-red-500 hover:text-white"
+                                    >
+                                        <Trash2 className="h-4 w-4" /> Hapus
+                                    </button>
+                                </div>
+                            </li>
+                        );
+                    })}
                 </ul>
             )}
         </div>

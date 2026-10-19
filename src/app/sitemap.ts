@@ -6,8 +6,9 @@ import type { MetadataRoute } from "next";
 import { getAllWorkSlugs, absoluteUrl } from "@/lib/seo";
 import { getPublishedForSitemap } from "@/lib/blog-server";
 
-// Disegarkan saat artikel/karya disimpan dari admin, dan otomatis tiap 1 jam.
-export const revalidate = 3600;
+// Disegarkan saat artikel/karya disimpan dari admin, dan otomatis tiap 10 menit
+// (agar artikel TERJADWAL ikut masuk sitemap tak lama setelah tayang).
+export const revalidate = 600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [works, posts] = await Promise.all([
