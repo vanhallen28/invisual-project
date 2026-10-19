@@ -72,15 +72,17 @@ export default function ArticleView({
 
                     {post.cover_url && (
                         <figure className="mt-10">
-                            <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border">
+                            {/* Sampul tampil utuh mengikuti rasio aslinya (tidak dipotong). */}
+                            <div className="overflow-hidden rounded-2xl border bg-black/[0.03] dark:bg-white/[0.03]">
                                 <Image
                                     src={post.cover_url}
                                     alt={post.cover_alt || post.title}
-                                    fill
+                                    width={1600}
+                                    height={900}
                                     unoptimized
                                     priority
                                     sizes="(min-width: 768px) 768px, 100vw"
-                                    className="object-cover"
+                                    className="h-auto w-full"
                                 />
                             </div>
                             {post.cover_alt && (
@@ -122,7 +124,7 @@ export default function ArticleView({
                             {related.map((p) => (
                                 <Link key={p.id} href={`/blog/${p.slug}`} className="group block">
                                     {p.cover_url && (
-                                        <div className="relative mb-4 aspect-[16/10] w-full overflow-hidden rounded-xl border">
+                                        <div className="relative mb-4 aspect-video w-full overflow-hidden rounded-xl border">
                                             <Image
                                                 src={p.cover_url}
                                                 alt={p.cover_alt || p.title}

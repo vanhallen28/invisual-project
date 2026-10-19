@@ -1,0 +1,23 @@
+INVISUAL — update #44 (perbaikan tampilan gambar sampul di blog)
+
+APA INI
+- Kartu artikel unggulan di /blog: gambar sebelumnya dipaksa rasio 4:3 sehingga
+  sampul 16:9 terpotong kiri-kanan. Sekarang gambar tampil UTUH mengikuti rasio
+  aslinya (apa pun ukurannya), tidak dipotong.
+- Sampul di halaman artikel (/blog/[slug]) juga tampil utuh mengikuti rasio asli.
+- Kartu artikel di grid & "Keep reading": kotak gambar jadi 16:9 (sebelumnya
+  16:10), jadi sampul 16:9 pas tanpa terpotong.
+- Petunjuk di editor admin diseragamkan: sampul disarankan 16:9 (mis. 1600x900).
+
+TIDAK ADA SQL. TIDAK ADA VARIABEL BARU.
+
+LANGKAH (di FOLDER ROOT proyek)
+  unzip -o ~/Downloads/invisual-update-44.zip
+  git add -A
+  git commit -m "fix: sampul blog tampil utuh tanpa terpotong"
+  git push
+
+FILE
+  src/app/blog/blog-list.tsx
+  src/components/blog/article-view.tsx
+  src/app/admin/blog/post-editor.tsx

@@ -461,7 +461,7 @@ export default function PostEditor({
             { ok: effectiveTitle.length >= 30, label: `Judul cukup deskriptif ≥ 30 karakter (${effectiveTitle.length})` },
             { ok: excerpt.trim().length >= 70 && excerpt.trim().length <= 160, label: `Meta description 70–160 karakter (${excerpt.trim().length})` },
             { ok: slug.length > 0 && slug.length <= 75 && slugState !== "taken", label: slugState === "taken" ? "Slug sudah dipakai artikel lain" : `Slug URL bersih & ringkas (${slug.length})` },
-            { ok: !coverUrl.trim() || coverAlt.trim().length > 0, label: coverUrl.trim() ? "Gambar sampul punya teks alternatif (alt)" : "Gambar sampul (disarankan, 1200×630 atau lebih)" },
+            { ok: !coverUrl.trim() || coverAlt.trim().length > 0, label: coverUrl.trim() ? "Gambar sampul punya teks alternatif (alt)" : "Gambar sampul (disarankan 16:9, mis. 1600×900)" },
             { ok: hasH2, label: "Ada sub-judul (## Heading) untuk struktur artikel" },
             { ok: words >= 300, label: `Panjang artikel ≥ 300 kata (${words} kata)` },
             { ok: bodyImages > 0 && imagesNoAlt === 0, label: bodyImages === 0 ? "Ada gambar pendukung di isi artikel" : imagesNoAlt > 0 ? `${imagesNoAlt} gambar di isi belum punya teks alt` : `Gambar di isi punya teks alt (${bodyImages})` },
@@ -858,7 +858,7 @@ export default function PostEditor({
                             {coverProgress !== null ? (
                                 <><Loader2 className="h-5 w-5 animate-spin" /> Mengunggah {coverProgress}%</>
                             ) : (
-                                <><Upload className="h-5 w-5" /> <span className="font-medium text-foreground">Klik atau seret gambar ke sini</span><span>Otomatis diunggah ke Cloudinary · ideal 1600×900</span></>
+                                <><Upload className="h-5 w-5" /> <span className="font-medium text-foreground">Klik atau seret gambar ke sini</span><span>Otomatis diunggah ke Cloudinary · ideal 16:9 (1600×900), tampil utuh tanpa dipotong</span></>
                             )}
                         </div>
                     )}

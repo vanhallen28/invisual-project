@@ -56,7 +56,7 @@ export default function BlogList({ posts }: { posts: BlogPostCard[] }) {
                         <article key={p.id} className="group">
                             <Link href={`/blog/${p.slug}`} className="block">
                                 {p.cover_url && (
-                                    <div className="relative mb-5 aspect-[16/10] w-full overflow-hidden rounded-2xl border bg-black/[0.03] dark:bg-white/[0.03]">
+                                    <div className="relative mb-5 aspect-video w-full overflow-hidden rounded-2xl border bg-black/[0.03] dark:bg-white/[0.03]">
                                         <Image
                                             src={p.cover_url}
                                             alt={p.cover_alt || p.title}
@@ -100,15 +100,17 @@ function FeaturedCard({ post: p }: { post: BlogPostCard }) {
                 className="grid items-center gap-8 rounded-3xl border bg-black/[0.02] p-5 transition-colors hover:bg-black/[0.035] dark:bg-white/[0.03] dark:hover:bg-white/[0.05] md:grid-cols-2 md:p-6"
             >
                 {p.cover_url && (
-                    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border">
+                    /* Gambar tampil utuh mengikuti rasio aslinya (tidak dipotong). */
+                    <div className="overflow-hidden rounded-2xl border bg-black/[0.03] dark:bg-white/[0.03]">
                         <Image
                             src={p.cover_url}
                             alt={p.cover_alt || p.title}
-                            fill
+                            width={1600}
+                            height={900}
                             unoptimized
                             priority
                             sizes="(min-width: 768px) 50vw, 100vw"
-                            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                            className="h-auto w-full transition-transform duration-500 group-hover:scale-[1.02]"
                         />
                     </div>
                 )}
