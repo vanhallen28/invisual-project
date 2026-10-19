@@ -1,0 +1,25 @@
+INVISUAL — update #46 (sampul & gambar isi: 2 cara — unggah file ATAU pakai URL)
+
+APA INI
+- Kotak "Gambar sampul" kini punya saklar di kanan atas:
+    [Unggah file]  -> klik/seret gambar, otomatis ke Cloudinary (seperti #43)
+    [Pakai URL]    -> kolom URL selalu tampil (seperti versi awal). Tempel
+                      alamat gambar dari Cloudinary Media Library atau sumber
+                      lain; pratinjau muncul otomatis.
+  Setelah ada gambar: tombol "Ganti (unggah)", "Ubah URL", "Hapus".
+- Toolbar isi artikel punya 2 tombol gambar: ikon panah-atas = unggah file
+  dari komputer; ikon gambar = sisipkan gambar dari URL (![alt](https://...)).
+- Perbaikan #45 (pesan gagal menetap, "Cek koneksi Cloudinary", jalur
+  cadangan) tetap berlaku.
+
+TIDAK ADA SQL. TIDAK ADA VARIABEL BARU. Pasang SETELAH update #45.
+
+LANGKAH (di FOLDER ROOT proyek)
+  unzip -o ~/Downloads/invisual-update-45.zip     (lewati bila sudah)
+  unzip -o ~/Downloads/invisual-update-46.zip
+  git add -A
+  git commit -m "feat: sampul 2 cara - unggah file atau URL"
+  git push
+
+FILE
+  src/app/admin/blog/post-editor.tsx

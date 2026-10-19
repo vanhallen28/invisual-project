@@ -45,11 +45,14 @@ import {
     Share2,
     Clock,
     X,
+    Wifi,
+    CheckCircle,
 } from "lucide-react";
 import {
     savePost,
     checkSlug,
     listMedia,
+    checkCloudinary,
     type PostInput,
 } from "./actions";
 import { uploadToCloudinary, isImageFile } from "./upload-client";
@@ -184,13 +187,28 @@ export default function PostEditor({
     const [preview, setPreview] = useState(false);
     const [fullscreen, setFullscreen] = useState(false);
     const [showSchedule, setShowSchedule] = useState(isFutureLocal(initialPublishAt));
-    const [showCoverUrl, setShowCoverUrl] = useState(false);
+    const [coverMode, setCoverMode] = useState<"upload" | "url">("upload");
+    const coverUrlRef = useRef<HTMLInputElement | null>(null);
     const [saving, setSaving] = useState<"draft" | "published" | null>(null);
     const [lastSaved, setLastSaved] = useState<Date | null>(null);
     const [slugState, setSlugState] = useState<"idle" | "checking" | "ok" | "taken">("idle");
     const [dragging, setDragging] = useState(false);
     const [coverProgress, setCoverProgress] = useState<number | null>(null);
+    const [coverError, setCoverError] = useState<string | null>(null);
+    const [coverInfo, setCoverInfo] = useState<string | null>(null);
     const [bodyProgress, setBodyProgress] = useState<{ name: string; pct: number } | null>(null);
+    const [bodyError, setBodyError] = useState<string | null>(null);
+    const [ping, setPing] = useState<{ busy: boolean; result: { ok: boolean; message: string } | null }>({ busy: false, result: null });
+
+    async function runPing() {
+        setPing({ busy: true, result: null });
+        try {
+            const r = await checkCloudinary();
+            setPing({ busy: false, result: r });
+        } catch (e) {
+            setPing({ busy: false, result: { ok: false, message: e instanceof Error ? e.message : "Gagal menghubungi server." } });
+        }
+    }
     const [gallery, setGallery] = useState<{
         open: boolean;
         loading: boolean;
@@ -372,10 +390,13 @@ export default function PostEditor({
                     if (i >= 0) selectRange(i + 2, i + 2 + alt.length);
                 });
                 addToGallery(up.url, up.width, up.height, up.bytes, up.public_id);
-                toast.show("Gambar terunggah ke Cloudinary — edit teks alt-nya");
+                setBodyError(null);
+                toast.show(up.via === "server" ? "Gambar terunggah (lewat jalur cadangan) — edit teks alt-nya" : "Gambar terunggah ke Cloudinary — edit teks alt-nya");
             } catch (e) {
                 setContent((cur) => cur.replace(token + "\n\n", "").replace(token, ""));
-                toast.show(e instanceof Error ? e.message : "Gagal mengunggah.", "error");
+                const msg = e instanceof Error ? e.message : "Gagal mengunggah.";
+                setBodyError(`${f.name}: ${msg}`);
+                toast.show(msg, "error");
             } finally {
                 setBodyQueue((n) => n - 1);
                 setBodyProgress(null);
@@ -398,16 +419,26 @@ export default function PostEditor({
 
     // ----- Unggah sampul -----
     async function uploadCover(file: File) {
-        if (!isImageFile(file)) return toast.show("File bukan gambar.", "error");
+        if (!isImageFile(file)) {
+            setCoverError("File bukan gambar (JPG, PNG, WebP, GIF, AVIF, SVG).");
+            return toast.show("File bukan gambar.", "error");
+        }
+        setCoverError(null);
+        setCoverInfo(null);
         setCoverProgress(0);
         try {
             const up = await uploadToCloudinary(file, setCoverProgress);
             setCoverUrl(up.url);
             if (!coverAlt.trim()) setCoverAlt(altFromFilename(file.name));
             addToGallery(up.url, up.width, up.height, up.bytes, up.public_id);
+            setCoverInfo(
+                `Terunggah ${up.via === "server" ? "lewat jalur cadangan " : ""}· ${up.public_id || "blog/…"}${up.width ? ` · ${up.width}×${up.height}` : ""}`
+            );
             toast.show("Sampul terunggah ke Cloudinary");
         } catch (e) {
-            toast.show(e instanceof Error ? e.message : "Gagal mengunggah sampul.", "error");
+            const msg = e instanceof Error ? e.message : "Gagal mengunggah sampul.";
+            setCoverError(msg);
+            toast.show(msg, "error");
         } finally {
             setCoverProgress(null);
         }
@@ -587,6 +618,9 @@ export default function PostEditor({
                     <Tool title="Tautan" onClick={() => wrap("[", "](https://)", "teks tautan")}><Link2 className="h-4 w-4" /></Tool>
                     <span className="mx-1 h-5 w-px bg-border" />
                     <Tool title="Unggah gambar dari komputer → otomatis ke Cloudinary" onClick={() => bodyFileRef.current?.click()} accent>
+                        <Upload className="h-4 w-4" />
+                    </Tool>
+                    <Tool title="Gambar dari URL (tempel alamat gambar)" onClick={() => wrap("![", "](https://URL-gambar.jpg)", "deskripsi gambar")}>
                         <ImageIcon className="h-4 w-4" />
                     </Tool>
                     <Tool title="Galeri gambar Cloudinary" onClick={toggleGallery} active={gallery.open}><Images className="h-4 w-4" /></Tool>
@@ -603,6 +637,13 @@ export default function PostEditor({
                             <Loader2 className="h-3.5 w-3.5 animate-spin" /> Mengunggah {bodyProgress.name} {bodyProgress.pct}%
                         </span>
                     )}
+                </div>
+            )}
+
+            {bodyError && !preview && (
+                <div className="mb-2 flex items-start justify-between gap-2 rounded-md border border-red-500/40 bg-red-500/10 p-2.5 text-xs">
+                    <span><span className="font-semibold">Unggah gagal.</span> {bodyError}</span>
+                    <button type="button" onClick={() => setBodyError(null)} className="shrink-0 text-muted-foreground hover:text-foreground" aria-label="Tutup"><X className="h-3.5 w-3.5" /></button>
                 </div>
             )}
 
@@ -823,11 +864,24 @@ export default function PostEditor({
 
                 {/* Sampul */}
                 <div className="space-y-3 rounded-lg border p-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                         <p className="text-sm font-semibold">Gambar sampul</p>
-                        <button type="button" onClick={() => setShowCoverUrl((s) => !s)} className="text-[11px] text-muted-foreground hover:text-foreground">
-                            {showCoverUrl ? "Sembunyikan URL" : "Tempel URL manual"}
-                        </button>
+                        <div className="inline-flex rounded-full border p-0.5 text-[11px]">
+                            <button
+                                type="button"
+                                onClick={() => setCoverMode("upload")}
+                                className={`rounded-full px-2.5 py-1 transition-colors ${coverMode === "upload" ? "bg-[#416fd8] text-white dark:bg-[#f65294]" : "text-muted-foreground hover:text-foreground"}`}
+                            >
+                                Unggah file
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setCoverMode("url"); requestAnimationFrame(() => coverUrlRef.current?.focus()); }}
+                                className={`rounded-full px-2.5 py-1 transition-colors ${coverMode === "url" ? "bg-[#416fd8] text-white dark:bg-[#f65294]" : "text-muted-foreground hover:text-foreground"}`}
+                            >
+                                Pakai URL
+                            </button>
+                        </div>
                     </div>
                     <input ref={coverFileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void uploadCover(f); }} />
                     {validCover ? (
@@ -840,12 +894,13 @@ export default function PostEditor({
                                     </div>
                                 )}
                             </div>
-                            <div className="flex gap-2">
-                                <button type="button" onClick={() => coverFileRef.current?.click()} disabled={coverProgress !== null} className={btnGhost}><Upload className="h-3.5 w-3.5" /> Ganti</button>
-                                <button type="button" onClick={() => { setCoverUrl(""); }} className={`${btnGhost} text-red-500`}><Trash2 className="h-3.5 w-3.5" /> Hapus</button>
+                            <div className="flex flex-wrap gap-2">
+                                <button type="button" onClick={() => { setCoverMode("upload"); coverFileRef.current?.click(); }} disabled={coverProgress !== null} className={btnGhost}><Upload className="h-3.5 w-3.5" /> Ganti (unggah)</button>
+                                <button type="button" onClick={() => { setCoverMode("url"); requestAnimationFrame(() => coverUrlRef.current?.focus()); }} className={btnGhost}><Link2 className="h-3.5 w-3.5" /> Ubah URL</button>
+                                <button type="button" onClick={() => { setCoverUrl(""); setCoverInfo(null); }} className={`${btnGhost} text-red-500`}><Trash2 className="h-3.5 w-3.5" /> Hapus</button>
                             </div>
                         </div>
-                    ) : (
+                    ) : coverMode === "upload" ? (
                         <div
                             role="button"
                             tabIndex={0}
@@ -861,15 +916,54 @@ export default function PostEditor({
                                 <><Upload className="h-5 w-5" /> <span className="font-medium text-foreground">Klik atau seret gambar ke sini</span><span>Otomatis diunggah ke Cloudinary · ideal 16:9 (1600×900), tampil utuh tanpa dipotong</span></>
                             )}
                         </div>
+                    ) : (
+                        <div className="flex aspect-[16/9] w-full flex-col items-center justify-center gap-1 rounded-md border border-dashed text-center text-xs text-muted-foreground">
+                            <Link2 className="h-5 w-5" />
+                            <span className="font-medium text-foreground">Tempel alamat gambar di kolom URL di bawah</span>
+                            <span>Pratinjau muncul otomatis begitu URL valid (https://…)</span>
+                        </div>
                     )}
-                    {!cloudinaryReady && (
-                        <p className="text-[11px] text-amber-600 dark:text-amber-400">
-                            Unggah langsung belum aktif — isi CLOUDINARY_API_KEY &amp; CLOUDINARY_API_SECRET di Vercel (lihat BACA-INI-update-43). Sementara, tempel URL manual.
+                    {coverError && (
+                        <div className="space-y-2 rounded-md border border-red-500/40 bg-red-500/10 p-2.5 text-xs">
+                            <p><span className="font-semibold">Unggah gagal.</span> {coverError}</p>
+                            <div className="flex flex-wrap gap-2">
+                                <button type="button" onClick={() => coverFileRef.current?.click()} className={btnGhost}><Upload className="h-3.5 w-3.5" /> Coba lagi</button>
+                                <button type="button" onClick={runPing} disabled={ping.busy} className={btnGhost}>
+                                    {ping.busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wifi className="h-3.5 w-3.5" />} Cek koneksi Cloudinary
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                    {coverInfo && !coverError && (
+                        <p className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400">
+                            <CheckCircle className="h-3.5 w-3.5 shrink-0" /> {coverInfo}
                         </p>
                     )}
-                    {showCoverUrl && (
-                        <Field label="URL gambar">
-                            <input value={coverUrl} onChange={(e) => setCoverUrl(e.target.value)} placeholder="https://…/cover.jpg" className={inputClass} />
+                    {ping.result && (
+                        <p className={`text-[11px] ${ping.result.ok ? "text-emerald-600 dark:text-emerald-400" : "text-red-500"}`}>
+                            {ping.result.message}
+                        </p>
+                    )}
+                    {!cloudinaryReady ? (
+                        <p className="text-[11px] text-amber-600 dark:text-amber-400">
+                            Unggah langsung belum aktif — isi CLOUDINARY_API_KEY &amp; CLOUDINARY_API_SECRET di Vercel (lihat BACA-INI-update-43). Sementara, pakai tab “Pakai URL”.
+                        </p>
+                    ) : (
+                        !coverError && (
+                            <button type="button" onClick={runPing} disabled={ping.busy} className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground">
+                                {ping.busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wifi className="h-3 w-3" />} Cek koneksi Cloudinary
+                            </button>
+                        )
+                    )}
+                    {(coverMode === "url" || (validCover && !coverUrl.includes("res.cloudinary.com"))) && (
+                        <Field label="URL gambar" hint="Boleh dari Cloudinary (Media Library → salin URL) atau sumber lain. Unggah file atau URL — hasilnya sama.">
+                            <input
+                                ref={coverUrlRef}
+                                value={coverUrl}
+                                onChange={(e) => { setCoverUrl(e.target.value.trim()); setCoverInfo(null); setCoverError(null); }}
+                                placeholder="https://res.cloudinary.com/akrkmnd/image/upload/…/cover.jpg"
+                                className={inputClass}
+                            />
                         </Field>
                     )}
                     <Field label="Teks alternatif (alt) — wajib bila ada gambar">
