@@ -1,9 +1,12 @@
-// Unggah gambar dari browser LANGSUNG ke Cloudinary (tanpa lewat server kita,
-// jadi tidak kena batas ukuran body Vercel). Server hanya memberi tanda tangan.
+// Unggah gambar dari browser ke Cloudinary.
+// Jalur utama: browser -> Cloudinary langsung (server hanya memberi tanda tangan,
+// jadi tidak kena batas ukuran body Vercel). Jalur cadangan otomatis bila jalur
+// utama gagal karena jaringan/pemblokir: browser -> /api/admin/upload -> Cloudinary.
 import { getUploadSignature } from "./actions";
 import { optimizedUrl } from "@/lib/cloudinary-url";
 
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // batas Cloudinary paket gratis
+const SERVER_MAX_BYTES = 4 * 1024 * 1024; // batas jalur cadangan (body Vercel)
 const ACCEPTED = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif", "image/svg+xml"];
 
 export type UploadedImage = {
@@ -12,7 +15,10 @@ export type UploadedImage = {
     height: number;
     public_id: string;
     bytes: number;
+    via: "browser" | "server";
 };
+
+class NetworkError extends Error {}
 
 export function isImageFile(file: File): boolean {
     return ACCEPTED.includes(file.type) || /\.(jpe?g|png|webp|gif|avif|svg)$/i.test(file.name);
@@ -58,16 +64,52 @@ export async function downscaleImage(file: File, maxDim = 2400): Promise<File> {
     }
 }
 
-export async function uploadToCloudinary(
-    original: File,
+type RawResult = {
+    secure_url?: string;
+    url?: string;
+    width?: number;
+    height?: number;
+    public_id?: string;
+    bytes?: number;
+    ok?: boolean;
+    error?: { message?: string } | string;
+};
+
+// Kirim FormData lewat XHR (agar ada progres), kembalikan JSON + status.
+function postForm(
+    url: string,
+    fd: FormData,
     onProgress?: (pct: number) => void
-): Promise<UploadedImage> {
-    if (!isImageFile(original)) throw new Error("File bukan gambar (JPG, PNG, WebP, GIF, AVIF, SVG).");
+): Promise<{ status: number; json: RawResult }> {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", url);
+        xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
+        };
+        xhr.onerror = () => reject(new NetworkError("network"));
+        xhr.ontimeout = () => reject(new NetworkError("timeout"));
+        xhr.timeout = 120_000;
+        xhr.onload = () => {
+            let json: RawResult = {};
+            try {
+                json = JSON.parse(xhr.responseText || "{}");
+            } catch {
+                /* biarkan kosong */
+            }
+            resolve({ status: xhr.status, json });
+        };
+        xhr.send(fd);
+    });
+}
 
-    const file = await downscaleImage(original);
-    if (file.size > MAX_UPLOAD_BYTES)
-        throw new Error("Gambar masih di atas 10 MB setelah diperkecil. Kompres dulu gambarnya.");
+function errMessage(json: RawResult, status: number, fallback: string): string {
+    if (typeof json.error === "string") return json.error;
+    if (json.error && typeof json.error === "object" && json.error.message) return json.error.message;
+    return `${fallback} (HTTP ${status}).`;
+}
 
+async function uploadDirect(file: File, onProgress?: (pct: number) => void): Promise<UploadedImage> {
     const ticket = await getUploadSignature(file.name);
     if (!ticket.ok) throw new Error(ticket.error);
     const { sig } = ticket;
@@ -80,32 +122,64 @@ export async function uploadToCloudinary(
     fd.append("folder", sig.folder);
     fd.append("public_id", sig.public_id);
 
-    return new Promise<UploadedImage>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open("POST", `https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`);
-        xhr.upload.onprogress = (e) => {
-            if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
+    const { status, json } = await postForm(
+        `https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`,
+        fd,
+        onProgress
+    );
+    if (status >= 200 && status < 300 && json.secure_url) {
+        return {
+            url: optimizedUrl(json.secure_url),
+            width: Number(json.width) || 0,
+            height: Number(json.height) || 0,
+            public_id: String(json.public_id ?? ""),
+            bytes: Number(json.bytes) || 0,
+            via: "browser",
         };
-        xhr.onerror = () => reject(new Error("Koneksi ke Cloudinary gagal. Coba lagi."));
-        xhr.onload = () => {
-            try {
-                const json = JSON.parse(xhr.responseText || "{}");
-                if (xhr.status >= 200 && xhr.status < 300 && json.secure_url) {
-                    resolve({
-                        url: optimizedUrl(json.secure_url as string),
-                        width: Number(json.width) || 0,
-                        height: Number(json.height) || 0,
-                        public_id: String(json.public_id ?? ""),
-                        bytes: Number(json.bytes) || 0,
-                    });
-                } else {
-                    const msg = json?.error?.message || `Cloudinary menolak unggahan (HTTP ${xhr.status}).`;
-                    reject(new Error(msg));
-                }
-            } catch {
-                reject(new Error("Balasan Cloudinary tidak terbaca."));
-            }
+    }
+    throw new Error("Cloudinary: " + errMessage(json, status, "unggahan ditolak"));
+}
+
+async function uploadViaServer(file: File, onProgress?: (pct: number) => void): Promise<UploadedImage> {
+    if (file.size > SERVER_MAX_BYTES)
+        throw new Error(
+            "Unggah langsung ke Cloudinary diblokir jaringan/ekstensi browser, dan file > 4 MB tidak bisa lewat jalur cadangan. Perkecil gambar lalu coba lagi."
+        );
+    const fd = new FormData();
+    fd.append("file", file, file.name);
+    const { status, json } = await postForm("/api/admin/upload", fd, onProgress);
+    if (status >= 200 && status < 300 && json.ok && json.url) {
+        return {
+            url: json.url,
+            width: Number(json.width) || 0,
+            height: Number(json.height) || 0,
+            public_id: String(json.public_id ?? ""),
+            bytes: Number(json.bytes) || 0,
+            via: "server",
         };
-        xhr.send(fd);
-    });
+    }
+    throw new Error(errMessage(json, status, "jalur cadangan gagal"));
+}
+
+export async function uploadToCloudinary(
+    original: File,
+    onProgress?: (pct: number) => void
+): Promise<UploadedImage> {
+    if (!isImageFile(original)) throw new Error("File bukan gambar (JPG, PNG, WebP, GIF, AVIF, SVG).");
+
+    const file = await downscaleImage(original);
+    if (file.size > MAX_UPLOAD_BYTES)
+        throw new Error("Gambar masih di atas 10 MB setelah diperkecil. Kompres dulu gambarnya.");
+
+    try {
+        return await uploadDirect(file, onProgress);
+    } catch (e) {
+        // Hanya kegagalan JARINGAN yang dicoba ulang lewat server (CORS/pemblokir/offline).
+        // Kalau Cloudinary menolak (mis. signature salah), lewat server pun hasilnya sama.
+        if (e instanceof NetworkError) {
+            onProgress?.(0);
+            return uploadViaServer(file, onProgress);
+        }
+        throw e;
+    }
 }

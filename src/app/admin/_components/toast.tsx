@@ -27,9 +27,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     const show = useCallback((message: string, type: ToastType = "success") => {
         const id = Date.now() + Math.random();
         setToasts((t) => [...t, { id, message, type }]);
+        // Pesan gagal ditahan lebih lama agar sempat terbaca.
         setTimeout(() => {
             setToasts((t) => t.filter((x) => x.id !== id));
-        }, 3500);
+        }, type === "error" ? 8000 : 3500);
     }, []);
 
     return (

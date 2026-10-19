@@ -1,0 +1,56 @@
+INVISUAL — update #47 (PAKET LENGKAP: perbaikan build + tautan di teks yang diblok)
+
+KENAPA BUILD VERCEL GAGAL
+  Pesan: "Export checkCloudinary doesn't exist in target module".
+  Penyebab: update #46 (post-editor.tsx) dipasang TANPA update #45 (actions.ts
+  yang berisi fungsi checkCloudinary). Editor memanggil fungsi yang belum ada.
+  Update #47 ini berisi SEMUA file #45 + #46 + fitur baru, jadi cukup pasang
+  yang ini saja — apa pun yang sudah/belum terpasang sebelumnya.
+
+FITUR BARU — TAUTAN
+- Blok teks di editor (mis. kata "Nike") -> klik tombol Tautan (ikon rantai)
+  atau tekan Ctrl+K -> muncul kotak kecil: "Teks" sudah terisi "Nike", tinggal
+  ketik URL -> Enter. Hasilnya [Nike](https://www.nike.com/id/).
+  * Kalau yang diblok sudah berupa tautan -> mode "Ubah tautan".
+  * Kalau yang diblok adalah alamat https://... -> URL langsung terisi.
+- Teks yang bertautan tampil BIRU + garis bawah di editor (URL-nya redup),
+  dan BIRU juga di artikel (pratinjau & halaman publik, mode terang & gelap).
+  Editor juga mewarnai: judul ## tebal, gambar hijau, kode abu, **tebal**.
+- Tautan ke situs lain otomatis dibuka di tab baru (rel noopener); tautan
+  internal (/works, invisual.studio) tetap di tab yang sama.
+
+DARI #45 & #46 (ikut di paket ini)
+- Kotak sampul: saklar [Unggah file | Pakai URL]; tombol Ganti/Ubah URL/Hapus.
+- Toolbar: 2 tombol gambar (unggah file / dari URL).
+- Pesan gagal unggah MENETAP (kotak merah) + "Coba lagi" + "Cek koneksi
+  Cloudinary" (menguji key/secret dari server).
+- Jalur cadangan otomatis browser -> server -> Cloudinary bila unggah langsung
+  diblokir jaringan/ekstensi.
+- Checklist SEO baru: "Isi diawali '# Judul'" dengan tombol "Hapus baris judul"
+  (judul H1 sudah dibuat otomatis oleh halaman, jangan ditulis lagi di isi).
+
+TIDAK ADA SQL. TIDAK ADA VARIABEL BARU.
+
+LANGKAH (di FOLDER ROOT proyek)
+  unzip -o ~/Downloads/invisual-update-47.zip
+  git add -A
+  git commit -m "feat: tautan di teks terblok, warna link biru, paket perbaikan unggah"
+  git push
+
+SETELAH DEPLOY
+  1) Di editor artikel Nike: blok kata "Nike" -> Ctrl+K -> ketik
+     https://www.nike.com/id/ -> Enter. Kata "Nike" jadi biru.
+  2) Di Checklist SEO klik "Hapus baris judul" agar H1 tidak ganda.
+  3) Kotak sampul -> "Cek koneksi Cloudinary". Hijau = unggah langsung siap;
+     merah = ikuti pesannya (401 = key/secret salah di Vercel).
+
+FILE
+  src/app/admin/blog/post-editor.tsx
+  src/app/admin/blog/markdown-highlight.tsx      (BARU)
+  src/app/admin/blog/upload-client.ts
+  src/app/admin/blog/actions.ts
+  src/lib/cloudinary-server.ts
+  src/app/api/admin/upload/route.ts              (BARU)
+  src/app/admin/_components/toast.tsx
+  src/lib/markdown.ts
+  src/components/blog/article-body-class.ts

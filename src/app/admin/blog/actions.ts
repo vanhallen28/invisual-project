@@ -9,6 +9,7 @@ import { isAdmin } from "@/lib/admin-auth";
 import {
     cloudinaryReady,
     listRecentImages,
+    pingCloudinary,
     signUpload,
     type MediaItem,
     type UploadSignature,
@@ -400,4 +401,10 @@ export async function listMedia(): Promise<{
 
 export async function cloudinaryStatus(): Promise<{ ready: boolean }> {
     return { ready: cloudinaryReady() };
+}
+
+// Tombol "Cek koneksi Cloudinary" di editor.
+export async function checkCloudinary(): Promise<{ ok: boolean; message: string }> {
+    if (!(await isAdmin())) return { ok: false, message: "Sesi admin berakhir. Masuk lagi." };
+    return pingCloudinary();
 }

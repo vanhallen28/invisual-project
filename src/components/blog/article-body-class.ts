@@ -6,7 +6,7 @@ export const ARTICLE_BODY_CLASS =
     "[&_h3]:mt-8 [&_h3]:mb-3 [&_h3]:text-xl [&_h3]:font-semibold " +
     "[&_h4]:mt-6 [&_h4]:mb-2 [&_h4]:text-lg [&_h4]:font-semibold " +
     "[&_p]:my-5 " +
-    "[&_a]:underline [&_a]:underline-offset-4 [&_a]:decoration-[#416fd8] dark:[&_a]:decoration-[#f65294] hover:[&_a]:text-[#416fd8] dark:hover:[&_a]:text-[#f65294] " +
+    "[&_a]:text-[#416fd8] [&_a]:underline [&_a]:underline-offset-4 [&_a]:decoration-[#416fd8]/50 hover:[&_a]:decoration-[#416fd8] dark:[&_a]:text-[#7c9eea] dark:[&_a]:decoration-[#7c9eea]/50 dark:hover:[&_a]:decoration-[#7c9eea] " +
     "[&_strong]:font-semibold " +
     "[&_ul]:my-5 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-5 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1.5 " +
     "[&_blockquote]:my-6 [&_blockquote]:border-l-2 [&_blockquote]:border-[#416fd8] [&_blockquote]:pl-5 [&_blockquote]:italic [&_blockquote]:text-muted-foreground dark:[&_blockquote]:border-[#f65294] " +

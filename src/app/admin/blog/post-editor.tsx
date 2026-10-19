@@ -66,6 +66,7 @@ import {
 } from "@/lib/markdown";
 import { thumbUrl, ogPreviewUrl, type MediaItem } from "@/lib/cloudinary-url";
 import { ARTICLE_BODY_CLASS } from "@/components/blog/article-body-class";
+import { highlightMarkdown } from "./markdown-highlight";
 import { useToast } from "../_components/toast";
 
 const inputClass =
@@ -74,6 +75,8 @@ const btnGhost =
     "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors hover:bg-muted disabled:opacity-60";
 
 const CATEGORY_SUGGESTIONS = ["Design", "Behind the Project", "Process", "Studio Notes"];
+// Kelas teks yang HARUS sama antara textarea dan lapisan pewarna agar baris sejajar.
+const EDITOR_TEXT_CLASS = "px-3 py-2 font-mono text-[13px] leading-relaxed";
 
 // ---------- util waktu (WIB) ----------
 function toWibLocal(iso: string | null | undefined): string {
@@ -163,6 +166,15 @@ export default function PostEditor({
     const toast = useToast();
     const [pending, start] = useTransition();
     const taRef = useRef<HTMLTextAreaElement | null>(null);
+    const hlRef = useRef<HTMLDivElement | null>(null);
+    const linkUrlRef = useRef<HTMLInputElement | null>(null);
+    const [linkPopover, setLinkPopover] = useState<{
+        start: number;
+        end: number;
+        text: string;
+        url: string;
+        editing: boolean;
+    } | null>(null);
     const bodyFileRef = useRef<HTMLInputElement | null>(null);
     const coverFileRef = useRef<HTMLInputElement | null>(null);
 
@@ -370,6 +382,45 @@ export default function PostEditor({
         }
     }
 
+    // ----- Tautan: blok teks → klik Tautan / Ctrl+K → isi URL → [teks](url) -----
+    function openLinkPopover() {
+        if (preview) setPreview(false);
+        const ta = taRef.current;
+        const cur = contentRef.current;
+        const start = ta?.selectionStart ?? cur.length;
+        const end = ta?.selectionEnd ?? cur.length;
+        const selected = cur.slice(start, end);
+        // Jika yang diblok sudah berupa [teks](url) → mode ubah.
+        const m = /^\[([^\]]+)\]\(([^)]*)\)$/.exec(selected);
+        if (m) {
+            setLinkPopover({ start, end, text: m[1], url: m[2], editing: true });
+        } else if (/^https?:\/\/\S+$/.test(selected.trim())) {
+            setLinkPopover({ start, end, text: "", url: selected.trim(), editing: false });
+        } else {
+            setLinkPopover({ start, end, text: selected, url: "https://", editing: false });
+        }
+        requestAnimationFrame(() => {
+            const el = linkUrlRef.current;
+            if (!el) return;
+            el.focus();
+            el.setSelectionRange(el.value.length, el.value.length);
+        });
+    }
+    function applyLink() {
+        if (!linkPopover) return;
+        const url = linkPopover.url.trim();
+        if (!/^(https?:\/\/\S+|\/\S*|mailto:\S+|#\S+)$/.test(url) || url === "https://") {
+            return toast.show("Isi URL lengkap, mis. https://www.nike.com/id/", "error");
+        }
+        const text = (linkPopover.text.trim() || url.replace(/^https?:\/\//, "")).replace(/\]/g, "");
+        const md = `[${text}](${url})`;
+        const cur = contentRef.current;
+        setContent(cur.slice(0, linkPopover.start) + md + cur.slice(linkPopover.end));
+        const p = linkPopover.start + md.length;
+        setLinkPopover(null);
+        selectRange(p, p);
+    }
+
     // ----- Unggah gambar ke isi artikel -----
     const [bodyQueue, setBodyQueue] = useState(0);
     async function insertImageFiles(files: File[]) {
@@ -486,6 +537,7 @@ export default function PostEditor({
     const bodyImages = (content.match(/!\[[^\]]*\]\([^)]+\)/g) ?? []).length;
     const imagesNoAlt = (content.match(/!\[\s*\]\([^)]+\)/g) ?? []).length;
     const hasLink = /(^|[^!])\[[^\]]+\]\((https?:\/\/|\/)[^)]+\)/.test(content);
+    const startsWithH1 = /^\s*#\s+\S/.test(content);
     const checks = useMemo(
         () => [
             { ok: effectiveTitle.length > 0 && effectiveTitle.length <= 60, label: `Judul untuk Google ≤ 60 karakter (${effectiveTitle.length})` },
@@ -497,10 +549,16 @@ export default function PostEditor({
             { ok: words >= 300, label: `Panjang artikel ≥ 300 kata (${words} kata)` },
             { ok: bodyImages > 0 && imagesNoAlt === 0, label: bodyImages === 0 ? "Ada gambar pendukung di isi artikel" : imagesNoAlt > 0 ? `${imagesNoAlt} gambar di isi belum punya teks alt` : `Gambar di isi punya teks alt (${bodyImages})` },
             { ok: hasLink, label: "Ada tautan (ke halaman lain / sumber)" },
+            {
+                ok: !startsWithH1,
+                label: startsWithH1 ? "Isi diawali \"# Judul\" — judul (H1) sudah dibuat otomatis oleh halaman" : "Tidak ada judul ganda (# …) di awal isi",
+                fix: startsWithH1 ? () => setContent((c) => c.replace(/^\s*#\s+[^\n]*\n*/, "")) : undefined,
+                fixLabel: "Hapus baris judul",
+            },
             { ok: category.trim().length > 0, label: "Kategori terisi" },
             { ok: tags.length >= 2, label: `Minimal 2 tag (${tags.length})` },
         ],
-        [effectiveTitle, excerpt, slug, slugState, coverUrl, coverAlt, hasH2, words, bodyImages, imagesNoAlt, hasLink, category, tags.length]
+        [effectiveTitle, excerpt, slug, slugState, coverUrl, coverAlt, hasH2, words, bodyImages, imagesNoAlt, hasLink, startsWithH1, category, tags.length]
     );
     const passed = checks.filter((c) => c.ok).length;
 
@@ -573,6 +631,7 @@ export default function PostEditor({
     const busy = pending || saving !== null || bodyQueue > 0 || coverProgress !== null;
     const validCover = /^(https?:\/\/|\/)/.test(coverUrl.trim());
     const headings = useMemo(() => outline(content), [content]);
+    const highlighted = useMemo(() => highlightMarkdown(content), [content]);
     const serpTitle = `${effectiveTitle || "Judul artikel"} — Invisual Studio`;
     const serpDesc = excerpt.trim() || autoExcerpt(content) || "Ringkasan artikel akan tampil di sini.";
 
@@ -615,7 +674,7 @@ export default function PostEditor({
                     <Tool title="Sub-judul kecil (H3)" onClick={() => linePrefix("### ", "Sub-judul")}><Heading3 className="h-4 w-4" /></Tool>
                     <Tool title="Tebal (Ctrl+B)" onClick={() => wrap("**", "**", "teks tebal")}><Bold className="h-4 w-4" /></Tool>
                     <Tool title="Miring (Ctrl+I)" onClick={() => wrap("*", "*", "teks miring")}><Italic className="h-4 w-4" /></Tool>
-                    <Tool title="Tautan" onClick={() => wrap("[", "](https://)", "teks tautan")}><Link2 className="h-4 w-4" /></Tool>
+                    <Tool title="Tautan (Ctrl+K) — blok teks dulu, lalu isi URL" onClick={openLinkPopover} active={!!linkPopover}><Link2 className="h-4 w-4" /></Tool>
                     <span className="mx-1 h-5 w-px bg-border" />
                     <Tool title="Unggah gambar dari komputer → otomatis ke Cloudinary" onClick={() => bodyFileRef.current?.click()} accent>
                         <Upload className="h-4 w-4" />
@@ -637,6 +696,42 @@ export default function PostEditor({
                             <Loader2 className="h-3.5 w-3.5 animate-spin" /> Mengunggah {bodyProgress.name} {bodyProgress.pct}%
                         </span>
                     )}
+                </div>
+            )}
+
+            {linkPopover && !preview && (
+                <div className="mb-2 rounded-md border border-[#416fd8]/50 bg-[#416fd8]/5 p-2.5 dark:border-[#7c9eea]/40 dark:bg-[#7c9eea]/5">
+                    <p className="mb-2 text-xs font-semibold">
+                        {linkPopover.editing ? "Ubah tautan" : "Sisipkan tautan"}
+                        {linkPopover.text ? <> pada teks <span className="rounded bg-[#416fd8]/15 px-1 text-[#416fd8] dark:text-[#7c9eea]">“{linkPopover.text}”</span></> : null}
+                    </p>
+                    <div className="grid gap-2 sm:grid-cols-[1fr_1.6fr_auto]">
+                        <input
+                            value={linkPopover.text}
+                            onChange={(e) => setLinkPopover({ ...linkPopover, text: e.target.value })}
+                            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyLink(); } if (e.key === "Escape") setLinkPopover(null); }}
+                            placeholder="Teks yang ditampilkan"
+                            className={inputClass}
+                        />
+                        <input
+                            ref={linkUrlRef}
+                            value={linkPopover.url}
+                            onChange={(e) => setLinkPopover({ ...linkPopover, url: e.target.value })}
+                            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyLink(); } if (e.key === "Escape") setLinkPopover(null); }}
+                            placeholder="https://… atau /works"
+                            className={inputClass}
+                            inputMode="url"
+                        />
+                        <div className="flex gap-1.5">
+                            <button type="button" onClick={applyLink} className="inline-flex items-center gap-1.5 rounded-full bg-[#416fd8] px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 dark:bg-[#f65294]">
+                                <Link2 className="h-3.5 w-3.5" /> {linkPopover.editing ? "Simpan" : "Sisipkan"}
+                            </button>
+                            <button type="button" onClick={() => setLinkPopover(null)} className={btnGhost}>Batal</button>
+                        </div>
+                    </div>
+                    <p className="mt-1.5 text-[11px] text-muted-foreground">
+                        Enter = sisipkan · Esc = batal · Teks bertautan tampil <span className="text-[#416fd8] underline dark:text-[#7c9eea]">biru</span> di editor dan di artikel. Tautan ke situs lain otomatis dibuka di tab baru.
+                    </p>
                 </div>
             )}
 
@@ -693,10 +788,19 @@ export default function PostEditor({
                 </div>
             ) : (
                 <div className="relative flex flex-1 flex-col">
+                    {/* Lapisan pewarna sintaks (di belakang textarea; teks textarea dibuat transparan). */}
+                    <div
+                        ref={hlRef}
+                        aria-hidden
+                        className={`pointer-events-none absolute inset-0 overflow-y-scroll whitespace-pre-wrap rounded-md border border-transparent text-foreground [overflow-wrap:break-word] ${EDITOR_TEXT_CLASS}`}
+                    >
+                        {highlighted}
+                    </div>
                     <textarea
                         ref={taRef}
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
+                        onScroll={(e) => { if (hlRef.current) hlRef.current.scrollTop = e.currentTarget.scrollTop; }}
                         onPaste={onBodyPaste}
                         onDrop={onBodyDrop}
                         onDragOver={(e) => { e.preventDefault(); if (!dragging) setDragging(true); }}
@@ -704,10 +808,12 @@ export default function PostEditor({
                         onKeyDown={(e) => {
                             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") { e.preventDefault(); wrap("**", "**", "teks tebal"); }
                             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") { e.preventDefault(); wrap("*", "*", "teks miring"); }
+                            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); openLinkPopover(); }
                         }}
                         rows={22}
+                        spellCheck={false}
                         placeholder={"Tulis artikel di sini.\n\n## Sub-judul\nParagraf…\n\n- poin satu\n- poin dua\n\nSeret / tempel gambar langsung ke sini → otomatis terunggah ke Cloudinary."}
-                        className={`${inputClass} ${fullscreen ? "flex-1" : "min-h-[420px]"} resize-y font-mono text-[13px] leading-relaxed ${dragging ? "border-dashed border-[#416fd8] dark:border-[#f65294]" : ""}`}
+                        className={`relative w-full rounded-md border bg-transparent text-transparent caret-foreground outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-[#416fd8] dark:focus:border-[#f65294] ${EDITOR_TEXT_CLASS} ${fullscreen ? "flex-1" : "min-h-[420px]"} resize-y overflow-y-scroll [overflow-wrap:break-word] ${dragging ? "border-dashed border-[#416fd8] dark:border-[#f65294]" : ""}`}
                     />
                     {dragging && (
                         <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-md bg-background/70 text-sm font-medium">
@@ -984,7 +1090,15 @@ export default function PostEditor({
                         {checks.map((c) => (
                             <li key={c.label} className="flex items-start gap-2 text-xs">
                                 {c.ok ? <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" /> : <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />}
-                                <span className={c.ok ? "text-muted-foreground" : ""}>{c.label}</span>
+                                <span className={c.ok ? "text-muted-foreground" : ""}>
+                                    {c.label}
+                                    {!c.ok && "fix" in c && c.fix && (
+                                        <>
+                                            {" "}
+                                            <button type="button" onClick={c.fix} className="text-[#416fd8] underline dark:text-[#f65294]">{c.fixLabel ?? "Perbaiki"}</button>
+                                        </>
+                                    )}
+                                </span>
                             </li>
                         ))}
                     </ul>

@@ -100,3 +100,24 @@ export async function listRecentImages(limit = 60): Promise<MediaItem[]> {
         return [];
     }
 }
+
+// Tes kredensial: GET /ping dengan Basic auth (API key:secret).
+export async function pingCloudinary(): Promise<{ ok: boolean; message: string }> {
+    const { cloud, key, secret } = cfg();
+    if (!key || !secret)
+        return { ok: false, message: "CLOUDINARY_API_KEY / CLOUDINARY_API_SECRET belum diisi di Vercel." };
+    try {
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/ping`, {
+            headers: { Authorization: "Basic " + Buffer.from(`${key}:${secret}`).toString("base64") },
+            cache: "no-store",
+        });
+        if (res.ok) return { ok: true, message: `Terhubung ke Cloudinary (cloud "${cloud}"). Key & secret benar.` };
+        if (res.status === 401)
+            return { ok: false, message: `API Key / API Secret ditolak Cloudinary (401). Periksa kembali nilainya di Vercel — jangan ada spasi, dan pastikan dari cloud "${cloud}".` };
+        if (res.status === 404)
+            return { ok: false, message: `Cloud name "${cloud}" tidak ditemukan (404). Periksa CLOUDINARY_CLOUD_NAME.` };
+        return { ok: false, message: `Cloudinary membalas HTTP ${res.status}.` };
+    } catch (e) {
+        return { ok: false, message: e instanceof Error ? e.message : "Server tidak bisa menghubungi Cloudinary." };
+    }
+}
