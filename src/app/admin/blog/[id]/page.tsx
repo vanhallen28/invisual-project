@@ -5,7 +5,7 @@ import { AdminShell } from "../../_components/admin-shell";
 import { getUnreadCount } from "@/lib/admin-unread";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { BlogPost } from "@/lib/blog-server";
-import { cloudinaryReady, cloudinaryCloudName } from "@/lib/cloudinary-server";
+import { cloudinaryInfo } from "@/lib/cloudinary-server";
 import PostEditor from "../post-editor";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +37,7 @@ export default async function EditBlogPostPage({
                     <ArrowLeft className="h-4 w-4" /> Kembali ke daftar
                 </Link>
                 <h1 className="mb-6 mt-3 text-2xl font-bold md:text-3xl">Edit artikel</h1>
-                <PostEditor initial={post} cloudinaryReady={cloudinaryReady()} cloudName={cloudinaryCloudName()} />
+                <PostEditor initial={post} cloudinary={cloudinaryInfo()} />
             </div>
         </AdminShell>
     );

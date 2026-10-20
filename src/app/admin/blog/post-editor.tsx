@@ -57,6 +57,7 @@ import {
 } from "./actions";
 import { uploadToCloudinary, isImageFile } from "./upload-client";
 import type { BlogPost } from "@/lib/blog-server";
+import type { CloudinaryInfo } from "@/lib/cloudinary-server";
 import {
     renderMarkdown,
     slugify,
@@ -157,13 +158,13 @@ type Snapshot = {
 
 export default function PostEditor({
     initial,
-    cloudinaryReady = true,
-    cloudName = "vig1hayb",
+    cloudinary = { ready: true, cloud: "vig1hayb", mode: "preset", preset: null, hasKey: false },
 }: {
     initial?: BlogPost;
-    cloudinaryReady?: boolean;
-    cloudName?: string;
+    cloudinary?: CloudinaryInfo;
 }) {
+    const cloudinaryReady = cloudinary.ready;
+    const cloudName = cloudinary.cloud;
     const router = useRouter();
     const toast = useToast();
     const [pending, start] = useTransition();
@@ -229,6 +230,7 @@ export default function PostEditor({
         loaded: boolean;
         items: MediaItem[];
         notConfigured: boolean;
+        error?: string;
     }>({ open: false, loading: false, loaded: false, items: [], notConfigured: false });
     const [restore, setRestore] = useState<{ snap: Snapshot; at: string } | null>(null);
 
@@ -509,6 +511,7 @@ export default function PostEditor({
             loaded: true,
             items: r.items,
             notConfigured: !!r.notConfigured,
+            error: r.error,
         }));
     }
     function toggleGallery() {
@@ -757,7 +760,9 @@ export default function PostEditor({
                         </div>
                     </div>
                     {gallery.notConfigured ? (
-                        <p className="text-xs text-amber-600 dark:text-amber-400">Galeri butuh CLOUDINARY_API_KEY &amp; CLOUDINARY_API_SECRET di Vercel (lihat BACA-INI-update-43).</p>
+                        <p className="text-xs text-amber-600 dark:text-amber-400">Galeri butuh CLOUDINARY_API_KEY &amp; CLOUDINARY_API_SECRET (izin penuh) di Vercel. Unggah gambar tetap jalan tanpa ini.</p>
+                    ) : gallery.error ? (
+                        <p className="text-xs text-amber-600 dark:text-amber-400">Galeri tidak bisa dimuat: {gallery.error} Unggah gambar tetap jalan.</p>
                     ) : gallery.loading && !gallery.items.length ? (
                         <p className="text-xs text-muted-foreground">Memuat…</p>
                     ) : gallery.items.length === 0 ? (
@@ -1054,7 +1059,7 @@ export default function PostEditor({
                     )}
                     {!cloudinaryReady ? (
                         <p className="text-[11px] text-amber-600 dark:text-amber-400">
-                            Unggah langsung belum aktif — isi CLOUDINARY_API_KEY &amp; CLOUDINARY_API_SECRET di Vercel (lihat BACA-INI-update-43). Sementara, pakai tab “Pakai URL”.
+                            Unggah langsung belum aktif — isi NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET (preset unsigned yang dipakai unggah Karya) di Vercel. Sementara, pakai tab “Pakai URL”.
                         </p>
                     ) : (
                         !coverError && (
@@ -1062,7 +1067,10 @@ export default function PostEditor({
                                 <button type="button" onClick={runPing} disabled={ping.busy} className="inline-flex items-center gap-1 hover:text-foreground">
                                     {ping.busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wifi className="h-3 w-3" />} Cek koneksi Cloudinary
                                 </button>
-                                <span>· cloud: <code>{cloudName}</code> · folder <code>blog/</code></span>
+                                <span>
+                                    · cloud: <code>{cloudName}</code> · folder <code>blog/</code> ·{" "}
+                                    {cloudinary.mode === "preset" ? <>preset <code>{cloudinary.preset}</code> (sama dengan unggah Karya)</> : "mode: API key"}
+                                </span>
                             </div>
                         )
                     )}

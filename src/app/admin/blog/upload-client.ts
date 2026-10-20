@@ -2,7 +2,7 @@
 // Jalur utama: browser -> Cloudinary langsung (server hanya memberi tanda tangan,
 // jadi tidak kena batas ukuran body Vercel). Jalur cadangan otomatis bila jalur
 // utama gagal karena jaringan/pemblokir: browser -> /api/admin/upload -> Cloudinary.
-import { getUploadSignature } from "./actions";
+import { getUploadTicket } from "./actions";
 import { optimizedUrl } from "@/lib/cloudinary-url";
 
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // batas Cloudinary paket gratis
@@ -110,20 +110,25 @@ function errMessage(json: RawResult, status: number, fallback: string): string {
 }
 
 async function uploadDirect(file: File, onProgress?: (pct: number) => void): Promise<UploadedImage> {
-    const ticket = await getUploadSignature(file.name);
-    if (!ticket.ok) throw new Error(ticket.error);
-    const { sig } = ticket;
+    const t = await getUploadTicket(file.name);
+    if (!t.ok) throw new Error(t.error);
+    const { ticket } = t;
 
     const fd = new FormData();
     fd.append("file", file);
-    fd.append("api_key", sig.apiKey);
-    fd.append("timestamp", sig.timestamp);
-    fd.append("signature", sig.signature);
-    fd.append("folder", sig.folder);
-    fd.append("public_id", sig.public_id);
+    fd.append("folder", ticket.folder);
+    fd.append("public_id", ticket.public_id);
+    if (ticket.mode === "preset") {
+        // Unsigned: cukup nama preset (sama seperti unggah Karya/Tim/Klien).
+        fd.append("upload_preset", ticket.preset);
+    } else {
+        fd.append("api_key", ticket.apiKey);
+        fd.append("timestamp", ticket.timestamp);
+        fd.append("signature", ticket.signature);
+    }
 
     const { status, json } = await postForm(
-        `https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`,
+        `https://api.cloudinary.com/v1_1/${ticket.cloudName}/image/upload`,
         fd,
         onProgress
     );
@@ -138,9 +143,17 @@ async function uploadDirect(file: File, onProgress?: (pct: number) => void): Pro
         };
     }
     const raw = errMessage(json, status, "unggahan ditolak");
+    if (/missing permissions/i.test(raw))
+        throw new Error(
+            `Cloudinary: ${raw}. API key di Vercel adalah key TERBATAS (tanpa izin Upload). Solusi tercepat: isi NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET di Vercel dengan preset unsigned yang dipakai unggah Karya (Cloudinary Console → Settings → Upload → Upload presets), atau beri key ini izin penuh (Settings → API Keys).`
+        );
+    if (/upload preset must be whitelisted|unsigned/i.test(raw))
+        throw new Error(
+            `Cloudinary: ${raw}. Preset "${ticket.mode === "preset" ? ticket.preset : ""}" belum bertipe Unsigned — di Cloudinary Console → Settings → Upload → Upload presets, ubah Signing mode ke "Unsigned".`
+        );
     if (/invalid cloud_name/i.test(raw))
         throw new Error(
-            `Cloudinary: ${raw}. Nama cloud yang dipakai situs salah — isi CLOUDINARY_CLOUD_NAME di Vercel dengan nama cloud akun Anda (pojok kiri atas Cloudinary Console), lalu Redeploy.`
+            `Cloudinary: ${raw}. Nama cloud yang dipakai situs salah — isi CLOUDINARY_CLOUD_NAME di Vercel dengan nama cloud akun Anda, lalu Redeploy.`
         );
     if (/invalid signature|invalid api_key|api_key/i.test(raw))
         throw new Error(

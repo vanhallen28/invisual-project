@@ -1,0 +1,63 @@
+INVISUAL — update #49 (AKAR MASALAH unggah: pakai jalur yang sama dengan unggah Karya)
+
+AKAR MASALAHNYA
+  Pesan terakhir: "Request forbidden due to missing permissions (actions=["create"])".
+  Artinya: nama cloud & tanda tangan sudah BENAR, tapi API Key yang dibuat di
+  Cloudinary Console adalah key TERBATAS (restricted) — tidak punya izin
+  "create" (unggah). Cloudinary sekarang memberi izin per-key; key baru yang
+  dibuat lewat Settings → API Keys bisa saja hanya punya izin terbatas.
+
+  Sementara itu, unggah Karya/Tim/Klien di admin selama ini TIDAK memakai API
+  key sama sekali — memakai "upload preset UNSIGNED" lewat variabel
+  NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME + NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
+  (itulah kenapa unggahan proyek masuk). Editor blog saya buat dengan jalur
+  berbeda (signed + API key) — itu kesalahan desain saya.
+
+PERBAIKAN
+- Editor blog sekarang memakai JALUR YANG SAMA dengan unggah Karya: preset
+  unsigned dari NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET. Tidak butuh API key.
+  Otomatis dipilih bila variabel itu ada (di Vercel sudah ada, karena unggah
+  Karya jalan).
+- Jalur API key (signed) hanya dipakai bila preset tidak ada.
+- API key sekarang HANYA dipakai untuk "Galeri gambar" (daftar media). Kalau
+  key-nya terbatas, galeri menampilkan keterangan, unggah tetap jalan.
+- Nama cloud mengikuti NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME (vig1hayb).
+- Baris status di kotak sampul: "cloud: vig1hayb · folder blog/ · preset <nama>
+  (sama dengan unggah Karya)". "Cek koneksi Cloudinary" menjelaskan mode aktif
+  + status izin API key.
+- Pesan "missing permissions" kini menjelaskan solusinya.
+
+TIDAK ADA SQL. TIDAK ADA VARIABEL BARU (memakai NEXT_PUBLIC_CLOUDINARY_* yang
+sudah ada). CLOUDINARY_API_KEY/SECRET boleh dibiarkan atau dihapus.
+
+LANGKAH (di FOLDER ROOT proyek)
+  unzip -o ~/Downloads/invisual-update-49.zip
+  git add -A
+  git commit -m "fix: unggah blog memakai preset unsigned yang sama dengan Karya"
+  git push
+
+SETELAH DEPLOY
+  /admin/blog/new → kotak sampul → "Cek koneksi Cloudinary" → harus tertulis
+  "Unggah: siap — memakai upload preset unsigned ..." → unggah sampul →
+  baris hijau "Terunggah · blog/... · 1600×900".
+
+OPSIONAL — mengaktifkan Galeri gambar
+  Cloudinary Console → Settings → API Keys → key yang dipakai → pastikan izinnya
+  penuh (Master / semua), atau buat key baru dengan izin penuh → salin ke Vercel
+  CLOUDINARY_API_KEY & CLOUDINARY_API_SECRET → Redeploy. Setelah itu "Cek
+  koneksi" akan menulis "API key: valid, izin baca OK → galeri gambar aktif".
+
+CATATAN TEKNIS (kalau preset menolak)
+  Kalau muncul "Upload preset must be whitelisted for unsigned uploads", berarti
+  preset bertipe Signed. Di Console → Settings → Upload → Upload presets →
+  preset tsb → Signing mode: Unsigned → Save.
+
+FILE
+  src/lib/cloudinary-server.ts
+  src/app/admin/blog/actions.ts
+  src/app/admin/blog/upload-client.ts
+  src/app/admin/blog/post-editor.tsx
+  src/app/admin/blog/new/page.tsx
+  src/app/admin/blog/[id]/page.tsx
+  src/app/api/admin/upload/route.ts
+  env.example

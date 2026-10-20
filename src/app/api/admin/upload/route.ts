@@ -3,7 +3,7 @@
 // (mis. diblokir ekstensi/jaringan). Hanya admin. Batas ~4 MB (batas body Vercel).
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin-auth";
-import { cloudinaryReady, signUpload, optimizedUrl } from "@/lib/cloudinary-server";
+import { cloudinaryReady, makeUploadTicket, optimizedUrl } from "@/lib/cloudinary-server";
 import { slugify } from "@/lib/markdown";
 
 export const runtime = "nodejs";
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: false, error: "Sesi admin berakhir. Masuk lagi." }, { status: 401 });
     if (!cloudinaryReady())
         return NextResponse.json(
-            { ok: false, error: "CLOUDINARY_API_KEY / CLOUDINARY_API_SECRET belum diisi di Vercel." },
+            { ok: false, error: "Unggah belum aktif: isi NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET atau CLOUDINARY_API_KEY + CLOUDINARY_API_SECRET di Vercel." },
             { status: 500 }
         );
 
@@ -38,19 +38,22 @@ export async function POST(req: Request) {
         );
 
     const base = slugify(file.name.replace(/\.[a-z0-9]+$/i, "")).slice(0, 60) || "gambar";
-    const sig = signUpload(`${base}-${Math.random().toString(36).slice(2, 8)}`);
-    if (!sig) return NextResponse.json({ ok: false, error: "Gagal membuat tanda tangan." }, { status: 500 });
+    const ticket = makeUploadTicket(`${base}-${Math.random().toString(36).slice(2, 8)}`);
+    if (!ticket) return NextResponse.json({ ok: false, error: "Gagal membuat tiket unggah." }, { status: 500 });
 
     const out = new FormData();
     out.append("file", file, file.name);
-    out.append("api_key", sig.apiKey);
-    out.append("timestamp", sig.timestamp);
-    out.append("signature", sig.signature);
-    out.append("folder", sig.folder);
-    out.append("public_id", sig.public_id);
+    out.append("folder", ticket.folder);
+    out.append("public_id", ticket.public_id);
+    if (ticket.mode === "preset") out.append("upload_preset", ticket.preset);
+    else {
+        out.append("api_key", ticket.apiKey);
+        out.append("timestamp", ticket.timestamp);
+        out.append("signature", ticket.signature);
+    }
 
     try {
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`, {
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${ticket.cloudName}/image/upload`, {
             method: "POST",
             body: out,
         });

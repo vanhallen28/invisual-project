@@ -7,13 +7,14 @@ import { notifyAll } from "@/lib/indexing";
 import { absoluteUrl } from "@/lib/seo";
 import { isAdmin } from "@/lib/admin-auth";
 import {
-    cloudinaryCloudName,
+    cloudinaryInfo,
     cloudinaryReady,
     listRecentImages,
+    makeUploadTicket,
     pingCloudinary,
-    signUpload,
+    type CloudinaryInfo,
     type MediaItem,
-    type UploadSignature,
+    type UploadTicket as CloudinaryUploadTicket,
 } from "@/lib/cloudinary-server";
 
 export type PostInput = {
@@ -369,39 +370,48 @@ export async function checkSlug(
 // ---------------- Cloudinary: unggah langsung dari browser ----------------
 
 export type UploadTicket =
-    | { ok: true; sig: UploadSignature }
+    | { ok: true; ticket: CloudinaryUploadTicket }
     | { ok: false; error: string; notConfigured?: boolean };
 
-export async function getUploadSignature(filename: string): Promise<UploadTicket> {
+// Memberi "tiket" unggah ke browser: preset unsigned (sama seperti unggah Karya)
+// atau tanda tangan API key bila preset tidak ada.
+export async function getUploadTicket(filename: string): Promise<UploadTicket> {
     if (!(await isAdmin())) return { ok: false, error: "Sesi admin berakhir. Masuk lagi." };
     if (!cloudinaryReady())
         return {
             ok: false,
             notConfigured: true,
             error:
-                "Unggah langsung belum aktif: isi CLOUDINARY_API_KEY & CLOUDINARY_API_SECRET di Vercel (lihat docs/updates/BACA-INI-update-43.txt).",
+                "Unggah belum aktif: isi NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET (preset unsigned yang dipakai unggah Karya) atau CLOUDINARY_API_KEY + CLOUDINARY_API_SECRET di Vercel.",
         };
     const base =
         slugify((filename || "gambar").replace(/\.[a-z0-9]+$/i, "")).slice(0, 60) || "gambar";
     const suffix = Math.random().toString(36).slice(2, 8);
-    const sig = signUpload(`${base}-${suffix}`);
-    if (!sig) return { ok: false, error: "Gagal membuat tanda tangan unggah." };
-    return { ok: true, sig };
+    const ticket = makeUploadTicket(`${base}-${suffix}`);
+    if (!ticket) return { ok: false, error: "Gagal membuat tiket unggah." };
+    return { ok: true, ticket };
+}
+
+// Kompatibilitas nama lama.
+export async function getUploadSignature(filename: string): Promise<UploadTicket> {
+    return getUploadTicket(filename);
 }
 
 export async function listMedia(): Promise<{
     ok: boolean;
     items: MediaItem[];
     notConfigured?: boolean;
+    error?: string;
 }> {
     if (!(await isAdmin())) return { ok: false, items: [] };
-    if (!cloudinaryReady()) return { ok: false, items: [], notConfigured: true };
-    const items = await listRecentImages(60);
+    const { items, error } = await listRecentImages(60);
+    if (error === "noKey") return { ok: false, items: [], notConfigured: true };
+    if (error) return { ok: false, items: [], error };
     return { ok: true, items };
 }
 
-export async function cloudinaryStatus(): Promise<{ ready: boolean; cloud: string }> {
-    return { ready: cloudinaryReady(), cloud: cloudinaryCloudName() };
+export async function cloudinaryStatus(): Promise<CloudinaryInfo> {
+    return cloudinaryInfo();
 }
 
 // Tombol "Cek koneksi Cloudinary" di editor.
