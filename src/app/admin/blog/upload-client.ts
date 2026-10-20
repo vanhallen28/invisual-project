@@ -137,7 +137,16 @@ async function uploadDirect(file: File, onProgress?: (pct: number) => void): Pro
             via: "browser",
         };
     }
-    throw new Error("Cloudinary: " + errMessage(json, status, "unggahan ditolak"));
+    const raw = errMessage(json, status, "unggahan ditolak");
+    if (/invalid cloud_name/i.test(raw))
+        throw new Error(
+            `Cloudinary: ${raw}. Nama cloud yang dipakai situs salah — isi CLOUDINARY_CLOUD_NAME di Vercel dengan nama cloud akun Anda (pojok kiri atas Cloudinary Console), lalu Redeploy.`
+        );
+    if (/invalid signature|invalid api_key|api_key/i.test(raw))
+        throw new Error(
+            `Cloudinary: ${raw}. API Key/Secret di Vercel tidak cocok dengan cloud yang dipakai — klik "Cek koneksi Cloudinary" untuk detailnya.`
+        );
+    throw new Error("Cloudinary: " + raw);
 }
 
 async function uploadViaServer(file: File, onProgress?: (pct: number) => void): Promise<UploadedImage> {

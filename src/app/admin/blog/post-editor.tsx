@@ -158,9 +158,11 @@ type Snapshot = {
 export default function PostEditor({
     initial,
     cloudinaryReady = true,
+    cloudName = "vig1hayb",
 }: {
     initial?: BlogPost;
     cloudinaryReady?: boolean;
+    cloudName?: string;
 }) {
     const router = useRouter();
     const toast = useToast();
@@ -1056,9 +1058,12 @@ export default function PostEditor({
                         </p>
                     ) : (
                         !coverError && (
-                            <button type="button" onClick={runPing} disabled={ping.busy} className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground">
-                                {ping.busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wifi className="h-3 w-3" />} Cek koneksi Cloudinary
-                            </button>
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                                <button type="button" onClick={runPing} disabled={ping.busy} className="inline-flex items-center gap-1 hover:text-foreground">
+                                    {ping.busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wifi className="h-3 w-3" />} Cek koneksi Cloudinary
+                                </button>
+                                <span>· cloud: <code>{cloudName}</code> · folder <code>blog/</code></span>
+                            </div>
                         )
                     )}
                     {(coverMode === "url" || (validCover && !coverUrl.includes("res.cloudinary.com"))) && (
@@ -1067,7 +1072,7 @@ export default function PostEditor({
                                 ref={coverUrlRef}
                                 value={coverUrl}
                                 onChange={(e) => { setCoverUrl(e.target.value.trim()); setCoverInfo(null); setCoverError(null); }}
-                                placeholder="https://res.cloudinary.com/akrkmnd/image/upload/…/cover.jpg"
+                                placeholder={`https://res.cloudinary.com/${cloudName}/image/upload/…/cover.jpg`}
                                 className={inputClass}
                             />
                         </Field>

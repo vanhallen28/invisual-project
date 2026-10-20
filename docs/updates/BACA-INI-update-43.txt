@@ -71,7 +71,7 @@ E) LAIN-LAIN
 TIDAK ADA SQL BARU. Tidak perlu npm install baru.
 
 LANGKAH 1 — Ambil API key Cloudinary (sekali, 2 menit)
-  a) Masuk https://console.cloudinary.com (akun cloud "akrkmnd").
+  a) Masuk https://console.cloudinary.com (akun cloud "vig1hayb").
   b) Menu kiri: Settings (ikon gerigi) -> API Keys
      (di tampilan lama: Dashboard -> bagian "Product Environment Credentials").
   c) Catat:  API Key  (angka ~15 digit)  dan  API Secret  (klik ikon mata /
@@ -79,7 +79,7 @@ LANGKAH 1 — Ambil API key Cloudinary (sekali, 2 menit)
 
 LANGKAH 2 — Isi di Vercel
   Vercel -> project invisual -> Settings -> Environment Variables -> Add:
-     CLOUDINARY_CLOUD_NAME = akrkmnd
+     CLOUDINARY_CLOUD_NAME = vig1hayb
      CLOUDINARY_API_KEY    = <API Key dari langkah 1>
      CLOUDINARY_API_SECRET = <API Secret dari langkah 1>
   Centang Production (dan Preview kalau mau). Save.

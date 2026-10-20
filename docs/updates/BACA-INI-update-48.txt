@@ -1,0 +1,50 @@
+INVISUAL — update #48 (perbaikan nama cloud Cloudinary: vig1hayb)
+
+PENYEBAB UNGGAH GAGAL
+  Pesan: "Cloudinary: Invalid cloud_name akrkmnd".
+  Kode memakai nama cloud bawaan "akrkmnd" (nama lama yang tertulis di URL
+  video hero), padahal akun Cloudinary yang Anda pakai — dan yang API Key /
+  Secret-nya diisi di Vercel — adalah cloud "vig1hayb". Key dari vig1hayb
+  ditolak oleh akrkmnd, maka muncul 401 dan "Invalid cloud_name".
+
+APA YANG BERUBAH
+- Nama cloud bawaan di kode sekarang "vig1hayb". Tetap bisa di-override lewat
+  CLOUDINARY_CLOUD_NAME di Vercel.
+- Di kotak sampul tampil "cloud: vig1hayb · folder blog/" supaya jelas akun
+  mana yang dipakai.
+- Pesan gagal lebih spesifik: "Invalid cloud_name" dan "Invalid signature"
+  kini langsung menyebut apa yang harus dicek.
+- Pesan "Cek koneksi Cloudinary" menjelaskan kemungkinan key milik cloud lain.
+- env.example & catatan lama (#43, #45) dikoreksi ke vig1hayb.
+
+TIDAK ADA SQL.
+
+LANGKAH
+  1) Vercel -> Settings -> Environment Variables:
+       - Kalau ADA  CLOUDINARY_CLOUD_NAME = akrkmnd  -> ubah jadi  vig1hayb
+       - Kalau TIDAK ada, biarkan (bawaan kode sudah vig1hayb)
+     API Key & Secret biarkan (sudah dari akun vig1hayb).
+  2) Di FOLDER ROOT proyek:
+       unzip -o ~/Downloads/invisual-update-48.zip
+       git add -A
+       git commit -m "fix: nama cloud Cloudinary vig1hayb"
+       git push
+  3) Setelah deploy: /admin/blog/new -> kotak sampul -> "Cek koneksi
+     Cloudinary" harus HIJAU: Terhubung ke Cloudinary (cloud "vig1hayb").
+     Lalu unggah sampul -> baris hijau "Terunggah · blog/...".
+
+CATATAN
+- Video hero (hero_tdyrfp.webm) masih di cloud lama "akrkmnd" dan tetap tayang
+  karena URL-nya publik. Kalau akun itu kelak dihapus, video perlu dipindah;
+  bilang saja bila ingin saya siapkan.
+- Gambar blog baru akan beralamat https://res.cloudinary.com/vig1hayb/...
+
+FILE
+  src/lib/cloudinary-server.ts
+  src/app/admin/blog/actions.ts
+  src/app/admin/blog/upload-client.ts
+  src/app/admin/blog/post-editor.tsx
+  src/app/admin/blog/new/page.tsx
+  src/app/admin/blog/[id]/page.tsx
+  env.example
+  docs/updates/BACA-INI-update-43.txt, BACA-INI-update-45.txt (koreksi teks)

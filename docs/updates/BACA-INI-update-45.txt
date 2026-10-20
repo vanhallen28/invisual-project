@@ -1,0 +1,57 @@
+INVISUAL — update #45 (unggah sampul: pesan kegagalan jelas + jalur cadangan + tes koneksi)
+
+MASALAH YANG DILAPORKAN
+  Gambar sampul "sudah diunggah" tapi pratinjau tidak muncul.
+  Artinya unggahan ke Cloudinary GAGAL, tapi pesan gagalnya hanya tampil 3,5
+  detik sebagai notifikasi kecil di pojok, jadi mudah terlewat.
+
+APA YANG BERUBAH
+1) Pesan gagal sekarang MENETAP di kotak "Gambar sampul" (kotak merah) berisi
+   alasan persis dari Cloudinary, dengan tombol "Coba lagi" dan
+   "Cek koneksi Cloudinary". Hal yang sama untuk gambar di isi artikel
+   (kotak merah di bawah toolbar). Notifikasi gagal juga ditahan 8 detik.
+2) Tombol "Cek koneksi Cloudinary" (selalu ada di bawah kotak sampul):
+   menguji CLOUDINARY_CLOUD_NAME + API_KEY + API_SECRET dari server dan
+   memberi tahu persis apa yang salah:
+     - "API Key / API Secret ditolak (401)"  -> nilai di Vercel salah/ada spasi
+     - "Cloud name ... tidak ditemukan (404)" -> CLOUDINARY_CLOUD_NAME salah
+     - "Terhubung ... Key & secret benar"     -> kredensial sudah benar
+3) Jalur CADANGAN otomatis: kalau unggah langsung browser -> Cloudinary gagal
+   karena jaringan/pemblokir (ekstensi adblock/privacy, Wi-Fi kantor, dll.),
+   gambar otomatis dikirim lewat server kita (/api/admin/upload) ke Cloudinary.
+   Batas jalur cadangan 4 MB (gambar sudah diperkecil otomatis, biasanya <1 MB).
+4) Setelah berhasil, muncul baris hijau "Terunggah · blog/nama-file · 1600x900"
+   sebagai konfirmasi.
+
+TIDAK ADA SQL. TIDAK ADA VARIABEL BARU.
+
+LANGKAH (di FOLDER ROOT proyek)
+  unzip -o ~/Downloads/invisual-update-45.zip
+  git add -A
+  git commit -m "fix: unggah sampul - pesan gagal jelas, jalur cadangan, tes koneksi Cloudinary"
+  git push
+
+SETELAH DEPLOY — LAKUKAN INI
+  1) Buka /admin/blog/new -> di kotak "Gambar sampul" klik
+     "Cek koneksi Cloudinary".
+     - Hijau  -> kredensial benar. Lanjut unggah; kalau masih gagal, kotak
+                 merah akan menyebut alasannya (kirimkan ke saya).
+     - Merah 401 -> buka console.cloudinary.com -> Settings -> API Keys,
+                 salin ulang API Key & API Secret (klik ikon mata untuk
+                 melihat secret), tempel ke Vercel -> Environment Variables
+                 tanpa spasi di depan/belakang -> Redeploy.
+     - Merah 404 -> CLOUDINARY_CLOUD_NAME harus persis nama cloud akun Anda ("vig1hayb").
+  2) Unggah sampul lagi. Baris hijau "Terunggah · blog/..." = sukses.
+
+CARA CEK MANUAL (opsional, tanpa deploy)
+  Buka di browser:  https://api.cloudinary.com/v1_1/vig1hayb/ping
+  Browser akan minta username = API Key, password = API Secret.
+  Balasan {"status":"ok"} berarti kredensial benar.
+
+FILE
+  src/app/admin/blog/post-editor.tsx
+  src/app/admin/blog/upload-client.ts
+  src/app/admin/blog/actions.ts
+  src/lib/cloudinary-server.ts
+  src/app/api/admin/upload/route.ts        (BARU)
+  src/app/admin/_components/toast.tsx

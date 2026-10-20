@@ -1,7 +1,8 @@
 // Cloudinary (server-only): tanda tangan unggah langsung dari browser + daftar
-// media. Env: CLOUDINARY_CLOUD_NAME (default "akrkmnd"), CLOUDINARY_API_KEY,
-// CLOUDINARY_API_SECRET. Tanpa key/secret, fitur unggah menampilkan petunjuk
-// dan admin tetap bisa menempel URL manual.
+// media. Env: CLOUDINARY_CLOUD_NAME (default "vig1hayb" = akun admin Invisual),
+// CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET. Key & secret HARUS dari cloud yang
+// sama dengan CLOUDINARY_CLOUD_NAME. Tanpa key/secret, fitur unggah menampilkan
+// petunjuk dan admin tetap bisa menempel URL manual.
 import crypto from "crypto";
 import { optimizedUrl, type MediaItem } from "./cloudinary-url";
 
@@ -10,7 +11,7 @@ export type { MediaItem };
 export const CLOUDINARY_FOLDER = "blog";
 
 function cfg() {
-    const cloud = process.env.CLOUDINARY_CLOUD_NAME || "akrkmnd";
+    const cloud = (process.env.CLOUDINARY_CLOUD_NAME || "vig1hayb").trim();
     const key = process.env.CLOUDINARY_API_KEY;
     const secret = process.env.CLOUDINARY_API_SECRET;
     return { cloud, key, secret, ready: !!(key && secret) };
@@ -18,6 +19,10 @@ function cfg() {
 
 export function cloudinaryReady(): boolean {
     return cfg().ready;
+}
+
+export function cloudinaryCloudName(): string {
+    return cfg().cloud;
 }
 
 export type UploadSignature = {
@@ -113,9 +118,12 @@ export async function pingCloudinary(): Promise<{ ok: boolean; message: string }
         });
         if (res.ok) return { ok: true, message: `Terhubung ke Cloudinary (cloud "${cloud}"). Key & secret benar.` };
         if (res.status === 401)
-            return { ok: false, message: `API Key / API Secret ditolak Cloudinary (401). Periksa kembali nilainya di Vercel — jangan ada spasi, dan pastikan dari cloud "${cloud}".` };
+            return {
+                ok: false,
+                message: `API Key / API Secret ditolak untuk cloud "${cloud}" (401). Dua kemungkinan: (1) key/secret salah ketik atau ada spasi, atau (2) key/secret itu milik cloud lain — cek nama cloud di Cloudinary Console (pojok kiri atas) lalu isi CLOUDINARY_CLOUD_NAME di Vercel dengan nama itu dan Redeploy.`,
+            };
         if (res.status === 404)
-            return { ok: false, message: `Cloud name "${cloud}" tidak ditemukan (404). Periksa CLOUDINARY_CLOUD_NAME.` };
+            return { ok: false, message: `Cloud name "${cloud}" tidak ditemukan (404). Isi CLOUDINARY_CLOUD_NAME di Vercel dengan nama cloud akun Anda (lihat pojok kiri atas Cloudinary Console).` };
         return { ok: false, message: `Cloudinary membalas HTTP ${res.status}.` };
     } catch (e) {
         return { ok: false, message: e instanceof Error ? e.message : "Server tidak bisa menghubungi Cloudinary." };

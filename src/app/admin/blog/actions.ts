@@ -7,6 +7,7 @@ import { notifyAll } from "@/lib/indexing";
 import { absoluteUrl } from "@/lib/seo";
 import { isAdmin } from "@/lib/admin-auth";
 import {
+    cloudinaryCloudName,
     cloudinaryReady,
     listRecentImages,
     pingCloudinary,
@@ -399,8 +400,8 @@ export async function listMedia(): Promise<{
     return { ok: true, items };
 }
 
-export async function cloudinaryStatus(): Promise<{ ready: boolean }> {
-    return { ready: cloudinaryReady() };
+export async function cloudinaryStatus(): Promise<{ ready: boolean; cloud: string }> {
+    return { ready: cloudinaryReady(), cloud: cloudinaryCloudName() };
 }
 
 // Tombol "Cek koneksi Cloudinary" di editor.
