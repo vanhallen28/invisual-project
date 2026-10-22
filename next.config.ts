@@ -1,8 +1,10 @@
 import type { NextConfig } from "next";
+import { buildCsp, cspHeaderName } from "./src/lib/csp";
 
-// Header keamanan untuk semua respons. CSP sengaja belum dipasang karena situs
-// memuat skrip pihak ketiga (Vercel Analytics, Meta Pixel, peta Google) yang
-// perlu daftar izin terperinci; bisa ditambahkan bertahap (Report-Only dulu).
+// Header keamanan untuk semua respons.
+// CSP (update #55): mode laporan dulu (Report-Only), lihat src/lib/csp.ts.
+// Hanya di produksi; mode dev Next butuh eval & websocket HMR.
+const isProd = process.env.NODE_ENV === "production";
 const securityHeaders = [
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -10,6 +12,7 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()" },
   { key: "X-DNS-Prefetch-Control", value: "on" },
+  ...(isProd ? [{ key: cspHeaderName(), value: buildCsp() }] : []),
 ];
 
 const nextConfig: NextConfig = {

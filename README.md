@@ -63,11 +63,14 @@ git push
 1. Unduh `invisual-update-NN.zip`, lalu dari folder root proyek:
    `unzip -o ~/Downloads/invisual-update-NN.zip`
 2. Baca `docs/updates/BACA-INI-update-NN.txt` — bila ada SQL baru, jalankan di
-   Supabase; bila ada library baru, jalankan `npm install` sesuai petunjuk.
+   Supabase. Sejak update #54, perubahan library dikirim lewat `package.json` +
+   `package-lock.json` di dalam zip, jadi tidak perlu `npm install` (Vercel
+   menginstal sendiri saat build).
 3. Commit & push.
 
 ## Panel admin
 
 `/admin` — Ringkasan, Karya, Klien, Testimoni, Tim, Layanan, Intro, Beranda,
 FAQ, Halaman Contact (termasuk footer & form "Start a Project"), Blog, Pesan,
-Proyek Masuk, Statistik.
+Proyek Masuk, Statistik, Keamanan & Cadangan (unduh cadangan data, status
+keamanan, laporan CSP).

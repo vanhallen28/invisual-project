@@ -1,0 +1,113 @@
+INVISUAL, update #55 (Keamanan & Cadangan: unduh cadangan data + CSP mode laporan)
+
+PENTING: zip ini SUDAH MEMUAT seluruh isi update #54 (perbaikan keamanan +
+Next.js 16.4.2). Kalau #54 belum terpasang, cukup pasang #55 ini saja.
+Kalau #54 belum pernah terpasang, setelah deploy Anda akan diminta login ulang
+sekali (format sesi admin berubah).
+
+APA INI
+Menu admin baru "Keamanan & Cadangan" (/admin/security) berisi tiga bagian:
+
+1) Status keamanan
+   Cek otomatis: versi Next.js (harus 16.4.2 ke atas), panjang rahasia sesi,
+   panjang password admin, header keamanan, dan mode CSP. Hijau = aman,
+   kuning = perlu tindakan (ada keterangannya).
+
+2) Cadangan data
+   - Tombol "Unduh cadangan lengkap (.json)": satu file berisi semua isi situs
+     (karya, klien, testimoni, tim, layanan, beranda, FAQ, halaman Contact,
+     form proyek, artikel blog, pesan, proyek masuk).
+   - Unduhan per tabel dalam CSV (bisa dibuka di Excel, Numbers, Google Sheets)
+     atau JSON. Isi form dari pengunjung yang diawali tanda = + - @ diberi
+     tanda kutip di depannya supaya tidak dijalankan sebagai rumus oleh Excel.
+   - Statistik kunjungan: CSV per bulan (tidak masuk cadangan lengkap karena
+     bisa sangat besar).
+   - Gambar & video tidak ikut (tersimpan di Cloudinary); file cadangan
+     menyimpan URL-nya.
+   - File berisi data pribadi pengirim pesan. Simpan di Google Drive/iCloud
+     pribadi, jangan dibagikan. Disarankan unduh sebulan sekali.
+
+3) Laporan CSP (Content-Security-Policy)
+   CSP adalah daftar sumber yang boleh dimuat situs (skrip, gambar, video,
+   peta, koneksi data). Bila ada orang berhasil menyisipkan skrip asing,
+   browser menolaknya karena sumbernya tidak ada di daftar.
+   Untuk sekarang dipasang dalam MODE LAPORAN: browser pengunjung TIDAK
+   memblokir apa pun, hanya melaporkan sumber yang akan terblokir. Laporan
+   tampil sebagai tabel di halaman ini (jenis, sumber, halaman, jumlah).
+   Sudah diuji: semua halaman publik dan admin tidak memicu laporan; skrip dan
+   iframe asing yang sengaja disisipkan langsung tercatat.
+
+LANGKAH DI TERMINAL (Mac: buka aplikasi Terminal)
+  1) Masuk ke folder proyek: ketik "cd" lalu SPASI, seret folder proyek dari
+     Finder ke jendela Terminal, tekan Enter.
+  2) Pasang file update:
+       unzip -o ~/Downloads/invisual-update-55.zip
+  3) Kirim ke GitHub (Vercel deploy otomatis):
+       git add -A
+       git commit -m "feat: menu Keamanan & Cadangan (unduh cadangan, CSP mode laporan)"
+       git push
+  Tidak perlu npm install.
+
+SQL (sekali saja, 1 menit)
+  Supabase → SQL Editor → New query → tempel isi file
+    supabase/sql/csp-reports.sql
+  → Run. Membuat tabel csp_reports untuk menampung laporan CSP.
+  Sebelum SQL ini dijalankan, situs tetap normal; laporan dari browser hanya
+  diabaikan, dan halaman admin menampilkan pengingat kuning.
+
+SETELAH DEPLOY
+  1) Buka /admin → menu "Keamanan & Cadangan". Pastikan bagian Status hijau
+     semua (Next.js 16.4.2).
+  2) Klik "Unduh cadangan lengkap (.json)" dan simpan file-nya di Google Drive
+     atau iCloud. Itu cadangan pertama Anda.
+
+1 SAMPAI 2 MINGGU KEMUDIAN: memberlakukan CSP
+  Buka lagi bagian "Laporan CSP".
+  - Kosong, atau hanya berisi sumber yang tidak Anda kenal (biasanya dari
+    ekstensi browser pengunjung): aturan siap diberlakukan.
+      Vercel → proyek invisual → Settings → Environment Variables
+      → Add: Key  CSP_ENFORCE   Value  1   (Production)
+      → Deployments → titik tiga pada deployment terbaru → Redeploy.
+    Label di halaman admin berubah dari "mode laporan" menjadi "diberlakukan".
+  - Ada baris dari fitur situs sendiri (mis. Anda menambah embed YouTube,
+    Instagram, atau Calendly): kirim tangkapan layar tabelnya, daftar izin
+    diperbarui dulu sebelum diberlakukan.
+  - Membatalkan kapan saja: hapus variabel CSP_ENFORCE di Vercel, lalu
+    Redeploy. Situs kembali ke mode laporan.
+  Tombol "Kosongkan laporan" menghapus semua baris (mis. setelah penyebabnya
+  diperbaiki), supaya yang tersisa hanya laporan baru.
+
+CATATAN JUJUR SOAL CSP INI
+  Next.js menyisipkan skrip kecil langsung di setiap halaman, jadi skrip
+  "inline" tetap diizinkan. Mengunci itu juga (memakai nonce) membuat semua
+  halaman dirender ulang setiap kali dibuka, cache hilang, dan situs melambat.
+  Perlindungan yang tetap didapat: skrip hanya dari domain yang dikenal,
+  tanpa plugin/objek, situs tidak bisa disematkan situs lain, form hanya
+  terkirim ke situs sendiri, dan koneksi data hanya ke layanan yang dipakai
+  (Supabase, Cloudinary, Meta, Vercel).
+
+FILE BARU
+  src/app/admin/security/page.tsx
+  src/app/admin/security/security-client.tsx
+  src/app/admin/security/actions.ts           tombol "Kosongkan laporan"
+  src/app/api/admin/export/route.ts           unduhan cadangan (wajib login admin)
+  src/app/api/csp-report/route.ts             penampung laporan dari browser
+  src/lib/csp.ts                              daftar izin CSP
+  src/lib/backup-tables.ts                    daftar tabel yang dicadangkan
+  src/lib/backup-server.ts                    pengambil data + pembuat CSV
+  supabase/sql/csp-reports.sql
+
+FILE DIUBAH
+  next.config.ts                              header CSP (produksi saja)
+  src/app/admin/_components/admin-sidebar.tsx menu baru
+  supabase/sql/README.md                      baris #16
+  env.example                                 ADMIN_PASSWORD, ADMIN_SESSION_SECRET, CSP_ENFORCE
+  README.md
+
+IKUT DARI UPDATE #54 (tidak berubah sejak #54)
+  package.json, package-lock.json, src/lib/admin-session.ts,
+  src/lib/admin-auth.ts, src/proxy.ts, src/app/admin/auth-actions.ts,
+  semua src/app/admin/*/actions.ts, src/lib/seo.ts, src/lib/markdown.ts,
+  src/app/layout.tsx, src/app/page.tsx, src/app/blog/page.tsx,
+  src/app/blog/[slug]/page.tsx, src/app/works/[slug]/page.tsx,
+  docs/updates/BACA-INI-update-54.txt

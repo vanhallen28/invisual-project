@@ -27,6 +27,7 @@ database dari nol.
 | 13 | `blog-setup.sql` | tabel `blog_posts` (Blog) |
 | 14 | `bilingual-contact.sql` | kolom `translations` (terjemahan Indonesia) pada `contact_content`, `inquiry_settings`, `inquiry_questions` + seed terjemahan |
 | 15 | `bilingual-contact-tanpa-strip.sql` | perbaikan teks seed terjemahan: hilangkan simbol strip panjang (—); hanya bila SQL #14 sudah dijalankan sebelum update #53 |
+| 16 | `csp-reports.sql` | tabel `csp_reports` + fungsi `log_csp_report` (laporan Content-Security-Policy di menu Keamanan & Cadangan) |
 
 ## Catatan
 - Tabel yang dibaca publik memakai RLS + kebijakan `for select using (true)`
