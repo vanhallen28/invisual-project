@@ -1,0 +1,27 @@
+INVISUAL — update #50 (Beranda: Clients 4 baris + "MORE CLIENTS", section artikel terbaru)
+
+APA INI
+1) Section "Clients" di beranda tidak lagi memanjang. Yang tampil hanya 4 BARIS
+   (layar besar 3 kolom = 12 klien; tablet 2 kolom = 8; HP 1 kolom = 4).
+   Di bawahnya ada tombol "MORE CLIENTS" (gaya sama dengan "MORE WORKS")
+   untuk menampilkan semua; setelah terbuka jadi "SHOW LESS".
+   Tombol hanya muncul bila memang ada klien yang tersembunyi.
+2) Section baru di bawah Clients: 3 ARTIKEL TERBARU dari blog — tanpa judul
+   section (sesuai permintaan). Tiap kartu: sampul 16:9, kategori · tanggal ·
+   waktu baca, judul, ringkasan. Di bawahnya tombol "MORE ARTICLES" → /blog.
+   Section otomatis disembunyikan bila belum ada artikel terbit, dan ikut
+   diperbarui saat artikel baru diterbitkan dari admin.
+
+TIDAK ADA SQL. TIDAK ADA VARIABEL BARU.
+
+LANGKAH (di FOLDER ROOT proyek)
+  unzip -o ~/Downloads/invisual-update-50.zip
+  git add -A
+  git commit -m "feat: beranda - clients 4 baris + more, section artikel terbaru"
+  git push
+
+FILE
+  src/app/page.tsx
+  src/app/_sections/clients.tsx
+  src/app/_sections/articles.tsx            (BARU)
+  src/app/admin/blog/actions.ts             (revalidate beranda saat artikel disimpan)

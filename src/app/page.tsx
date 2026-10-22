@@ -8,6 +8,8 @@ import { getHomeContent } from "@/lib/home-server";
 import { getWorksListServer, getClientsServer } from "@/lib/works-server";
 import FaqSection from "./_sections/faq";
 import { getFaqsServer } from "@/lib/faq-server";
+import ArticlesSection from "./_sections/articles";
+import { getPublishedPosts } from "@/lib/blog-server";
 
 export const metadata: Metadata = pageMetadata({ path: "/" });
 
@@ -15,11 +17,12 @@ export const metadata: Metadata = pageMetadata({ path: "/" });
 export const revalidate = 60;
 
 export default async function Page() {
-    const [home, works, clients, faqs] = await Promise.all([
+    const [home, works, clients, faqs, posts] = await Promise.all([
         getHomeContent(),
         getWorksListServer(),
         getClientsServer(),
         getFaqsServer(),
+        getPublishedPosts(),
     ]);
     const featured = works.filter((w) => w.featured);
 
@@ -48,6 +51,8 @@ export default async function Page() {
             <IntroSection text={home.intro_text ?? undefined} />
             <WorksSection works={featured} />
             <ClientsSection clients={clients} />
+            {/* Artikel terbaru (tanpa judul section) */}
+            <ArticlesSection posts={posts.slice(0, 3)} />
             <FaqSection faqs={faqs} />
         </div>
     );

@@ -43,6 +43,7 @@ type R = { ok: boolean; error?: string; message?: string };
 const SCHEDULED_STATUS = "Terjadwal — dikirim ke mesin pencari saat tayang";
 
 function revalidateBlog(slugs: string[]) {
+    revalidatePath("/"); // beranda memuat 3 artikel terbaru
     revalidatePath("/blog");
     revalidatePath("/sitemap.xml");
     revalidatePath("/admin/blog");
