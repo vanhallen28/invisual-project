@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import {
     DEFAULT_CONTACT_CONTENT,
     DEFAULT_FOOTER_CONTENT,
+    cleanContactTranslation,
     type ContactContent,
     type FooterContent,
     type LinkItem,
@@ -47,17 +48,19 @@ export default async function AdminContactPage() {
         .maybeSingle();
     const { data: qData, error: qErr } = await supabase
         .from("inquiry_questions")
-        .select(
-            "id, position, field_key, kind, question, subtitle, placeholder, options, required, enabled, core"
-        )
+        .select("*")
         .order("position", { ascending: true });
     const { data: sRow } = await supabase
         .from("inquiry_settings")
-        .select(
-            "welcome_title, welcome_body, welcome_cta, thankyou_title, thankyou_body"
-        )
+        .select("*")
         .eq("id", 1)
         .maybeSingle();
+    // Kolom "translations" ada setelah SQL bilingual-contact.sql dijalankan.
+    const translationsReady =
+        !!cRow && Object.prototype.hasOwnProperty.call(cRow, "translations");
+    const contactTranslationId = cleanContactTranslation(
+        (cRow?.translations as { id?: unknown } | null)?.id
+    );
 
     const unread = await getUnreadCount();
 
@@ -113,6 +116,7 @@ export default async function AdminContactPage() {
               thankyou_title:
                   sRow.thankyou_title ?? DEFAULT_SETTINGS.thankyou_title,
               thankyou_body: sRow.thankyou_body ?? DEFAULT_SETTINGS.thankyou_body,
+              translations: (sRow.translations as InquirySettings["translations"]) ?? null,
           }
         : DEFAULT_SETTINGS;
 
@@ -124,12 +128,15 @@ export default async function AdminContactPage() {
                 </h1>
                 <p className="mb-6 text-sm text-muted-foreground">
                     Atur seluruh isi halaman Contact, footer situs, dan form “Start a
-                    Project” — semuanya di satu tempat.
+                    Project” — semuanya di satu tempat. Halaman Contact dwibahasa:
+                    teks Inggris (bawaan) dan Bahasa Indonesia (tab “ID”).
                 </p>
 
                 <ContactContentClient
                     ready={contentReady}
+                    translationsReady={translationsReady}
                     content={content}
+                    translationId={contactTranslationId}
                     footer={footer}
                 />
 

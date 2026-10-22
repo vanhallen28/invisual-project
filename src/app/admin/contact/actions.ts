@@ -2,17 +2,29 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
-import type {
-    ContactContent,
-    FooterContent,
+import {
+    cleanContactTranslation,
+    type ContactContent,
+    type ContactTranslation,
+    type FooterContent,
 } from "@/lib/contact-content-types";
 
-type R = { ok: boolean; error?: string };
+type R = { ok: boolean; error?: string; warning?: string };
 
-export async function updateContactContent(input: ContactContent): Promise<R> {
+const TRANSLATION_WARNING =
+    "Teks Inggris tersimpan, tapi terjemahan Indonesia BELUM — kolom 'translations' belum ada. Jalankan supabase/sql/bilingual-contact.sql di Supabase, lalu simpan lagi.";
+
+function missingTranslationsColumn(msg: string): boolean {
+    return /translations/i.test(msg) && /column|schema cache|does not exist/i.test(msg);
+}
+
+export async function updateContactContent(
+    input: ContactContent,
+    translationId?: ContactTranslation
+): Promise<R> {
     try {
         const supabase = createAdminClient();
-        const { error } = await supabase.from("contact_content").upsert({
+        const row = {
             id: 1,
             hero_label: input.hero_label.trim() || null,
             hero_title: input.hero_title.trim() || null,
@@ -37,10 +49,20 @@ export async function updateContactContent(input: ContactContent): Promise<R> {
             cta_body: input.cta_body.trim() || null,
             cta_button: input.cta_button.trim() || null,
             updated_at: new Date().toISOString(),
-        });
+        };
+        const tr = cleanContactTranslation(translationId);
+        let warning: string | undefined;
+        let { error } = await supabase
+            .from("contact_content")
+            .upsert({ ...row, translations: { id: tr } });
+        if (error && missingTranslationsColumn(error.message)) {
+            // Kolom terjemahan belum dibuat → simpan teks Inggris saja.
+            ({ error } = await supabase.from("contact_content").upsert(row));
+            warning = TRANSLATION_WARNING;
+        }
         if (error) return { ok: false, error: error.message };
         revalidatePath("/contact");
-        return { ok: true };
+        return { ok: true, warning };
     } catch {
         return { ok: false, error: "Gagal menyimpan." };
     }

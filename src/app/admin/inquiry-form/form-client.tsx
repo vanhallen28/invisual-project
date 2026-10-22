@@ -17,7 +17,13 @@ import {
     setInquiryQuestionEnabled,
     reorderInquiryQuestions,
 } from "./actions";
-import type { InquiryQuestion, InquirySettings } from "@/lib/inquiry-form-types";
+import {
+    DEFAULT_QUESTION_TRANSLATIONS_ID,
+    DEFAULT_SETTINGS_ID,
+    type InquiryQuestion,
+    type InquirySettings,
+    type InquirySettingsText,
+} from "@/lib/inquiry-form-types";
 import { useToast } from "../_components/toast";
 
 const inputClass =
@@ -45,13 +51,36 @@ export default function InquiryFormClient({
     const [pending, start] = useTransition();
     const refresh = () => start(() => router.refresh());
 
-    // ---- Settings (welcome / thank-you) ----
-    const [cfg, setCfg] = useState<InquirySettings>(settings);
+    // ---- Settings (welcome / thank-you), Inggris + terjemahan Indonesia ----
+    const [cfg, setCfg] = useState<InquirySettingsText>({
+        welcome_title: settings.welcome_title,
+        welcome_body: settings.welcome_body,
+        welcome_cta: settings.welcome_cta,
+        thankyou_title: settings.thankyou_title,
+        thankyou_body: settings.thankyou_body,
+    });
+    const [cfgId, setCfgId] = useState<Partial<InquirySettingsText>>(settings.translations?.id ?? {});
+    const [tab, setTab] = useState<"en" | "id">("en");
+    function sf(k: keyof InquirySettingsText) {
+        if (tab === "en")
+            return {
+                value: cfg[k],
+                onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                    setCfg({ ...cfg, [k]: e.target.value }),
+            };
+        return {
+            value: cfgId[k] ?? "",
+            placeholder: DEFAULT_SETTINGS_ID[k],
+            onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                setCfgId((prev) => ({ ...prev, [k]: e.target.value })),
+        };
+    }
     async function saveSettings() {
-        const res = await updateInquirySettings(cfg);
+        const res = await updateInquirySettings(cfg, cfgId);
         if (!res.ok) return toast.show(res.error ?? "Gagal menyimpan.", "error");
         refresh();
-        toast.show("Copy tersimpan");
+        if (res.warning) toast.show(res.warning, "error");
+        else toast.show("Copy tersimpan (Inggris + Indonesia)");
     }
 
     // ---- Question editing ----
@@ -61,6 +90,11 @@ export default function InquiryFormClient({
     const [ePlaceholder, setEPlaceholder] = useState("");
     const [eOptions, setEOptions] = useState("");
     const [eRequired, setERequired] = useState(false);
+    // Terjemahan Indonesia (opsional)
+    const [eQuestionId, setEQuestionId] = useState("");
+    const [eSubtitleId, setESubtitleId] = useState("");
+    const [ePlaceholderId, setEPlaceholderId] = useState("");
+    const [eOptionsId, setEOptionsId] = useState("");
 
     function startEdit(q: InquiryQuestion) {
         setEditId(q.id);
@@ -69,6 +103,11 @@ export default function InquiryFormClient({
         setEPlaceholder(q.placeholder ?? "");
         setEOptions((q.options ?? []).join("\n"));
         setERequired(q.required);
+        const tr = q.translations?.id ?? {};
+        setEQuestionId(tr.question ?? "");
+        setESubtitleId(tr.subtitle ?? "");
+        setEPlaceholderId(tr.placeholder ?? "");
+        setEOptionsId((tr.options ?? []).join("\n"));
     }
 
     async function saveEdit(q: InquiryQuestion) {
@@ -82,6 +121,13 @@ export default function InquiryFormClient({
         if ((q.kind === "multi" || q.kind === "single") && options.length === 0)
             return toast.show("Minimal satu pilihan jawaban.", "error");
 
+        const optionsId =
+            q.kind === "multi" || q.kind === "single"
+                ? eOptionsId
+                      .split("\n")
+                      .map((o) => o.trim())
+                      .filter(Boolean)
+                : [];
         const res = await updateInquiryQuestion({
             id: q.id,
             question: eQuestion,
@@ -89,11 +135,18 @@ export default function InquiryFormClient({
             placeholder: ePlaceholder,
             options,
             required: q.core ? true : eRequired,
+            translation_id: {
+                question: eQuestionId,
+                subtitle: eSubtitleId,
+                placeholder: ePlaceholderId,
+                options: optionsId,
+            },
         });
         if (!res.ok) return toast.show(res.error ?? "Gagal menyimpan.", "error");
         setEditId(null);
         refresh();
-        toast.show("Pertanyaan tersimpan");
+        if (res.warning) toast.show(res.warning, "error");
+        else toast.show("Pertanyaan tersimpan");
     }
 
     async function toggleEnabled(q: InquiryQuestion) {
@@ -135,39 +188,49 @@ export default function InquiryFormClient({
         <div className="space-y-10">
             {/* ---- Welcome & Thank-you copy ---- */}
             <section className="space-y-4 rounded-lg border p-4">
-                <div>
-                    <h2 className="text-sm font-semibold">Layar pembuka & terima kasih</h2>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                        Teks yang tampil sebelum pertanyaan dimulai dan setelah form
-                        dikirim.
-                    </p>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h2 className="text-sm font-semibold">Layar pembuka & terima kasih</h2>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                            {tab === "en"
+                                ? "Teks Inggris (bawaan) — tampil sebelum pertanyaan dimulai dan setelah form dikirim."
+                                : "Terjemahan Indonesia — tampil saat pengunjung memilih ID. Kolom kosong memakai terjemahan bawaan (teks samar)."}
+                        </p>
+                    </div>
+                    <div className="inline-flex items-center gap-0.5 rounded-full border p-0.5 text-xs">
+                        {(["en", "id"] as const).map((l) => (
+                            <button
+                                key={l}
+                                type="button"
+                                onClick={() => setTab(l)}
+                                className={`rounded-full px-3 py-1 font-semibold transition-colors ${
+                                    tab === l
+                                        ? "bg-[#416fd8] text-white dark:bg-[#f65294]"
+                                        : "text-muted-foreground hover:text-foreground"
+                                }`}
+                            >
+                                {l === "en" ? "English" : "Bahasa Indonesia"}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 <Field label="Pembuka — Judul">
                     <input
-                        value={cfg.welcome_title}
-                        onChange={(e) =>
-                            setCfg({ ...cfg, welcome_title: e.target.value })
-                        }
+                        {...sf("welcome_title")}
                         className={inputClass}
                     />
                 </Field>
                 <Field label="Pembuka — Deskripsi">
                     <textarea
-                        value={cfg.welcome_body}
-                        onChange={(e) =>
-                            setCfg({ ...cfg, welcome_body: e.target.value })
-                        }
+                        {...sf("welcome_body")}
                         rows={4}
                         className={`${inputClass} resize-y`}
                     />
                 </Field>
                 <Field label="Pembuka — Teks tombol">
                     <input
-                        value={cfg.welcome_cta}
-                        onChange={(e) =>
-                            setCfg({ ...cfg, welcome_cta: e.target.value })
-                        }
+                        {...sf("welcome_cta")}
                         className={inputClass}
                     />
                 </Field>
@@ -176,19 +239,13 @@ export default function InquiryFormClient({
 
                 <Field label="Terima kasih — Judul">
                     <input
-                        value={cfg.thankyou_title}
-                        onChange={(e) =>
-                            setCfg({ ...cfg, thankyou_title: e.target.value })
-                        }
+                        {...sf("thankyou_title")}
                         className={inputClass}
                     />
                 </Field>
                 <Field label="Terima kasih — Deskripsi">
                     <textarea
-                        value={cfg.thankyou_body}
-                        onChange={(e) =>
-                            setCfg({ ...cfg, thankyou_body: e.target.value })
-                        }
+                        {...sf("thankyou_body")}
                         rows={3}
                         className={`${inputClass} resize-y`}
                     />
@@ -260,6 +317,50 @@ export default function InquiryFormClient({
                                             />
                                         </Field>
                                     )}
+                                    <div className="space-y-3 rounded-md border border-dashed p-3">
+                                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                            Bahasa Indonesia (opsional — kosong = terjemahan bawaan)
+                                        </p>
+                                        <Field label="Pertanyaan (ID)">
+                                            <input
+                                                value={eQuestionId}
+                                                onChange={(e) => setEQuestionId(e.target.value)}
+                                                placeholder={DEFAULT_QUESTION_TRANSLATIONS_ID[q.field_key]?.question ?? ""}
+                                                className={inputClass}
+                                            />
+                                        </Field>
+                                        <Field label="Sub-teks (ID)">
+                                            <input
+                                                value={eSubtitleId}
+                                                onChange={(e) => setESubtitleId(e.target.value)}
+                                                placeholder={DEFAULT_QUESTION_TRANSLATIONS_ID[q.field_key]?.subtitle ?? ""}
+                                                className={inputClass}
+                                            />
+                                        </Field>
+                                        {(q.kind === "text" ||
+                                            q.kind === "email" ||
+                                            q.kind === "textarea") && (
+                                            <Field label="Placeholder (ID)">
+                                                <input
+                                                    value={ePlaceholderId}
+                                                    onChange={(e) => setEPlaceholderId(e.target.value)}
+                                                    placeholder={DEFAULT_QUESTION_TRANSLATIONS_ID[q.field_key]?.placeholder ?? ""}
+                                                    className={inputClass}
+                                                />
+                                            </Field>
+                                        )}
+                                        {(q.kind === "multi" || q.kind === "single") && (
+                                            <Field label="Pilihan jawaban (ID) — satu per baris, urutan SAMA dengan Inggris; yang disimpan tetap teks Inggris">
+                                                <textarea
+                                                    value={eOptionsId}
+                                                    onChange={(e) => setEOptionsId(e.target.value)}
+                                                    rows={5}
+                                                    placeholder={(DEFAULT_QUESTION_TRANSLATIONS_ID[q.field_key]?.options ?? []).join("\n")}
+                                                    className={`${inputClass} resize-y`}
+                                                />
+                                            </Field>
+                                        )}
+                                    </div>
                                     <label
                                         className={`flex items-center gap-2 text-sm ${q.core ? "text-muted-foreground" : ""}`}
                                     >

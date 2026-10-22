@@ -48,8 +48,9 @@ export function pageMetadata(opts: {
   path?: string;
   image?: string;
   type?: "website" | "article";
+  locale?: string; // mis. "id_ID" untuk halaman berbahasa Indonesia (blog)
 }): Metadata {
-  const { title, description, path = "/", image, type = "website" } = opts;
+  const { title, description, path = "/", image, type = "website", locale } = opts;
   const desc = description ? truncate(description) : site.description;
   const ogTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site.tagline}`;
   const img = image ?? absoluteUrl(site.defaultOgImage);
@@ -64,7 +65,7 @@ export function pageMetadata(opts: {
       siteName: site.name,
       title: ogTitle,
       description: desc,
-      locale: site.locale,
+      locale: locale ?? site.locale,
       images: [{ url: img, width: 1200, height: 630, alt: ogTitle }],
     },
     twitter: {

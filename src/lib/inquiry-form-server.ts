@@ -21,9 +21,8 @@ export async function getInquiryQuestionsServer(): Promise<InquiryQuestion[]> {
     try {
         const { data, error } = await anon()
             .from("inquiry_questions")
-            .select(
-                "id, position, field_key, kind, question, subtitle, placeholder, options, required, enabled, core"
-            )
+            // "*" agar tetap jalan walau kolom "translations" belum ditambahkan (SQL belum dijalankan).
+            .select("*")
             .eq("enabled", true)
             .order("position", { ascending: true });
         if (error || !data || data.length === 0)
@@ -38,9 +37,7 @@ export async function getInquirySettingsServer(): Promise<InquirySettings> {
     try {
         const { data } = await anon()
             .from("inquiry_settings")
-            .select(
-                "welcome_title, welcome_body, welcome_cta, thankyou_title, thankyou_body"
-            )
+            .select("*")
             .eq("id", 1)
             .maybeSingle();
         if (!data) return DEFAULT_SETTINGS;
@@ -50,6 +47,7 @@ export async function getInquirySettingsServer(): Promise<InquirySettings> {
             welcome_cta: data.welcome_cta || DEFAULT_SETTINGS.welcome_cta,
             thankyou_title: data.thankyou_title || DEFAULT_SETTINGS.thankyou_title,
             thankyou_body: data.thankyou_body || DEFAULT_SETTINGS.thankyou_body,
+            translations: (data.translations as InquirySettings["translations"]) ?? null,
         };
     } catch {
         return DEFAULT_SETTINGS;

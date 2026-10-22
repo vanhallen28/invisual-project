@@ -5,21 +5,25 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, X } from "lucide-react";
 import StartProject from "@/app/_sections/start-project";
 import type {
-    InquiryQuestion,
-    InquirySettings,
+    DisplayQuestion,
+    InquirySettingsText,
 } from "@/lib/inquiry-form-types";
 import type { ContactContent } from "@/lib/contact-content-types";
+import { FORM_UI, type SiteLang } from "@/lib/site-lang";
 
 export default function StartProjectLauncher({
     questions,
     settings,
     content,
+    lang = "en",
 }: {
-    questions?: InquiryQuestion[];
-    settings?: InquirySettings;
+    questions?: DisplayQuestion[];
+    settings?: InquirySettingsText;
     content?: ContactContent;
+    lang?: SiteLang;
 }) {
     const [open, setOpen] = useState(false);
+    const ui = FORM_UI[lang];
     const ctaLabel = content?.cta_label || "Start a Project";
     const ctaTitle = content?.cta_title || "Have something in mind?";
     const ctaBody =
@@ -83,14 +87,14 @@ export default function StartProjectLauncher({
                         className="fixed inset-0 z-[100] overflow-y-auto bg-background"
                         role="dialog"
                         aria-modal="true"
-                        aria-label="Start a project"
+                        aria-label={ui.dialog}
                     >
                         {/* Tombol tutup */}
                         <div className="sticky top-0 z-10 flex justify-end px-4 py-4 md:px-8">
                             <button
                                 type="button"
                                 onClick={() => setOpen(false)}
-                                aria-label="Close"
+                                aria-label={ui.close}
                                 className="inline-flex h-10 w-10 items-center justify-center rounded-full border transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
                             >
                                 <X className="h-5 w-5" />
@@ -107,6 +111,7 @@ export default function StartProjectLauncher({
                                 onClose={() => setOpen(false)}
                                 questions={questions}
                                 settings={settings}
+                                lang={lang}
                             />
                         </motion.div>
                     </motion.div>

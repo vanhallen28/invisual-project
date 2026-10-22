@@ -4,12 +4,15 @@ import { pageMetadata, absoluteUrl } from "@/lib/seo";
 import { site } from "@/configs/site";
 import { getPublishedPosts } from "@/lib/blog-server";
 import BlogList from "./blog-list";
+import HtmlLang from "@/components/seo/html-lang";
 
+// Halaman blog berbahasa Indonesia (berbeda dari bagian situs lain yang Inggris).
 export const metadata: Metadata = pageMetadata({
     title: "Blog",
     description:
-        "Notes on design and behind-the-project stories from Invisual Studio — brand identity, illustration, and packaging design.",
+        "Catatan tentang desain dan cerita di balik proyek Invisual Studio — brand identity, ilustrasi, dan desain kemasan.",
     path: "/blog",
+    locale: "id_ID",
 });
 
 // Artikel baru muncul maksimal 60 detik setelah terbit (atau langsung
@@ -25,7 +28,8 @@ export default async function BlogPage() {
         name: `${site.name} Blog`,
         url: absoluteUrl("/blog"),
         description:
-            "Notes on design and behind-the-project stories from Invisual Studio.",
+            "Catatan tentang desain dan cerita di balik proyek Invisual Studio.",
+        inLanguage: "id",
         publisher: {
             "@type": "Organization",
             name: site.name,
@@ -42,6 +46,7 @@ export default async function BlogPage() {
 
     return (
         <div className="flex flex-col">
+            <HtmlLang lang="id" />
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

@@ -17,11 +17,14 @@ import {
 import {
     DEFAULT_QUESTIONS,
     DEFAULT_SETTINGS,
-    type InquiryQuestion,
-    type InquirySettings,
+    localizeQuestions,
+    localizeSettings,
+    type DisplayQuestion,
+    type InquirySettingsText,
     type InquiryFieldKey,
     type InquiryKind,
 } from "@/lib/inquiry-form-types";
+import { FORM_UI, type SiteLang } from "@/lib/site-lang";
 
 type Step = {
     key: InquiryFieldKey;
@@ -30,7 +33,8 @@ type Step = {
     subtitle?: string;
     placeholder?: string;
     required: boolean;
-    options?: string[];
+    // label = teks tampil (bisa Indonesia); value = teks Inggris kanonik yang disimpan
+    options?: { label: string; value: string }[];
 };
 
 const variants = {
@@ -59,8 +63,11 @@ const EMPTY: Data = {
     message: "",
 };
 
-function toSteps(questions?: InquiryQuestion[]): Step[] {
-    const src = questions && questions.length ? questions : DEFAULT_QUESTIONS;
+function toSteps(questions: DisplayQuestion[] | undefined, lang: SiteLang): Step[] {
+    const src =
+        questions && questions.length
+            ? questions
+            : localizeQuestions(DEFAULT_QUESTIONS.filter((q) => q.enabled), lang);
     return src.map((q) => ({
         key: q.field_key,
         kind: q.kind,
@@ -76,13 +83,16 @@ export default function StartProject({
     onClose,
     questions,
     settings,
+    lang = "en",
 }: {
     onClose?: () => void;
-    questions?: InquiryQuestion[];
-    settings?: InquirySettings;
+    questions?: DisplayQuestion[];
+    settings?: InquirySettingsText;
+    lang?: SiteLang;
 }) {
-    const STEPS = toSteps(questions);
-    const cfg = settings || DEFAULT_SETTINGS;
+    const ui = FORM_UI[lang];
+    const STEPS = toSteps(questions, lang);
+    const cfg = settings || localizeSettings(DEFAULT_SETTINGS, lang);
 
     const [phase, setPhase] = useState<"welcome" | "questions">("welcome");
     const [step, setStep] = useState(0);
@@ -122,18 +132,18 @@ export default function StartProject({
     function validate(): string | null {
         if (s.kind === "multi") {
             if (s.required && data.projectTypes.length === 0)
-                return "Please pick at least one.";
+                return ui.pickOne;
         } else if (s.kind === "single") {
-            if (s.required && !(data[s.key] as string)) return "Please choose one.";
+            if (s.required && !(data[s.key] as string)) return ui.chooseOne;
         } else {
             const val = (data[s.key] as string).trim();
-            if (s.required && !val) return "This field is required.";
+            if (s.required && !val) return ui.requiredField;
             if (
                 s.kind === "email" &&
                 val &&
                 !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)
             )
-                return "Invalid email address.";
+                return ui.invalidEmail;
         }
         return null;
     }
@@ -149,6 +159,7 @@ export default function StartProject({
             timeline: data.timeline,
             message: data.message,
             website,
+            lang,
         };
         const res = await submitProjectInquiry(payload);
         if (res.ok) setStatus("done");
@@ -222,7 +233,7 @@ export default function StartProject({
                     {cfg.welcome_cta} <ArrowRight className="h-4 w-4" />
                 </button>
                 <p className="mt-4 text-xs text-muted-foreground">
-                    Takes about 5–10 minutes
+                    {ui.takes}
                 </p>
             </div>
         );
@@ -243,7 +254,7 @@ export default function StartProject({
                         onClick={reset}
                         className="rounded-full border px-5 py-2 text-sm transition-colors hover:bg-black/[0.03] dark:hover:bg-white/[0.04]"
                     >
-                        Send another request
+                        {ui.another}
                     </button>
                     {onClose && (
                         <button
@@ -251,7 +262,7 @@ export default function StartProject({
                             onClick={onClose}
                             className="rounded-full bg-[#416fd8] px-5 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 dark:bg-[#f65294]"
                         >
-                            Done
+                            {ui.done}
                         </button>
                     )}
                 </div>
@@ -343,18 +354,18 @@ export default function StartProject({
                                             {s.options.map((opt, i) => {
                                                 const selected =
                                                     s.kind === "multi"
-                                                        ? data.projectTypes.includes(opt)
-                                                        : (data[s.key] as string) === opt;
+                                                        ? data.projectTypes.includes(opt.value)
+                                                        : (data[s.key] as string) === opt.value;
                                                 return (
                                                     <OptionCard
-                                                        key={opt}
-                                                        label={opt}
+                                                        key={opt.value}
+                                                        label={opt.label}
                                                         letter={String.fromCharCode(65 + i)}
                                                         selected={selected}
                                                         onClick={() =>
                                                             s.kind === "multi"
-                                                                ? toggleMulti(opt)
-                                                                : setField(s.key, opt)
+                                                                ? toggleMulti(opt.value)
+                                                                : setField(s.key, opt.value)
                                                         }
                                                     />
                                                 );
@@ -375,7 +386,7 @@ export default function StartProject({
                         disabled={status === "submitting" || safeStep === 0}
                         className="inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition-colors hover:bg-black/[0.03] disabled:opacity-40 dark:hover:bg-white/[0.04]"
                     >
-                        <ArrowLeft className="h-4 w-4" /> Back
+                        <ArrowLeft className="h-4 w-4" /> {ui.back}
                     </button>
                     <button
                         type="button"
@@ -385,19 +396,19 @@ export default function StartProject({
                     >
                         {status === "submitting" ? (
                             <>
-                                <Loader2 className="h-4 w-4 animate-spin" /> Sending…
+                                <Loader2 className="h-4 w-4 animate-spin" /> {ui.sending}
                             </>
                         ) : isLast ? (
-                            "Send"
+                            ui.send
                         ) : (
                             <>
-                                Next <ArrowRight className="h-4 w-4" />
+                                {ui.next} <ArrowRight className="h-4 w-4" />
                             </>
                         )}
                     </button>
                     {s.kind !== "textarea" && (
                         <span className="ml-auto hidden text-xs text-muted-foreground sm:block">
-                            press Enter ↵
+                            {ui.pressEnter}
                         </span>
                     )}
                 </div>

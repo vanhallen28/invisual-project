@@ -2,12 +2,15 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Languages } from "lucide-react";
 import { updateContactContent, updateFooterContent } from "./actions";
-import type {
-    ContactContent,
-    FooterContent,
-    LinkItem,
+import {
+    DEFAULT_CONTACT_TRANSLATION_ID,
+    type ContactContent,
+    type ContactTextKey,
+    type ContactTranslation,
+    type FooterContent,
+    type LinkItem,
 } from "@/lib/contact-content-types";
 import { useToast } from "../_components/toast";
 
@@ -34,11 +37,15 @@ function textToLinks(text: string): LinkItem[] {
 
 export default function ContactContentClient({
     ready,
+    translationsReady = true,
     content,
+    translationId,
     footer,
 }: {
     ready: boolean;
+    translationsReady?: boolean;
     content: ContactContent;
+    translationId?: ContactTranslation;
     footer: FooterContent;
 }) {
     const router = useRouter();
@@ -47,6 +54,26 @@ export default function ContactContentClient({
     const refresh = () => start(() => router.refresh());
 
     const [c, setC] = useState<ContactContent>(content);
+    // Terjemahan Indonesia (opsional). Kolom kosong → memakai terjemahan bawaan.
+    const [cId, setCId] = useState<ContactTranslation>(translationId ?? {});
+    const [tab, setTab] = useState<"en" | "id">("en");
+
+    // Properti input untuk kolom TEKS yang bisa diterjemahkan: mengikuti tab aktif.
+    function tf(k: ContactTextKey) {
+        if (tab === "en") {
+            return {
+                value: c[k],
+                onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                    set(k, e.target.value),
+            };
+        }
+        return {
+            value: cId[k] ?? "",
+            placeholder: DEFAULT_CONTACT_TRANSLATION_ID[k] ?? "",
+            onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                setCId((prev) => ({ ...prev, [k]: e.target.value })),
+        };
+    }
     const [f, setF] = useState<FooterContent>(footer);
     const [reachusText, setReachusText] = useState(
         linksToText(content.reachus_links)
@@ -70,10 +97,11 @@ export default function ContactContentClient({
             ...c,
             reachus_links: textToLinks(reachusText),
         };
-        const res = await updateContactContent(payload);
+        const res = await updateContactContent(payload, cId);
         if (!res.ok) return toast.show(res.error ?? "Gagal menyimpan.", "error");
         refresh();
-        toast.show("Konten halaman tersimpan");
+        if (res.warning) toast.show(res.warning, "error");
+        else toast.show("Konten halaman tersimpan (Inggris + Indonesia)");
     }
 
     async function saveFooter() {
@@ -111,28 +139,69 @@ export default function ContactContentClient({
         <div className="space-y-10">
             {/* ---------- KONTEN HALAMAN ---------- */}
             <section className="space-y-6 rounded-lg border p-4">
-                <h2 className="text-sm font-semibold">Isi halaman</h2>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h2 className="text-sm font-semibold">Isi halaman</h2>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                            {tab === "en"
+                                ? "Teks Inggris (bawaan situs)."
+                                : "Terjemahan Indonesia — tampil saat pengunjung memilih ID. Kolom kosong memakai terjemahan bawaan (teks samar)."}
+                        </p>
+                    </div>
+                    <div className="inline-flex items-center gap-0.5 rounded-full border p-0.5 text-xs">
+                        <Languages className="ml-2 h-3.5 w-3.5 text-muted-foreground" />
+                        {(["en", "id"] as const).map((l) => (
+                            <button
+                                key={l}
+                                type="button"
+                                onClick={() => setTab(l)}
+                                className={`rounded-full px-3 py-1 font-semibold transition-colors ${
+                                    tab === l
+                                        ? "bg-[#416fd8] text-white dark:bg-[#f65294]"
+                                        : "text-muted-foreground hover:text-foreground"
+                                }`}
+                            >
+                                {l === "en" ? "English" : "Bahasa Indonesia"}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+                {!translationsReady && (
+                    <div className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-xs">
+                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                        <span>
+                            Kolom terjemahan belum ada di database. Jalankan{" "}
+                            <code className="rounded bg-black/10 px-1 dark:bg-white/10">
+                                supabase/sql/bilingual-contact.sql
+                            </code>{" "}
+                            di Supabase → SQL Editor agar terjemahan Indonesia bisa disimpan.
+                            Sampai saat itu, halaman memakai terjemahan bawaan.
+                        </span>
+                    </div>
+                )}
+                {tab === "id" && (
+                    <p className="text-[11px] text-muted-foreground">
+                        Email, nomor telepon, tautan, dan peta berlaku untuk kedua bahasa — ubah di tab English.
+                    </p>
+                )}
 
                 <Group title="Bagian atas (hero)">
                     <Field label="Label kecil">
                         <input
-                            value={c.hero_label}
-                            onChange={(e) => set("hero_label", e.target.value)}
+                            {...tf("hero_label")}
                             className={inputClass}
                         />
                     </Field>
                     <Field label="Judul besar">
                         <textarea
-                            value={c.hero_title}
-                            onChange={(e) => set("hero_title", e.target.value)}
+                            {...tf("hero_title")}
                             rows={2}
                             className={`${inputClass} resize-y`}
                         />
                     </Field>
                     <Field label="Sub-judul">
                         <textarea
-                            value={c.hero_subtitle}
-                            onChange={(e) => set("hero_subtitle", e.target.value)}
+                            {...tf("hero_subtitle")}
                             rows={2}
                             className={`${inputClass} resize-y`}
                         />
@@ -142,8 +211,7 @@ export default function ContactContentClient({
                 <Group title="Kalimat lokasi">
                     <Field label="Teks">
                         <textarea
-                            value={c.statement}
-                            onChange={(e) => set("statement", e.target.value)}
+                            {...tf("statement")}
                             rows={3}
                             className={`${inputClass} resize-y`}
                         />
@@ -153,8 +221,7 @@ export default function ContactContentClient({
                 <Group title="Head Office">
                     <Field label="Label">
                         <input
-                            value={c.office_label}
-                            onChange={(e) => set("office_label", e.target.value)}
+                            {...tf("office_label")}
                             className={inputClass}
                         />
                     </Field>
@@ -189,8 +256,7 @@ export default function ContactContentClient({
                 <Group title="Inquiries (Business & Jobs)">
                     <Field label="Label">
                         <input
-                            value={c.inquiries_label}
-                            onChange={(e) => set("inquiries_label", e.target.value)}
+                            {...tf("inquiries_label")}
                             className={inputClass}
                         />
                     </Field>
@@ -198,19 +264,13 @@ export default function ContactContentClient({
                         <div className="space-y-3">
                             <Field label="Judul kolom 1">
                                 <input
-                                    value={c.business_heading}
-                                    onChange={(e) =>
-                                        set("business_heading", e.target.value)
-                                    }
+                                    {...tf("business_heading")}
                                     className={inputClass}
                                 />
                             </Field>
                             <Field label="Teks kolom 1">
                                 <textarea
-                                    value={c.business_text}
-                                    onChange={(e) =>
-                                        set("business_text", e.target.value)
-                                    }
+                                    {...tf("business_text")}
                                     rows={4}
                                     className={`${inputClass} resize-y`}
                                 />
@@ -228,17 +288,13 @@ export default function ContactContentClient({
                         <div className="space-y-3">
                             <Field label="Judul kolom 2">
                                 <input
-                                    value={c.jobs_heading}
-                                    onChange={(e) =>
-                                        set("jobs_heading", e.target.value)
-                                    }
+                                    {...tf("jobs_heading")}
                                     className={inputClass}
                                 />
                             </Field>
                             <Field label="Teks kolom 2">
                                 <textarea
-                                    value={c.jobs_text}
-                                    onChange={(e) => set("jobs_text", e.target.value)}
+                                    {...tf("jobs_text")}
                                     rows={4}
                                     className={`${inputClass} resize-y`}
                                 />
@@ -257,8 +313,7 @@ export default function ContactContentClient({
                 <Group title="Reach Us (media sosial)">
                     <Field label="Label">
                         <input
-                            value={c.reachus_label}
-                            onChange={(e) => set("reachus_label", e.target.value)}
+                            {...tf("reachus_label")}
                             className={inputClass}
                         />
                     </Field>
@@ -286,30 +341,26 @@ export default function ContactContentClient({
                 <Group title="Panel ajakan “Start a Project”">
                     <Field label="Label kecil">
                         <input
-                            value={c.cta_label}
-                            onChange={(e) => set("cta_label", e.target.value)}
+                            {...tf("cta_label")}
                             className={inputClass}
                         />
                     </Field>
                     <Field label="Judul">
                         <input
-                            value={c.cta_title}
-                            onChange={(e) => set("cta_title", e.target.value)}
+                            {...tf("cta_title")}
                             className={inputClass}
                         />
                     </Field>
                     <Field label="Deskripsi">
                         <textarea
-                            value={c.cta_body}
-                            onChange={(e) => set("cta_body", e.target.value)}
+                            {...tf("cta_body")}
                             rows={2}
                             className={`${inputClass} resize-y`}
                         />
                     </Field>
                     <Field label="Teks tombol">
                         <input
-                            value={c.cta_button}
-                            onChange={(e) => set("cta_button", e.target.value)}
+                            {...tf("cta_button")}
                             className={inputClass}
                         />
                     </Field>

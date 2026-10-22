@@ -1,0 +1,94 @@
+INVISUAL — update #52 (BAHASA: langkah #1 + #2 digabung)
+  #1 Blog ditandai & berlabel Bahasa Indonesia
+  #2 Jalur konversi dwibahasa: CTA di artikel + halaman Contact & form ID/EN
+
+APA INI
+A) BLOG (langkah #1)
+- /blog & artikel ditandai berbahasa Indonesia: <html lang="id">, og:locale
+  id_ID, JSON-LD inLanguage "id" (sebelumnya keliru "en"). Halaman lain tetap
+  "en"; atribut mengikuti halaman saat berpindah.
+- Label blog: Semua · Unggulan · Baca artikel · menit baca · Kembali ke blog ·
+  Oleh · Baca juga · tanggal format Indonesia. Meta /blog Indonesia.
+
+B) CTA DI AKHIR ARTIKEL (langkah #2)
+- Di bawah tag setiap artikel ada panel: "Ingin mendiskusikan identitas merek
+  Anda?" + tombol "Hubungi Invisual" (ke /contact versi Indonesia) dan
+  "Lihat portofolio" (/works). Tampil juga di pratinjau admin.
+
+C) HALAMAN CONTACT DWIBAHASA (langkah #2)
+- Satu URL (/contact), TANPA duplikasi halaman. Bawaan Inggris. Saklar kecil
+  [EN | ID] di kanan atas hero. Pilihan disimpan di cookie 1 tahun, jadi
+  kunjungan berikutnya tetap memakai bahasa itu. Tautan dari artikel membuka
+  /contact?lang=id dan otomatis menyimpan pilihan ID.
+- Yang ikut berganti bahasa: seluruh teks halaman Contact (hero, Kantor Pusat,
+  Pertanyaan/Bisnis/Karier, Hubungi Kami, kalimat lokasi, panel Mulai Proyek),
+  form "Start a Project" (layar pembuka, semua pertanyaan, sub-teks,
+  placeholder, pilihan jawaban, tombol Kembali/Lanjut/Kirim, pesan validasi,
+  layar terima kasih, pesan kesalahan server).
+- Email, nomor telepon, tautan sosial, dan peta sama untuk kedua bahasa.
+- Pilihan jawaban yang DISIMPAN tetap teks Inggris (kanonik), walau pengunjung
+  melihat versi Indonesia — jadi data "Proyek Masuk" di admin tetap seragam.
+
+D) ADMIN
+- /admin/contact → "Isi halaman": tab [English | Bahasa Indonesia]. Tab ID
+  mengisi terjemahan; kolom kosong memakai terjemahan bawaan (ditampilkan samar
+  sebagai placeholder). Satu tombol simpan untuk keduanya.
+- Form "Start a Project": tab EN/ID untuk layar pembuka & terima kasih; pada
+  tiap pertanyaan (tombol pensil) ada kotak "Bahasa Indonesia (opsional)":
+  pertanyaan, sub-teks, placeholder, dan pilihan jawaban (satu per baris,
+  URUTAN SAMA dengan Inggris).
+- Bila SQL belum dijalankan, teks Inggris tetap tersimpan dan muncul
+  peringatan bahwa terjemahan belum bisa disimpan (halaman publik memakai
+  terjemahan bawaan).
+
+================================================================
+LANGKAH 1 — SQL (Supabase → SQL Editor, jalankan sekali)
+  Tempel isi file  supabase/sql/bilingual-contact.sql  → Run.
+  Isinya: menambah kolom "translations" di contact_content, inquiry_settings,
+  inquiry_questions + mengisi terjemahan Indonesia awal. Aman diulang.
+
+LANGKAH 2 — Pasang file (di FOLDER ROOT proyek)
+  unzip -o ~/Downloads/invisual-update-52.zip
+  git add -A
+  git commit -m "feat: blog berbahasa Indonesia + Contact & form dwibahasa"
+  git push
+
+CEK SETELAH DEPLOY
+  1) /blog → label Indonesia; buka satu artikel → panel "Hubungi Invisual"
+     di bawah tag → klik → /contact tampil Indonesia.
+  2) Di /contact klik "EN" → Inggris; "ID" → Indonesia; muat ulang → tetap.
+  3) /admin/contact → tab "Bahasa Indonesia" → ubah satu kalimat → Simpan →
+     cek di /contact (versi ID).
+
+CATATAN
+- /contact kini dirender per permintaan (membaca cookie bahasa). Tidak ada
+  dampak ke halaman lain.
+- Dwibahasa penuh (URL /id/… + hreflang untuk Works/About) tetap ditunda;
+  ditinjau setelah ada data Statistik negara pengunjung.
+
+FILE
+  supabase/sql/bilingual-contact.sql               (BARU — jalankan)
+  supabase/sql/README.md
+  src/lib/site-lang.ts                             (BARU)
+  src/lib/site-lang-server.ts                      (BARU)
+  src/lib/contact-content-types.ts
+  src/lib/contact-content-server.ts
+  src/lib/inquiry-form-types.ts
+  src/lib/inquiry-form-server.ts
+  src/lib/seo.ts
+  src/components/seo/html-lang.tsx                 (BARU)
+  src/components/blog/article-view.tsx
+  src/app/blog/page.tsx
+  src/app/blog/[slug]/page.tsx
+  src/app/blog/blog-list.tsx
+  src/app/contact/page.tsx
+  src/app/contact/lang-actions.ts                  (BARU)
+  src/app/contact/_components/lang-switch.tsx      (BARU)
+  src/app/contact/_components/start-project-launcher.tsx
+  src/app/_sections/start-project.tsx
+  src/app/_sections/project-inquiry-action.ts
+  src/app/admin/contact/page.tsx
+  src/app/admin/contact/content-client.tsx
+  src/app/admin/contact/actions.ts
+  src/app/admin/inquiry-form/form-client.tsx
+  src/app/admin/inquiry-form/actions.ts

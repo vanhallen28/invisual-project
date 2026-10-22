@@ -95,3 +95,76 @@ export const DEFAULT_FOOTER_CONTENT: FooterContent = {
         { label: "Instagram", href: "https://www.instagram.com/invisual_studio" },
     ],
 };
+
+// ---------------- Dwibahasa (EN bawaan + terjemahan ID opsional) ----------------
+// Hanya kolom TEKS yang diterjemahkan; email, tautan, nomor, dan peta berlaku
+// untuk kedua bahasa.
+export const CONTACT_TEXT_KEYS = [
+    "hero_label",
+    "hero_title",
+    "hero_subtitle",
+    "statement",
+    "office_label",
+    "inquiries_label",
+    "business_heading",
+    "business_text",
+    "jobs_heading",
+    "jobs_text",
+    "reachus_label",
+    "cta_label",
+    "cta_title",
+    "cta_body",
+    "cta_button",
+] as const;
+export type ContactTextKey = (typeof CONTACT_TEXT_KEYS)[number];
+export type ContactTranslation = Partial<Record<ContactTextKey, string>>;
+
+// Terjemahan Indonesia bawaan — dipakai bila admin belum mengisi terjemahan.
+export const DEFAULT_CONTACT_TRANSLATION_ID: ContactTranslation = {
+    hero_label: "Kontak",
+    hero_title: "Mari ciptakan sesuatu yang layak dilihat.",
+    hero_subtitle:
+        "Brand identity, ilustrasi, atau kemasan — ceritakan apa yang sedang Anda kerjakan, kami akan membalas lewat email.",
+    statement:
+        "Invisual Studio berbasis di Bandung, Indonesia — kota yang dikenal dengan semangat kreatifnya. Anda tidak akan salah pilih bekerja bersama kami.",
+    office_label: "Kantor Pusat",
+    inquiries_label: "Pertanyaan",
+    business_heading: "BISNIS",
+    business_text:
+        "Untuk kerja sama baru, kirimkan ringkasan singkat proyek Anda dan kami akan segera membalas. Kami bantu merumuskan dan membentuk ide Anda.",
+    jobs_heading: "KARIER",
+    jobs_text:
+        "Kami lebih dari sekadar rekan kerja — kami tim strategis, pengembang, seniman, dan lainnya. Jika Anda siap untuk tantangan penuh waktu, kirim portofolio Anda dengan subjek \"Posisi_Nama Anda\".",
+    reachus_label: "Hubungi Kami",
+    cta_label: "Mulai Proyek",
+    cta_title: "Punya sesuatu di pikiran?",
+    cta_body:
+        "Jawab beberapa pertanyaan singkat dan kami akan membalas lewat email. Hanya butuh sekitar 5–10 menit.",
+    cta_button: "Mulai proyek",
+};
+
+// Bersihkan objek terjemahan dari input apa pun (DB/form): hanya kunci teks,
+// nilai string yang tidak kosong.
+export function cleanContactTranslation(v: unknown): ContactTranslation {
+    const out: ContactTranslation = {};
+    if (!v || typeof v !== "object") return out;
+    for (const k of CONTACT_TEXT_KEYS) {
+        const val = (v as Record<string, unknown>)[k];
+        if (typeof val === "string" && val.trim()) out[k] = val.trim();
+    }
+    return out;
+}
+
+// Terapkan terjemahan di atas konten EN; kolom kosong → tetap EN.
+export function applyContactTranslation(
+    base: ContactContent,
+    tr: ContactTranslation | null | undefined
+): ContactContent {
+    if (!tr) return base;
+    const out: ContactContent = { ...base };
+    for (const k of CONTACT_TEXT_KEYS) {
+        const v = tr[k];
+        if (typeof v === "string" && v.trim()) out[k] = v;
+    }
+    return out;
+}

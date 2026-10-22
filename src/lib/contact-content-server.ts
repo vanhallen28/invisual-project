@@ -4,11 +4,16 @@ import { createClient } from "@supabase/supabase-js";
 import { unstable_cache } from "next/cache";
 import {
     DEFAULT_CONTACT_CONTENT,
+    DEFAULT_CONTACT_TRANSLATION_ID,
     DEFAULT_FOOTER_CONTENT,
+    applyContactTranslation,
+    cleanContactTranslation,
     type ContactContent,
+    type ContactTranslation,
     type FooterContent,
     type LinkItem,
 } from "./contact-content-types";
+import type { SiteLang } from "./site-lang";
 
 function anon() {
     return createClient(
@@ -32,7 +37,16 @@ function links(value: unknown, fallback: LinkItem[]): LinkItem[] {
     return out.length ? out : fallback;
 }
 
-export async function getContactContentServer(): Promise<ContactContent> {
+// lang "id": teks diterjemahkan dari kolom translations.id (isi admin), dengan
+// cadangan terjemahan bawaan; kolom yang kosong tetap memakai teks Inggris.
+export async function getContactContentServer(lang: SiteLang = "en"): Promise<ContactContent> {
+    const base = await readContactBase();
+    if (lang !== "id") return base.content;
+    const tr: ContactTranslation = { ...DEFAULT_CONTACT_TRANSLATION_ID, ...base.translationId };
+    return applyContactTranslation(base.content, tr);
+}
+
+async function readContactBase(): Promise<{ content: ContactContent; translationId: ContactTranslation }> {
     const d = DEFAULT_CONTACT_CONTENT;
     try {
         const { data } = await anon()
@@ -40,8 +54,11 @@ export async function getContactContentServer(): Promise<ContactContent> {
             .select("*")
             .eq("id", 1)
             .maybeSingle();
-        if (!data) return d;
-        return {
+        if (!data) return { content: d, translationId: {} };
+        const translationId = cleanContactTranslation(
+            (data.translations as { id?: unknown } | null)?.id
+        );
+        const content: ContactContent = {
             hero_label: data.hero_label || d.hero_label,
             hero_title: data.hero_title || d.hero_title,
             hero_subtitle: data.hero_subtitle || d.hero_subtitle,
@@ -65,8 +82,9 @@ export async function getContactContentServer(): Promise<ContactContent> {
             cta_body: data.cta_body || d.cta_body,
             cta_button: data.cta_button || d.cta_button,
         };
+        return { content, translationId };
     } catch {
-        return d;
+        return { content: d, translationId: {} };
     }
 }
 

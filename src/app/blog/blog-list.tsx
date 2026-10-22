@@ -9,7 +9,8 @@ import { readingTime } from "@/lib/markdown";
 
 function fmt(d: string | null) {
     if (!d) return "";
-    return new Date(d).toLocaleDateString("en-US", {
+    return new Date(d).toLocaleDateString("id-ID", {
+        timeZone: "Asia/Jakarta",
         day: "numeric",
         month: "short",
         year: "numeric",
@@ -34,7 +35,7 @@ export default function BlogList({ posts }: { posts: BlogPostCard[] }) {
         <div>
             {categories.length > 1 && (
                 <div className="mb-8 flex flex-wrap gap-2">
-                    <Chip label="All" active={active === null} onClick={() => setActive(null)} />
+                    <Chip label="Semua" active={active === null} onClick={() => setActive(null)} />
                     {categories.map((c) => (
                         <Chip
                             key={c}
@@ -49,7 +50,7 @@ export default function BlogList({ posts }: { posts: BlogPostCard[] }) {
             {featured && <FeaturedCard post={featured} />}
 
             {posts.length === 0 ? (
-                <p className="text-muted-foreground">No articles yet. Check back soon.</p>
+                <p className="text-muted-foreground">Belum ada artikel. Nantikan segera.</p>
             ) : shown.length === 0 ? null : (
                 <div className={`grid gap-x-8 gap-y-12 md:grid-cols-2 ${featured ? "mt-16" : ""}`}>
                     {shown.map((p) => (
@@ -81,7 +82,7 @@ export default function BlogList({ posts }: { posts: BlogPostCard[] }) {
                                     </p>
                                 )}
                                 <p className="mt-3 text-xs text-muted-foreground">
-                                    {readingTime(p.content)} min read
+                                    {readingTime(p.content)} menit baca
                                 </p>
                             </Link>
                         </article>
@@ -116,7 +117,7 @@ function FeaturedCard({ post: p }: { post: BlogPostCard }) {
                 )}
                 <div>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs uppercase tracking-widest text-muted-foreground">
-                        <span className="text-[#416fd8] dark:text-[#f65294]">Featured</span>
+                        <span className="text-[#416fd8] dark:text-[#f65294]">Unggulan</span>
                         {p.category && <span>·</span>}
                         {p.category && <span>{p.category}</span>}
                         {p.published_at && <span>·</span>}
@@ -131,9 +132,9 @@ function FeaturedCard({ post: p }: { post: BlogPostCard }) {
                         </p>
                     )}
                     <p className="mt-6 inline-flex items-center gap-2 text-sm font-semibold">
-                        Read article <ArrowRight className="h-4 w-4" />
+                        Baca artikel <ArrowRight className="h-4 w-4" />
                         <span className="ml-2 font-normal text-muted-foreground">
-                            · {readingTime(p.content)} min read
+                            · {readingTime(p.content)} menit baca
                         </span>
                     </p>
                 </div>

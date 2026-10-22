@@ -3,13 +3,14 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import type { BlogPost, BlogPostCard } from "@/lib/blog-server";
 import { readingTime } from "@/lib/markdown";
 
 function fmt(d: string | null) {
     if (!d) return "";
-    return new Date(d).toLocaleDateString("en-US", {
+    return new Date(d).toLocaleDateString("id-ID", {
+        timeZone: "Asia/Jakarta",
         day: "numeric",
         month: "long",
         year: "numeric",
@@ -42,7 +43,7 @@ export default function ArticleView({
                         href={backHref}
                         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
                     >
-                        <ArrowLeft className="h-4 w-4" /> Back to blog
+                        <ArrowLeft className="h-4 w-4" /> Kembali ke blog
                     </Link>
 
                     <header className="mt-8">
@@ -53,7 +54,7 @@ export default function ArticleView({
                                 {fmt(post.published_at ?? post.created_at)}
                             </time>
                             <span>·</span>
-                            <span>{readingTime(post.content)} min read</span>
+                            <span>{readingTime(post.content)} menit baca</span>
                         </div>
                         <h1 className="mt-4 text-4xl font-bold leading-[1.1] tracking-tight md:text-5xl">
                             {post.title}
@@ -65,7 +66,7 @@ export default function ArticleView({
                         )}
                         {post.author && (
                             <p className="mt-5 text-sm text-muted-foreground">
-                                By <span className="text-foreground">{post.author}</span>
+                                Oleh <span className="text-foreground">{post.author}</span>
                             </p>
                         )}
                     </header>
@@ -111,6 +112,34 @@ export default function ArticleView({
                             ))}
                         </div>
                     )}
+
+                    {/* Ajakan berbahasa Indonesia → halaman Contact versi ID */}
+                    <aside className="mt-14 rounded-3xl border bg-black/[0.02] p-6 dark:bg-white/[0.03] md:p-8">
+                        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                            Invisual Studio
+                        </p>
+                        <h2 className="mt-2 text-2xl font-bold leading-tight md:text-3xl">
+                            Ingin mendiskusikan identitas merek Anda?
+                        </h2>
+                        <p className="mt-3 max-w-xl text-muted-foreground">
+                            Ceritakan proyek Anda lewat beberapa pertanyaan singkat — kami membalas
+                            lewat email. Brand identity, ilustrasi, dan desain kemasan.
+                        </p>
+                        <div className="mt-6 flex flex-wrap gap-3">
+                            <Link
+                                href="/contact?lang=id"
+                                className="inline-flex items-center gap-2 rounded-full bg-[#416fd8] px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 dark:bg-[#f65294]"
+                            >
+                                Hubungi Invisual <ArrowRight className="h-4 w-4" />
+                            </Link>
+                            <Link
+                                href="/works"
+                                className="inline-flex items-center gap-2 rounded-full border px-6 py-3 text-sm font-semibold transition-colors hover:bg-black/[0.03] dark:hover:bg-white/[0.05]"
+                            >
+                                Lihat portofolio
+                            </Link>
+                        </div>
+                    </aside>
                 </div>
             </article>
 
@@ -118,7 +147,7 @@ export default function ArticleView({
                 <section className="mt-20 px-6 md:px-10">
                     <div className="mx-auto max-w-5xl border-t border-black/10 pt-10 dark:border-white/10">
                         <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-                            Keep reading
+                            Baca juga
                         </h2>
                         <div className="mt-6 grid gap-8 md:grid-cols-3">
                             {related.map((p) => (

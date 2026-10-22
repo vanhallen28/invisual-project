@@ -36,11 +36,30 @@ export type ProjectInquiryInput = {
   timeline?: string;
   message: string;
   website?: string; // honeypot (harus kosong)
+  lang?: "en" | "id"; // bahasa pesan kesalahan
 };
+
+const MSG = {
+  en: {
+    required: "Name, email, and description are required.",
+    email: "Invalid email address.",
+    long: "Input is too long.",
+    rate: "Too many attempts. Please try again in a few minutes.",
+    fail: "Failed to send. Please try again later.",
+  },
+  id: {
+    required: "Nama, email, dan deskripsi wajib diisi.",
+    email: "Alamat email tidak valid.",
+    long: "Isian terlalu panjang.",
+    rate: "Terlalu banyak percobaan. Coba lagi beberapa menit lagi.",
+    fail: "Gagal mengirim. Silakan coba lagi nanti.",
+  },
+} as const;
 
 export async function submitProjectInquiry(
   input: ProjectInquiryInput
 ): Promise<Result> {
+  const m = MSG[input.lang === "id" ? "id" : "en"];
   // Honeypot: kalau terisi, anggap bot -> pura-pura sukses.
   if (input.website && input.website.trim()) return { ok: true };
 
@@ -57,23 +76,23 @@ export async function submitProjectInquiry(
     : [];
 
   if (!name || !email || !message)
-    return { ok: false, error: "Name, email, and description are required." };
+    return { ok: false, error: m.required };
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-    return { ok: false, error: "Invalid email address." };
+    return { ok: false, error: m.email };
   if (
     name.length > 120 ||
     email.length > 200 ||
     message.length > 5000 ||
     (company && company.length > 200)
   )
-    return { ok: false, error: "Input is too long." };
+    return { ok: false, error: m.long };
 
   // Rate limit: maks 3 pengiriman / 10 menit / IP.
   const ip = clientIp(await headers());
   if (!rateLimit(`inquiry:${ip}`, 3, 10 * 60_000))
     return {
       ok: false,
-      error: "Too many attempts. Please try again in a few minutes.",
+      error: m.rate,
     };
 
   try {
@@ -89,7 +108,7 @@ export async function submitProjectInquiry(
     });
     if (error) {
       console.error("inquiry insert error:", error.message);
-      return { ok: false, error: "Failed to send. Please try again later." };
+      return { ok: false, error: m.fail };
     }
     await sendInquiryEmail({
       name,
@@ -103,7 +122,7 @@ export async function submitProjectInquiry(
     return { ok: true };
   } catch (e) {
     console.error("inquiry error:", e);
-    return { ok: false, error: "Failed to send. Please try again later." };
+    return { ok: false, error: m.fail };
   }
 }
 

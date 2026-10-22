@@ -12,6 +12,16 @@ export type InquiryFieldKey =
 
 export type InquiryKind = "text" | "email" | "textarea" | "multi" | "single";
 
+// Terjemahan Indonesia satu pertanyaan (opsional; kosong = pakai teks Inggris).
+// "options" sejajar dengan urutan pilihan Inggris; nilai yang DISIMPAN tetap
+// teks Inggris (kanonik) supaya data masuk di admin seragam.
+export type QuestionTranslation = {
+    question?: string;
+    subtitle?: string;
+    placeholder?: string;
+    options?: string[];
+};
+
 export type InquiryQuestion = {
     id: string;
     position: number;
@@ -24,6 +34,7 @@ export type InquiryQuestion = {
     required: boolean;
     enabled: boolean;
     core: boolean;
+    translations?: { id?: QuestionTranslation } | null;
 };
 
 export type InquirySettings = {
@@ -32,7 +43,9 @@ export type InquirySettings = {
     welcome_cta: string;
     thankyou_title: string;
     thankyou_body: string;
+    translations?: { id?: Partial<InquirySettingsText> } | null;
 };
+export type InquirySettingsText = Omit<InquirySettings, "translations">;
 
 // Default = copy saat ini. Dipakai sebagai cadangan bila tabel belum dibuat
 // atau belum ada isinya, sehingga form tetap berjalan normal.
@@ -145,3 +158,110 @@ export const DEFAULT_SETTINGS: InquirySettings = {
     thankyou_body:
         "We've received your request. Our team will reach out to you by email shortly.",
 };
+
+// ---------------- Dwibahasa ----------------
+export const DEFAULT_SETTINGS_ID: InquirySettingsText = {
+    welcome_title: "Halo, para kreator & pembawa perubahan 👋",
+    welcome_body:
+        "Terima kasih sudah menghubungi Invisual Studio. Kami ingin mendengar apa yang sedang Anda bangun. Kuesioner singkat ini butuh sekitar 5–10 menit dan membantu kami memahami visi Anda sebelum kita berbincang. Mulai?",
+    welcome_cta: "Ya, mulai",
+    thankyou_title: "Terima kasih! 🎉",
+    thankyou_body:
+        "Permintaan Anda sudah kami terima. Tim kami akan segera menghubungi Anda lewat email.",
+};
+
+// Terjemahan bawaan per field_key — dipakai bila admin belum mengisi.
+export const DEFAULT_QUESTION_TRANSLATIONS_ID: Record<InquiryFieldKey, QuestionTranslation> = {
+    name: { question: "Siapa nama Anda?", placeholder: "Nama lengkap" },
+    email: {
+        question: "Ke mana kami harus membalas?",
+        subtitle: "Kami akan membalas ke email ini.",
+        placeholder: "nama@email.com",
+    },
+    company: {
+        question: "Nama brand atau perusahaan Anda?",
+        subtitle: "Opsional — lewati jika perorangan.",
+        placeholder: "mis. Invisual Studio",
+    },
+    projectTypes: {
+        question: "Proyek seperti apa yang Anda butuhkan?",
+        subtitle: "Boleh pilih lebih dari satu.",
+        options: ["Brand Identity", "Ilustrasi", "Desain Kemasan", "Lainnya"],
+    },
+    budget: {
+        question: "Berapa kisaran anggaran Anda?",
+        subtitle: "Perkiraan kasar membantu kami menyusun penawaran.",
+        options: ["< Rp10 jt  ·  < $1k", "Rp10–30 jt  ·  $1–5k", "Rp30–75 jt  ·  $5–15k", "> Rp75 jt  ·  > $15k", "Belum tahu"],
+    },
+    timeline: {
+        question: "Kapan Anda membutuhkannya?",
+        options: ["Secepatnya", "1–3 bulan", "3–6 bulan", "Fleksibel"],
+    },
+    message: {
+        question: "Ceritakan tentang proyek Anda.",
+        subtitle: "Tujuan, harapan, referensi — apa pun yang membantu.",
+        placeholder: "Tulis di sini…",
+    },
+};
+
+export function cleanQuestionTranslation(v: unknown): QuestionTranslation {
+    const out: QuestionTranslation = {};
+    if (!v || typeof v !== "object") return out;
+    const o = v as Record<string, unknown>;
+    for (const k of ["question", "subtitle", "placeholder"] as const) {
+        if (typeof o[k] === "string" && (o[k] as string).trim()) out[k] = (o[k] as string).trim();
+    }
+    if (Array.isArray(o.options)) {
+        const arr = o.options.map((x) => (typeof x === "string" ? x.trim() : "")).filter(Boolean);
+        if (arr.length) out.options = arr;
+    }
+    return out;
+}
+
+export function cleanSettingsTranslation(v: unknown): Partial<InquirySettingsText> {
+    const out: Partial<InquirySettingsText> = {};
+    if (!v || typeof v !== "object") return out;
+    const o = v as Record<string, unknown>;
+    for (const k of ["welcome_title", "welcome_body", "welcome_cta", "thankyou_title", "thankyou_body"] as const) {
+        if (typeof o[k] === "string" && (o[k] as string).trim()) out[k] = (o[k] as string).trim();
+    }
+    return out;
+}
+
+// Pertanyaan siap tampil: teks sesuai bahasa, pilihan = {label tampil, value kanonik EN}.
+export type DisplayQuestion = Omit<InquiryQuestion, "options" | "translations"> & {
+    options: { label: string; value: string }[];
+};
+
+export function localizeQuestions(questions: InquiryQuestion[], lang: "en" | "id"): DisplayQuestion[] {
+    return questions.map((q) => {
+        const tr = lang === "id" ? { ...DEFAULT_QUESTION_TRANSLATIONS_ID[q.field_key], ...(q.translations?.id ?? {}) } : {};
+        const labels = q.options.map((opt, i) => (lang === "id" && tr.options?.[i] ? tr.options[i] : opt));
+        return {
+            ...q,
+            question: (lang === "id" && tr.question) || q.question,
+            subtitle: (lang === "id" && tr.subtitle) || q.subtitle,
+            placeholder: (lang === "id" && tr.placeholder) || q.placeholder,
+            options: q.options.map((value, i) => ({ label: labels[i], value })),
+        };
+    });
+}
+
+export function localizeSettings(settings: InquirySettings, lang: "en" | "id"): InquirySettingsText {
+    const base: InquirySettingsText = {
+        welcome_title: settings.welcome_title,
+        welcome_body: settings.welcome_body,
+        welcome_cta: settings.welcome_cta,
+        thankyou_title: settings.thankyou_title,
+        thankyou_body: settings.thankyou_body,
+    };
+    if (lang !== "id") return base;
+    const tr = { ...DEFAULT_SETTINGS_ID, ...(settings.translations?.id ?? {}) };
+    return {
+        welcome_title: tr.welcome_title || base.welcome_title,
+        welcome_body: tr.welcome_body || base.welcome_body,
+        welcome_cta: tr.welcome_cta || base.welcome_cta,
+        thankyou_title: tr.thankyou_title || base.thankyou_title,
+        thankyou_body: tr.thankyou_body || base.thankyou_body,
+    };
+}

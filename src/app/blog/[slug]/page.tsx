@@ -10,6 +10,7 @@ import { site } from "@/configs/site";
 import { getPostBySlug, getRelatedPosts } from "@/lib/blog-server";
 import { renderMarkdown, stripMarkdown, wordCount } from "@/lib/markdown";
 import ArticleView from "@/components/blog/article-view";
+import HtmlLang from "@/components/seo/html-lang";
 
 export const revalidate = 60;
 
@@ -23,7 +24,7 @@ export async function generateMetadata({
     const { slug } = await params;
     const post = await getPost(slug);
     if (!post) {
-        return { title: "Article not found", robots: { index: false, follow: false } };
+        return { title: "Artikel tidak ditemukan", robots: { index: false, follow: false } };
     }
     const description = post.excerpt || truncate(stripMarkdown(post.content));
     return pageMetadata({
@@ -32,6 +33,7 @@ export async function generateMetadata({
         path: `/blog/${post.slug}`,
         image: ogImage(post.cover_url),
         type: "article",
+        locale: "id_ID",
     });
 }
 
@@ -67,14 +69,14 @@ export default async function BlogArticlePage({
         articleSection: post.category ?? undefined,
         keywords: post.tags?.length ? post.tags.join(", ") : undefined,
         wordCount: wordCount(post.content),
-        inLanguage: "en",
+        inLanguage: "id",
     };
 
     const breadcrumbLd = {
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         itemListElement: [
-            { "@type": "ListItem", position: 1, name: "Home", item: absoluteUrl("/") },
+            { "@type": "ListItem", position: 1, name: "Beranda", item: absoluteUrl("/") },
             { "@type": "ListItem", position: 2, name: "Blog", item: absoluteUrl("/blog") },
             { "@type": "ListItem", position: 3, name: post.title, item: url },
         ],
@@ -82,6 +84,7 @@ export default async function BlogArticlePage({
 
     return (
         <>
+            <HtmlLang lang="id" />
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }}

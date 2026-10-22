@@ -25,6 +25,7 @@ database dari nol.
 | 11 | `inquiry-form-setup.sql` | tabel `inquiry_questions` & `inquiry_settings` (pertanyaan form, teks welcome/thank-you) |
 | 12 | `contact-content-setup.sql` | tabel `contact_content` & `footer_content` (isi halaman Contact + footer) |
 | 13 | `blog-setup.sql` | tabel `blog_posts` (Blog) |
+| 14 | `bilingual-contact.sql` | kolom `translations` (terjemahan Indonesia) pada `contact_content`, `inquiry_settings`, `inquiry_questions` + seed terjemahan |
 
 ## Catatan
 - Tabel yang dibaca publik memakai RLS + kebijakan `for select using (true)`
