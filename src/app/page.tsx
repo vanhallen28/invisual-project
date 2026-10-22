@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { pageMetadata } from "@/lib/seo";
+import { pageMetadata, safeJsonLd } from "@/lib/seo";
 import HeroSection from "./_sections/hero";
 import WorksSection from "./_sections/works";
 import ClientsSection from "./_sections/clients";
@@ -44,7 +44,7 @@ export default async function Page() {
             {faqLd && (
                 <script
                     type="application/ld+json"
-                    dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
+                    dangerouslySetInnerHTML={{ __html: safeJsonLd(faqLd) }}
                 />
             )}
             <HeroSection videoUrl={home.hero_video_url ?? undefined} />

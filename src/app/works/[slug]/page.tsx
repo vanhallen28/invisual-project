@@ -5,7 +5,7 @@
 import type { Metadata } from "next";
 import { cache } from "react";
 import { notFound } from "next/navigation";
-import { ogImage, pageMetadata, absoluteUrl } from "@/lib/seo";
+import { ogImage, pageMetadata, absoluteUrl, safeJsonLd } from "@/lib/seo";
 import { site } from "@/configs/site";
 import { getWorkFull, getWorksNav } from "@/lib/works-server";
 import { WorkDetail } from "./work-detail";
@@ -96,11 +96,11 @@ export default async function WorkDetailRoute({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbLd) }}
       />
       <WorkDetail work={work} nextWork={nextWork} />
     </>

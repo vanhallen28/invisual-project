@@ -17,6 +17,12 @@ function db() {
   );
 }
 
+// JSON-LD aman disisipkan ke <script>: "<" di-escape agar teks seperti
+// "</script>" di judul/jawaban FAQ tidak bisa memutus tag script (XSS).
+export function safeJsonLd(data: unknown): string {
+  return JSON.stringify(data).replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
+}
+
 // URL absolut dari path relatif (mis. "/works" -> "https://invisual.studio/works").
 export function absoluteUrl(path = "/"): string {
   return new URL(path, site.url).toString();

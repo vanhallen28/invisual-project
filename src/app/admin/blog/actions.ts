@@ -1,5 +1,7 @@
 "use server";
 
+import { requireAdmin } from "@/lib/admin-auth";
+
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { slugify } from "@/lib/markdown";
@@ -111,6 +113,8 @@ export async function flushScheduledIndexing(): Promise<void> {
 }
 
 export async function savePost(input: PostInput): Promise<SaveResult> {
+    const denied = await requireAdmin();
+    if (denied) return denied;
     const title = (input.title || "").trim();
     const slug = slugify(input.slug || title);
     const content = input.content ?? "";
@@ -208,6 +212,8 @@ export async function savePost(input: PostInput): Promise<SaveResult> {
 }
 
 export async function deletePost(id: string): Promise<R> {
+    const denied = await requireAdmin();
+    if (denied) return denied;
     try {
         const supabase = createAdminClient();
         const { data } = await supabase
@@ -229,6 +235,8 @@ export async function setPostStatus(
     status: "draft" | "published",
     opts?: { now?: boolean }
 ): Promise<R> {
+    const denied = await requireAdmin();
+    if (denied) return denied;
     try {
         const supabase = createAdminClient();
         const { data: prev } = await supabase
@@ -276,6 +284,8 @@ export async function setPostStatus(
 }
 
 export async function requestIndex(id: string): Promise<R> {
+    const denied = await requireAdmin();
+    if (denied) return denied;
     try {
         const supabase = createAdminClient();
         const { data } = await supabase
@@ -298,6 +308,8 @@ export async function requestIndex(id: string): Promise<R> {
 
 // Gandakan artikel menjadi draf baru.
 export async function duplicatePost(id: string): Promise<R & { id?: string }> {
+    const denied = await requireAdmin();
+    if (denied) return denied;
     try {
         const supabase = createAdminClient();
         const { data: src } = await supabase
@@ -355,6 +367,7 @@ export async function checkSlug(
     slug: string,
     excludeId?: string
 ): Promise<{ available: boolean }> {
+    if (await requireAdmin()) return { available: false };
     const s = slugify(slug);
     if (!s) return { available: false };
     try {

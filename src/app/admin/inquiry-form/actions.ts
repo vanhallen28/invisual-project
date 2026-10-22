@@ -1,5 +1,7 @@
 "use server";
 
+import { requireAdmin } from "@/lib/admin-auth";
+
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import {
@@ -27,6 +29,8 @@ export async function updateInquirySettings(
     input: InquirySettingsText,
     translationId?: Partial<InquirySettingsText>
 ): Promise<R> {
+    const denied = await requireAdmin();
+    if (denied) return denied;
     try {
         const supabase = createAdminClient();
         const row = {
@@ -63,6 +67,8 @@ export async function updateInquiryQuestion(input: {
     required: boolean;
     translation_id?: QuestionTranslation;
 }): Promise<R> {
+    const denied = await requireAdmin();
+    if (denied) return denied;
     const question = input.question.trim();
     if (!question) return { ok: false, error: "Pertanyaan wajib diisi." };
     try {
@@ -101,6 +107,8 @@ export async function setInquiryQuestionEnabled(
     id: string,
     enabled: boolean
 ): Promise<R> {
+    const denied = await requireAdmin();
+    if (denied) return denied;
     try {
         const supabase = createAdminClient();
         if (!enabled) {
@@ -128,6 +136,8 @@ export async function setInquiryQuestionEnabled(
 }
 
 export async function reorderInquiryQuestions(ids: string[]): Promise<R> {
+    const denied = await requireAdmin();
+    if (denied) return denied;
     try {
         const supabase = createAdminClient();
         for (let i = 0; i < ids.length; i++) {

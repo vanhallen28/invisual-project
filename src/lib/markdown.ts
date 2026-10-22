@@ -13,6 +13,21 @@ function escapeAttr(v: string): string {
 // Tautan ke situs lain dibuka di tab baru (pembaca tidak keluar dari artikel);
 // tautan internal (/works, invisual.studio) tetap di tab yang sama.
 const renderer = new marked.Renderer();
+
+// Keamanan: HTML mentah di dalam Markdown TIDAK dirender (ditampilkan sebagai
+// teks). Artikel ditulis admin, tapi ini mencegah skrip ikut tayang bila akun
+// admin disalahgunakan atau konten ditempel dari sumber lain.
+renderer.html = function ({ text }) {
+    return escapeAttr(text);
+};
+
+// Gambar: hanya sumber http(s) atau path relatif.
+renderer.image = function ({ href, title, text }) {
+    const safe = /^(https?:\/\/|\/)/i.test(href) ? href : "";
+    if (!safe) return escapeAttr(text);
+    return `<img src="${escapeAttr(safe)}" alt="${escapeAttr(text)}"${title ? ` title="${escapeAttr(title)}"` : ""} loading="lazy">`;
+};
+
 renderer.link = function ({ href, title, text }) {
     const safe = /^(https?:\/\/|\/|#|mailto:)/i.test(href) ? href : "#";
     let external = false;

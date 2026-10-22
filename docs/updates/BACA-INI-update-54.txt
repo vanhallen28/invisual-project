@@ -1,0 +1,136 @@
+INVISUAL, update #54 (hasil pemindaian keamanan + perbaikan)
+
+RINGKASAN TEMUAN (urut dari yang paling penting)
+
+  [KRITIS] Next.js 16.2.9 punya beberapa celah yang sudah diumumkan resmi:
+           bypass proxy/middleware (bisa menembus pelindung /admin), DoS lewat
+           Server Action, dan celah di optimasi gambar. Perbaikan: naikkan ke
+           Next 16.4.2. package.json dan package-lock.json versi baru sudah
+           ikut di zip ini, jadi Vercel menginstalnya sendiri saat build
+           (tidak perlu menjalankan npm di komputer Anda).
+
+  [TINGGI] Cookie sesi admin berisi ADMIN_SESSION_SECRET mentah dan tidak
+           pernah kedaluwarsa. Kalau cookie bocor (ekstensi browser, laptop
+           dipinjam, dsb.) orang bisa masuk selamanya dan rahasianya ikut bocor.
+           Perbaikan: cookie sekarang berupa token bertanda tangan (HMAC) yang
+           berlaku 30 hari; rahasia tidak pernah keluar dari server.
+
+  [TINGGI] Sebagian besar tombol/aksi admin (simpan artikel, hapus pesan, ubah
+           FAQ, dsb.) tidak mengecek sesi sendiri, hanya mengandalkan pelindung
+           di proxy. Bila proxy terlewati (lihat celah KRITIS di atas), aksi itu
+           bisa dipanggil tanpa login. Perbaikan: semua aksi admin kini memakai
+           requireAdmin() sebelum menulis apa pun.
+
+  [SEDANG] Halaman login tanpa batas percobaan dan perbandingan password biasa.
+           Perbaikan: maksimal 5 percobaan per 15 menit per IP; perbandingan
+           waktu-tetap.
+
+  [SEDANG] JSON-LD (data SEO terstruktur) disisipkan ke <script> tanpa escape.
+           Judul/jawaban FAQ berisi "</script>" bisa menyuntik skrip ke halaman.
+           Perbaikan: safeJsonLd() di semua halaman.
+
+  [SEDANG] Isi artikel Markdown masih merender HTML mentah. Kalau akun admin
+           disalahgunakan atau konten ditempel dari sumber lain, skrip bisa ikut
+           tayang ke pengunjung. Perbaikan: HTML mentah ditampilkan sebagai
+           teks, gambar hanya dari http(s)/path relatif, tautan tetap difilter.
+
+  [RENDAH] Belum ada header keamanan (HSTS, nosniff, X-Frame-Options,
+           Referrer-Policy, Permissions-Policy); header "X-Powered-By: Next.js"
+           masih terkirim; halaman admin boleh diindeks mesin pencari.
+           Perbaikan: semua ditambahkan di next.config.ts.
+
+  [INFO]   Upload preset Cloudinary "unsigned" memang publik (lihat langkah D).
+  [INFO]   RLS Supabase sudah benar: tabel publik hanya boleh dibaca, penulisan
+           lewat service role di server. /api/track sudah dibatasi 60/menit/IP.
+  [INFO]   robots.txt sudah melarang /admin.
+
+CATATAN PENTING SEBELUM MEMASANG
+- Setelah update ini terpasang, SEMUA sesi admin yang sedang login akan keluar
+  sekali (format cookie berubah). Login ulang saja, lalu sesi berlaku 30 hari.
+- Variabel lingkungan tidak berubah: tetap ADMIN_PASSWORD dan
+  ADMIN_SESSION_SECRET. Pastikan ADMIN_SESSION_SECRET panjang (32+ karakter
+  acak). Kalau ingin "mengusir" semua sesi lama kapan pun, ganti nilainya di
+  Vercel → Settings → Environment Variables → Redeploy.
+
+LANGKAH DI TERMINAL (Mac: buka aplikasi Terminal)
+  1) Masuk ke folder proyek. Ketik "cd" lalu SPASI, kemudian seret folder
+     proyek dari Finder ke jendela Terminal, tekan Enter. Contoh hasilnya:
+       cd /Users/namaanda/Documents/invisual
+  2) Pasang file update:
+       unzip -o ~/Downloads/invisual-update-54.zip
+  3) Kirim ke GitHub (Vercel deploy otomatis):
+       git add -A
+       git commit -m "security: Next 16.4.2, sesi admin bertanda tangan, guard aksi admin, header keamanan"
+       git push
+  4) Tunggu Vercel selesai build (2 sampai 4 menit, sedikit lebih lama dari
+     biasanya karena menginstal Next versi baru), lalu buka /admin dan login ulang.
+
+  TIDAK perlu npm install. package.json dan package-lock.json sudah disertakan
+  (Next 16.4.2, hasil "npm audit fix"). Kalau Anda biasa menjalankan
+  "npm run dev" di komputer sendiri, jalankan sekali "npm install" dulu;
+  kalau muncul "command not found: npm", berarti Node.js belum terpasang di
+  Mac Anda, dan itu tidak masalah untuk deploy ke Vercel.
+
+  Catatan audit: "npm audit" bisa masih menampilkan 5 temuan "braces" (high).
+  Itu ada di alat pemeriksa kode (eslint) yang hanya dipakai saat
+  pengembangan, tidak ikut ke situs, dan belum ada versi perbaikannya dari
+  pembuatnya. Pemeriksaan khusus dependensi situs ("npm audit --omit=dev")
+  hasilnya 0 vulnerabilities.
+
+LANGKAH TAMBAHAN DI LUAR KODE (dikerjakan sekali, 5 menit)
+  1) Cloudinary → Settings → Upload → Upload presets → preset yang dipakai
+     di NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET:
+       - Allowed formats: jpg, png, webp, gif, svg (tanpa format lain)
+       - Max file size: 10 MB (atau sesuai kebutuhan)
+       - Folder: tetapkan folder tertentu (mis. invisual/blog)
+     Preset unsigned memang bisa dipakai siapa pun yang tahu namanya; batasan
+     ini mencegah penyalahgunaan untuk menyimpan file sembarangan.
+  2) Pastikan file .gitignore di root proyek memuat baris:
+       .env
+       .env.local
+       .env*.local
+       node_modules
+       .next
+     Cek dengan:  git ls-files | grep -i "^.env"   (harus KOSONG).
+     Kalau pernah ter-commit, ganti semua kunci (Supabase service role,
+     Cloudinary secret, ADMIN_PASSWORD, ADMIN_SESSION_SECRET) di dashboard
+     masing-masing dan di Vercel.
+  3) Vercel → Settings → Security: nyalakan "Attack Challenge Mode" hanya kalau
+     sedang diserang; "Vercel Firewall" bawaan sudah cukup untuk sehari-hari.
+
+CARA MEMASTIKAN SUDAH JALAN
+  - Buka https://invisual.studio/admin tanpa login → dialihkan ke /admin/login.
+  - Salah password 6 kali → pesan "Terlalu banyak percobaan…".
+  - Cek header: https://securityheaders.com/?q=invisual.studio
+    (nilai A/A+ wajar; CSP memang belum dipasang, lihat bawah).
+  - DevTools → Application → Cookies → admin_session berbentuk
+    "1234567890.abcd…" (angka, titik, 64 huruf/angka), BUKAN rahasia Anda.
+
+BELUM DIKERJAKAN (opsional, bisa menyusul)
+  - Content-Security-Policy: butuh daftar izin untuk Vercel Analytics, Meta
+    Pixel, Google Maps, Cloudinary. Disarankan pasang mode Report-Only dulu.
+  - Rate limit login memakai memori server (reset tiap deploy / per instance
+    Vercel). Cukup untuk situs ini; kalau ingin tahan banting, pindah ke Upstash.
+  - Autentikasi dua faktor untuk admin (bila nanti admin lebih dari satu orang).
+
+FILE
+  package.json, package-lock.json             Next 16.4.2 + perbaikan dependensi
+  next.config.ts                              header keamanan, X-Powered-By mati
+  src/lib/admin-session.ts                    BARU: token sesi bertanda tangan
+  src/lib/admin-auth.ts                       isAdmin() + requireAdmin()
+  src/proxy.ts                                verifikasi token di pelindung /admin
+  src/app/admin/auth-actions.ts               rate limit login, cookie token
+  src/app/admin/actions.ts
+  src/app/admin/blog/actions.ts               guard requireAdmin di semua aksi
+  src/app/admin/contact/actions.ts
+  src/app/admin/faq/actions.ts
+  src/app/admin/home/actions.ts
+  src/app/admin/inquiries/actions.ts
+  src/app/admin/inquiry-form/actions.ts
+  src/app/admin/messages/actions.ts
+  src/app/admin/stats/actions.ts
+  src/lib/seo.ts                              safeJsonLd()
+  src/app/layout.tsx, src/app/page.tsx, src/app/blog/page.tsx,
+  src/app/blog/[slug]/page.tsx, src/app/works/[slug]/page.tsx   pakai safeJsonLd
+  src/lib/markdown.ts                         HTML mentah di-escape, filter gambar
+  docs/updates/BACA-INI-update-54.txt

@@ -1,5 +1,7 @@
 "use server";
 
+import { requireAdmin } from "@/lib/admin-auth";
+
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 
@@ -11,6 +13,8 @@ function bump() {
 }
 
 export async function markMessageRead(id: number, read: boolean): Promise<R> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const supabase = createAdminClient();
     const { error } = await supabase
@@ -26,6 +30,8 @@ export async function markMessageRead(id: number, read: boolean): Promise<R> {
 }
 
 export async function deleteMessage(id: number): Promise<R> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const supabase = createAdminClient();
     const { error } = await supabase
@@ -44,6 +50,8 @@ export async function setMessageImportant(
   id: number,
   important: boolean
 ): Promise<R> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const supabase = createAdminClient();
     const { error } = await supabase

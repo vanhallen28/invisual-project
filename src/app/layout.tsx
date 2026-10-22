@@ -11,7 +11,7 @@ import MetaPixel from "@/components/analytics/meta-pixel";
 import ConsentBanner from "@/components/consent/consent-banner";
 import BackToTop from "@/components/common/back-to-top";
 import { site } from "@/configs/site";
-import { absoluteUrl } from "@/lib/seo";
+import { absoluteUrl, safeJsonLd } from "@/lib/seo";
 
 const hostGrotesk = Host_Grotesk({
     subsets: ["latin"],
@@ -71,7 +71,7 @@ export default async function RootLayout({
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{
-                        __html: JSON.stringify(organizationJsonLd),
+                        __html: safeJsonLd(organizationJsonLd),
                     }}
                 />
                 <ThemeProvider

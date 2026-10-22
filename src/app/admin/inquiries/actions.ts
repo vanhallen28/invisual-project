@@ -1,5 +1,7 @@
 "use server";
 
+import { requireAdmin } from "@/lib/admin-auth";
+
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 
@@ -11,6 +13,8 @@ function bump() {
 }
 
 export async function markInquiryRead(id: string, read: boolean): Promise<R> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const supabase = createAdminClient();
     const { error } = await supabase
@@ -29,6 +33,8 @@ export async function setInquiryImportant(
   id: string,
   important: boolean
 ): Promise<R> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const supabase = createAdminClient();
     const { error } = await supabase
@@ -44,6 +50,8 @@ export async function setInquiryImportant(
 }
 
 export async function deleteInquiry(id: string): Promise<R> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const supabase = createAdminClient();
     const { error } = await supabase

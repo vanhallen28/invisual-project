@@ -1,5 +1,7 @@
 "use server";
 
+import { requireAdmin } from "@/lib/admin-auth";
+
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 
@@ -14,6 +16,8 @@ export async function createFaq(input: {
   question: string;
   answer: string;
 }): Promise<R> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   const q = input.question.trim();
   const a = input.answer.trim();
   if (!q || !a) return { ok: false, error: "Pertanyaan & jawaban wajib diisi." };
@@ -42,6 +46,8 @@ export async function updateFaq(input: {
   question: string;
   answer: string;
 }): Promise<R> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   const q = input.question.trim();
   const a = input.answer.trim();
   if (!q || !a) return { ok: false, error: "Pertanyaan & jawaban wajib diisi." };
@@ -60,6 +66,8 @@ export async function updateFaq(input: {
 }
 
 export async function deleteFaq(id: number): Promise<R> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const supabase = createAdminClient();
     const { error } = await supabase.from("faqs").delete().eq("id", id);
@@ -72,6 +80,8 @@ export async function deleteFaq(id: number): Promise<R> {
 }
 
 export async function reorderFaqs(ids: number[]): Promise<R> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const supabase = createAdminClient();
     for (let i = 0; i < ids.length; i++) {

@@ -1,5 +1,7 @@
 "use server";
 
+import { requireAdmin } from "@/lib/admin-auth";
+
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import {
@@ -22,6 +24,8 @@ export async function updateContactContent(
     input: ContactContent,
     translationId?: ContactTranslation
 ): Promise<R> {
+    const denied = await requireAdmin();
+    if (denied) return denied;
     try {
         const supabase = createAdminClient();
         const row = {
@@ -69,6 +73,8 @@ export async function updateContactContent(
 }
 
 export async function updateFooterContent(input: FooterContent): Promise<R> {
+    const denied = await requireAdmin();
+    if (denied) return denied;
     try {
         const supabase = createAdminClient();
         const { error } = await supabase.from("footer_content").upsert({

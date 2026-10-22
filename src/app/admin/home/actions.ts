@@ -1,11 +1,15 @@
 "use server";
 
+import { requireAdmin } from "@/lib/admin-auth";
+
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function updateHomeContent(input: {
   heroVideoUrl: string;
   introText: string;
 }): Promise<{ ok: boolean; error?: string }> {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const supabase = createAdminClient();
     const { error } = await supabase.from("home_content").upsert({

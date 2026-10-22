@@ -1,6 +1,6 @@
 // src/app/blog/page.tsx
 import type { Metadata } from "next";
-import { pageMetadata, absoluteUrl } from "@/lib/seo";
+import { pageMetadata, absoluteUrl, safeJsonLd } from "@/lib/seo";
 import { site } from "@/configs/site";
 import { getPublishedPosts } from "@/lib/blog-server";
 import BlogList from "./blog-list";
@@ -49,7 +49,7 @@ export default async function BlogPage() {
             <HtmlLang lang="id" />
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+                dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
             />
             {/* Judul tetap ada untuk mesin pencari & pembaca layar, tanpa area hero. */}
             <h1 className="sr-only">Blog {site.name}</h1>

@@ -5,7 +5,7 @@
 import type { Metadata } from "next";
 import { cache } from "react";
 import { notFound } from "next/navigation";
-import { ogImage, pageMetadata, absoluteUrl, truncate } from "@/lib/seo";
+import { ogImage, pageMetadata, absoluteUrl, truncate, safeJsonLd } from "@/lib/seo";
 import { site } from "@/configs/site";
 import { getPostBySlug, getRelatedPosts } from "@/lib/blog-server";
 import { renderMarkdown, stripMarkdown, wordCount } from "@/lib/markdown";
@@ -87,11 +87,11 @@ export default async function BlogArticlePage({
             <HtmlLang lang="id" />
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }}
+                dangerouslySetInnerHTML={{ __html: safeJsonLd(articleLd) }}
             />
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+                dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbLd) }}
             />
             <ArticleView post={post} html={html} related={related} />
         </>
