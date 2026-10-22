@@ -76,6 +76,19 @@ const btnGhost =
     "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors hover:bg-muted disabled:opacity-60";
 
 const CATEGORY_SUGGESTIONS = ["Design", "Behind the Project", "Process", "Studio Notes"];
+// Frasa yang terasa seperti tulisan AI / klise; cukup peringatan, bukan larangan keras.
+const CLICHE_PHRASES = [
+    "di era digital",
+    "tidak dapat dipungkiri",
+    "dalam dunia yang serba",
+    "selamat mencoba",
+    "penting untuk dicatat",
+    "sebagai kesimpulan",
+    "dalam artikel ini kita akan",
+    "mari kita bahas",
+    "jangan ragu untuk",
+    "tak bisa dimungkiri",
+];
 // Kelas teks yang HARUS sama antara textarea dan lapisan pewarna agar baris sejajar.
 const EDITOR_TEXT_CLASS = "px-3 py-2 font-mono text-[13px] leading-relaxed";
 
@@ -316,7 +329,7 @@ export default function PostEditor({
         setCategory(s.category); setTagsText(s.tagsText); setAuthor(s.author);
         setSeoTitle(s.seoTitle); setFeatured(s.featured); setPublishAt(s.publishAt);
         setRestore(null);
-        toast.show("Tulisan dipulihkan — jangan lupa simpan");
+        toast.show("Tulisan dipulihkan, jangan lupa simpan");
     }
     function dismissRestore() {
         try { localStorage.removeItem(backupKey); } catch { /* abaikan */ }
@@ -446,7 +459,7 @@ export default function PostEditor({
                 });
                 addToGallery(up.url, up.width, up.height, up.bytes, up.public_id);
                 setBodyError(null);
-                toast.show(up.via === "server" ? "Gambar terunggah (lewat jalur cadangan) — edit teks alt-nya" : "Gambar terunggah ke Cloudinary — edit teks alt-nya");
+                toast.show(up.via === "server" ? "Gambar terunggah (lewat jalur cadangan), edit teks alt-nya" : "Gambar terunggah ke Cloudinary, edit teks alt-nya");
             } catch (e) {
                 setContent((cur) => cur.replace(token + "\n\n", "").replace(token, ""));
                 const msg = e instanceof Error ? e.message : "Gagal mengunggah.";
@@ -531,7 +544,7 @@ export default function PostEditor({
         const md = `![${alt}](${item.url})`;
         if (preview) setPreview(false);
         insertBlock(md, 2, alt.length);
-        toast.show("Gambar disisipkan — edit teks alt-nya");
+        toast.show("Gambar disisipkan, edit teks alt-nya");
     }
 
     // ----- Checklist SEO -----
@@ -543,6 +556,9 @@ export default function PostEditor({
     const imagesNoAlt = (content.match(/!\[\s*\]\([^)]+\)/g) ?? []).length;
     const hasLink = /(^|[^!])\[[^\]]+\]\((https?:\/\/|\/)[^)]+\)/.test(content);
     const startsWithH1 = /^\s*#\s+\S/.test(content);
+    // Gaya tulisan: hindari simbol strip panjang (—) dan frasa klise khas tulisan AI.
+    const emDashes = (`${title}\n${excerpt}\n${seoTitle}\n${content}`.match(/—/g) ?? []).length;
+    const clichePhrases = CLICHE_PHRASES.filter((ph) => `${excerpt}\n${content}`.toLowerCase().includes(ph));
     const checks = useMemo(
         () => [
             { ok: effectiveTitle.length > 0 && effectiveTitle.length <= 60, label: `Judul untuk Google ≤ 60 karakter (${effectiveTitle.length})` },
@@ -555,15 +571,37 @@ export default function PostEditor({
             { ok: bodyImages > 0 && imagesNoAlt === 0, label: bodyImages === 0 ? "Ada gambar pendukung di isi artikel" : imagesNoAlt > 0 ? `${imagesNoAlt} gambar di isi belum punya teks alt` : `Gambar di isi punya teks alt (${bodyImages})` },
             { ok: hasLink, label: "Ada tautan (ke halaman lain / sumber)" },
             {
+                ok: emDashes === 0,
+                label: emDashes
+                    ? `Ada ${emDashes} simbol strip panjang (—); ganti dengan koma atau titik, lalu baca ulang kalimatnya`
+                    : "Tanpa simbol strip panjang (—)",
+                fix: emDashes
+                    ? () => {
+                          const clean = (v: string) => v.replace(/\s*—\s*/g, ", ").replace(/,\s*([.,;:!?])/g, "$1");
+                          setTitle(clean(title));
+                          setExcerpt(clean(excerpt));
+                          setSeoTitle(clean(seoTitle));
+                          setContent((c) => clean(c));
+                      }
+                    : undefined,
+                fixLabel: "Ganti otomatis",
+            },
+            {
+                ok: clichePhrases.length === 0,
+                label: clichePhrases.length
+                    ? `Frasa klise terdeteksi: ${clichePhrases.map((x) => `“${x}”`).join(", ")}. Tulis ulang dengan kalimat yang lebih langsung`
+                    : "Tanpa frasa klise khas tulisan AI",
+            },
+            {
                 ok: !startsWithH1,
-                label: startsWithH1 ? "Isi diawali \"# Judul\" — judul (H1) sudah dibuat otomatis oleh halaman" : "Tidak ada judul ganda (# …) di awal isi",
+                label: startsWithH1 ? "Isi diawali \"# Judul\", padahal judul (H1) sudah dibuat otomatis oleh halaman" : "Tidak ada judul ganda (# …) di awal isi",
                 fix: startsWithH1 ? () => setContent((c) => c.replace(/^\s*#\s+[^\n]*\n*/, "")) : undefined,
                 fixLabel: "Hapus baris judul",
             },
             { ok: category.trim().length > 0, label: "Kategori terisi" },
             { ok: tags.length >= 2, label: `Minimal 2 tag (${tags.length})` },
         ],
-        [effectiveTitle, excerpt, slug, slugState, coverUrl, coverAlt, hasH2, words, bodyImages, imagesNoAlt, hasLink, startsWithH1, category, tags.length]
+        [effectiveTitle, excerpt, slug, slugState, coverUrl, coverAlt, hasH2, words, bodyImages, imagesNoAlt, hasLink, startsWithH1, emDashes, clichePhrases.join("|"), category, tags.length]
     );
     const passed = checks.filter((c) => c.ok).length;
 
@@ -637,7 +675,7 @@ export default function PostEditor({
     const validCover = /^(https?:\/\/|\/)/.test(coverUrl.trim());
     const headings = useMemo(() => outline(content), [content]);
     const highlighted = useMemo(() => highlightMarkdown(content), [content]);
-    const serpTitle = `${effectiveTitle || "Judul artikel"} — Invisual Studio`;
+    const serpTitle = `${effectiveTitle || "Judul artikel"} | Invisual Studio`;
     const serpDesc = excerpt.trim() || autoExcerpt(content) || "Ringkasan artikel akan tampil di sini.";
 
     function jumpTo(h: Heading) {
@@ -657,7 +695,7 @@ export default function PostEditor({
         <div className={fullscreen ? "fixed inset-0 z-[60] flex flex-col overflow-auto bg-background p-4 md:p-8" : ""}>
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <span className="text-xs font-medium text-muted-foreground">
-                    Isi artikel (Markdown){fullscreen ? ` — ${title || "Tanpa judul"}` : ""}
+                    Isi artikel (Markdown){fullscreen ? `: ${title || "Tanpa judul"}` : ""}
                 </span>
                 <div className="flex items-center gap-1">
                     <button type="button" onClick={() => setPreview(false)} className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs ${!preview ? "border-[#416fd8] text-[#416fd8] dark:border-[#f65294] dark:text-[#f65294]" : "hover:bg-muted"}`}>
@@ -679,7 +717,7 @@ export default function PostEditor({
                     <Tool title="Sub-judul kecil (H3)" onClick={() => linePrefix("### ", "Sub-judul")}><Heading3 className="h-4 w-4" /></Tool>
                     <Tool title="Tebal (Ctrl+B)" onClick={() => wrap("**", "**", "teks tebal")}><Bold className="h-4 w-4" /></Tool>
                     <Tool title="Miring (Ctrl+I)" onClick={() => wrap("*", "*", "teks miring")}><Italic className="h-4 w-4" /></Tool>
-                    <Tool title="Tautan (Ctrl+K) — blok teks dulu, lalu isi URL" onClick={openLinkPopover} active={!!linkPopover}><Link2 className="h-4 w-4" /></Tool>
+                    <Tool title="Tautan (Ctrl+K): blok teks dulu, lalu isi URL" onClick={openLinkPopover} active={!!linkPopover}><Link2 className="h-4 w-4" /></Tool>
                     <span className="mx-1 h-5 w-px bg-border" />
                     <Tool title="Unggah gambar dari komputer → otomatis ke Cloudinary" onClick={() => bodyFileRef.current?.click()} accent>
                         <Upload className="h-4 w-4" />
@@ -1059,7 +1097,7 @@ export default function PostEditor({
                     )}
                     {!cloudinaryReady ? (
                         <p className="text-[11px] text-amber-600 dark:text-amber-400">
-                            Unggah langsung belum aktif — isi NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET (preset unsigned yang dipakai unggah Karya) di Vercel. Sementara, pakai tab “Pakai URL”.
+                            Unggah langsung belum aktif. Isi NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET (preset unsigned yang dipakai unggah Karya) di Vercel. Sementara, pakai tab “Pakai URL”.
                         </p>
                     ) : (
                         !coverError && (
@@ -1075,7 +1113,7 @@ export default function PostEditor({
                         )
                     )}
                     {(coverMode === "url" || (validCover && !coverUrl.includes("res.cloudinary.com"))) && (
-                        <Field label="URL gambar" hint="Boleh dari Cloudinary (Media Library → salin URL) atau sumber lain. Unggah file atau URL — hasilnya sama.">
+                        <Field label="URL gambar" hint="Boleh dari Cloudinary (Media Library → salin URL) atau sumber lain. Unggah file atau URL, hasilnya sama.">
                             <input
                                 ref={coverUrlRef}
                                 value={coverUrl}
@@ -1085,7 +1123,7 @@ export default function PostEditor({
                             />
                         </Field>
                     )}
-                    <Field label="Teks alternatif (alt) — wajib bila ada gambar">
+                    <Field label="Teks alternatif (alt), wajib bila ada gambar">
                         <input value={coverAlt} onChange={(e) => setCoverAlt(e.target.value)} placeholder="Deskripsikan gambar singkat" className={inputClass} />
                     </Field>
                 </div>
@@ -1146,7 +1184,7 @@ export default function PostEditor({
                 <div className="rounded-lg border p-4">
                     <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold"><ListTree className="h-4 w-4" /> Kerangka artikel</p>
                     {headings.length === 0 ? (
-                        <p className="text-xs text-muted-foreground">Tambahkan sub-judul <code>##</code> / <code>###</code> — akan muncul di sini dan bisa diklik untuk lompat.</p>
+                        <p className="text-xs text-muted-foreground">Tambahkan sub-judul <code>##</code> / <code>###</code>. Daftarnya muncul di sini dan bisa diklik untuk lompat.</p>
                     ) : (
                         <ul className="space-y-1">
                             {headings.map((h, i) => (

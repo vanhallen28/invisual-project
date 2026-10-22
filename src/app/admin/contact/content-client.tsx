@@ -145,7 +145,7 @@ export default function ContactContentClient({
                         <p className="mt-1 text-xs text-muted-foreground">
                             {tab === "en"
                                 ? "Teks Inggris (bawaan situs)."
-                                : "Terjemahan Indonesia — tampil saat pengunjung memilih ID. Kolom kosong memakai terjemahan bawaan (teks samar)."}
+                                : "Terjemahan Indonesia, tampil saat pengunjung memilih ID. Kolom kosong memakai terjemahan bawaan (teks samar)."}
                         </p>
                     </div>
                     <div className="inline-flex items-center gap-0.5 rounded-full border p-0.5 text-xs">
@@ -317,7 +317,7 @@ export default function ContactContentClient({
                             className={inputClass}
                         />
                     </Field>
-                    <Field label="Tautan — satu per baris, format: Nama | URL">
+                    <Field label="Tautan (satu per baris, format: Nama | URL)">
                         <textarea
                             value={reachusText}
                             onChange={(e) => setReachusText(e.target.value)}
@@ -392,7 +392,7 @@ export default function ContactContentClient({
                         className={`${inputClass} resize-y`}
                     />
                 </Field>
-                <Field label="Kontak bisnis — satu per baris, format: Nama | URL">
+                <Field label="Kontak bisnis (satu per baris, format: Nama | URL)">
                     <textarea
                         value={businessText}
                         onChange={(e) => setBusinessText(e.target.value)}
@@ -431,7 +431,7 @@ export default function ContactContentClient({
                         className={inputClass}
                     />
                 </Field>
-                <Field label="Tautan sosial — satu per baris, format: Nama | URL">
+                <Field label="Tautan sosial (satu per baris, format: Nama | URL)">
                     <textarea
                         value={connectText}
                         onChange={(e) => setConnectText(e.target.value)}

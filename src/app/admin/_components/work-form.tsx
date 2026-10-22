@@ -229,7 +229,7 @@ export function WorkForm({
         />
         <Field
           label="Detail proyek"
-          hint="Kolom bebas — isi judul kolom (mis. Art Director) dan isinya (mis. Tryan Permana). Tambah baris sebanyak yang diperlukan; tampil di halaman detail proyek."
+          hint="Kolom bebas: isi judul kolom (mis. Art Director) dan isinya (mis. Tryan Permana). Tambah baris sebanyak yang diperlukan; tampil di halaman detail proyek."
         >
           <div className="space-y-2">
             {details.map((row, i) => (
@@ -284,7 +284,7 @@ export function WorkForm({
       {/* Media */}
       <section className="space-y-4">
         <SinglePicker
-          label="Cover (wajib) — tampil di daftar karya"
+          label="Cover (wajib), tampil di daftar karya"
           accept="image/*"
           value={cover}
           onChange={setCover}
@@ -292,7 +292,7 @@ export function WorkForm({
 
         <div className="space-y-2">
           <SinglePicker
-            label="Hero (opsional) — media besar di halaman detail; gambar atau video"
+            label="Hero (opsional), media besar di halaman detail; gambar atau video"
             accept="image/*,video/*"
             value={hero}
             onChange={(r) =>

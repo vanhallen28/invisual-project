@@ -4,7 +4,7 @@ import { site } from "@/configs/site";
 export const metadata: Metadata = {
     title: "Kebijakan Privasi",
     description:
-        "Kebijakan privasi Invisual Studio — data apa yang kami kumpulkan, cara penggunaannya, cookie, dan hak Anda.",
+        "Kebijakan privasi Invisual Studio, data apa yang kami kumpulkan, cara penggunaannya, cookie, dan hak Anda.",
     alternates: { canonical: "/privacy" },
 };
 

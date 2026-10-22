@@ -149,15 +149,15 @@ async function uploadDirect(file: File, onProgress?: (pct: number) => void): Pro
         );
     if (/upload preset must be whitelisted|unsigned/i.test(raw))
         throw new Error(
-            `Cloudinary: ${raw}. Preset "${ticket.mode === "preset" ? ticket.preset : ""}" belum bertipe Unsigned — di Cloudinary Console → Settings → Upload → Upload presets, ubah Signing mode ke "Unsigned".`
+            `Cloudinary: ${raw}. Preset "${ticket.mode === "preset" ? ticket.preset : ""}" belum bertipe Unsigned. Di Cloudinary Console → Settings → Upload → Upload presets, ubah Signing mode ke "Unsigned".`
         );
     if (/invalid cloud_name/i.test(raw))
         throw new Error(
-            `Cloudinary: ${raw}. Nama cloud yang dipakai situs salah — isi CLOUDINARY_CLOUD_NAME di Vercel dengan nama cloud akun Anda, lalu Redeploy.`
+            `Cloudinary: ${raw}. Nama cloud yang dipakai situs salah. Isi CLOUDINARY_CLOUD_NAME di Vercel dengan nama cloud akun Anda, lalu Redeploy.`
         );
     if (/invalid signature|invalid api_key|api_key/i.test(raw))
         throw new Error(
-            `Cloudinary: ${raw}. API Key/Secret di Vercel tidak cocok dengan cloud yang dipakai — klik "Cek koneksi Cloudinary" untuk detailnya.`
+            `Cloudinary: ${raw}. API Key/Secret di Vercel tidak cocok dengan cloud yang dipakai. Klik "Cek koneksi Cloudinary" untuk detailnya.`
         );
     throw new Error("Cloudinary: " + raw);
 }

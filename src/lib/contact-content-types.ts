@@ -119,14 +119,14 @@ export const CONTACT_TEXT_KEYS = [
 export type ContactTextKey = (typeof CONTACT_TEXT_KEYS)[number];
 export type ContactTranslation = Partial<Record<ContactTextKey, string>>;
 
-// Terjemahan Indonesia bawaan — dipakai bila admin belum mengisi terjemahan.
+// Terjemahan Indonesia bawaan, dipakai bila admin belum mengisi terjemahan.
 export const DEFAULT_CONTACT_TRANSLATION_ID: ContactTranslation = {
     hero_label: "Kontak",
     hero_title: "Mari ciptakan sesuatu yang layak dilihat.",
     hero_subtitle:
-        "Brand identity, ilustrasi, atau kemasan — ceritakan apa yang sedang Anda kerjakan, kami akan membalas lewat email.",
+        "Brand identity, ilustrasi, atau kemasan. Ceritakan apa yang sedang Anda kerjakan, kami akan membalas lewat email.",
     statement:
-        "Invisual Studio berbasis di Bandung, Indonesia — kota yang dikenal dengan semangat kreatifnya. Anda tidak akan salah pilih bekerja bersama kami.",
+        "Invisual Studio berbasis di Bandung, kota yang dikenal dengan semangat kreatifnya. Anda tidak akan salah pilih bekerja bersama kami.",
     office_label: "Kantor Pusat",
     inquiries_label: "Pertanyaan",
     business_heading: "BISNIS",
@@ -134,7 +134,7 @@ export const DEFAULT_CONTACT_TRANSLATION_ID: ContactTranslation = {
         "Untuk kerja sama baru, kirimkan ringkasan singkat proyek Anda dan kami akan segera membalas. Kami bantu merumuskan dan membentuk ide Anda.",
     jobs_heading: "KARIER",
     jobs_text:
-        "Kami lebih dari sekadar rekan kerja — kami tim strategis, pengembang, seniman, dan lainnya. Jika Anda siap untuk tantangan penuh waktu, kirim portofolio Anda dengan subjek \"Posisi_Nama Anda\".",
+        "Kami lebih dari sekadar rekan kerja. Kami tim strategis, pengembang, seniman, dan lainnya. Jika Anda siap untuk tantangan penuh waktu, kirim portofolio Anda dengan subjek \"Posisi_Nama Anda\".",
     reachus_label: "Hubungi Kami",
     cta_label: "Mulai Proyek",
     cta_title: "Punya sesuatu di pikiran?",

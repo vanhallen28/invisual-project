@@ -12,7 +12,7 @@ import {
 type R = { ok: boolean; error?: string; warning?: string };
 
 const TRANSLATION_WARNING =
-    "Teks Inggris tersimpan, tapi terjemahan Indonesia BELUM — kolom 'translations' belum ada. Jalankan supabase/sql/bilingual-contact.sql di Supabase, lalu simpan lagi.";
+    "Teks Inggris tersimpan, tapi terjemahan Indonesia BELUM, karena kolom 'translations' belum ada. Jalankan supabase/sql/bilingual-contact.sql di Supabase, lalu simpan lagi.";
 
 function missingTranslationsColumn(msg: string): boolean {
     return /translations/i.test(msg) && /column|schema cache|does not exist/i.test(msg);

@@ -170,7 +170,7 @@ export const DEFAULT_SETTINGS_ID: InquirySettingsText = {
         "Permintaan Anda sudah kami terima. Tim kami akan segera menghubungi Anda lewat email.",
 };
 
-// Terjemahan bawaan per field_key — dipakai bila admin belum mengisi.
+// Terjemahan bawaan per field_key, dipakai bila admin belum mengisi.
 export const DEFAULT_QUESTION_TRANSLATIONS_ID: Record<InquiryFieldKey, QuestionTranslation> = {
     name: { question: "Siapa nama Anda?", placeholder: "Nama lengkap" },
     email: {
@@ -180,7 +180,7 @@ export const DEFAULT_QUESTION_TRANSLATIONS_ID: Record<InquiryFieldKey, QuestionT
     },
     company: {
         question: "Nama brand atau perusahaan Anda?",
-        subtitle: "Opsional — lewati jika perorangan.",
+        subtitle: "Opsional, lewati jika perorangan.",
         placeholder: "mis. Invisual Studio",
     },
     projectTypes: {
@@ -199,7 +199,7 @@ export const DEFAULT_QUESTION_TRANSLATIONS_ID: Record<InquiryFieldKey, QuestionT
     },
     message: {
         question: "Ceritakan tentang proyek Anda.",
-        subtitle: "Tujuan, harapan, referensi — apa pun yang membantu.",
+        subtitle: "Tujuan, harapan, referensi, apa pun yang membantu.",
         placeholder: "Tulis di sini…",
     },
 };

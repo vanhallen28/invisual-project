@@ -40,7 +40,7 @@ type SaveResult =
     | { ok: false; error: string };
 type R = { ok: boolean; error?: string; message?: string };
 
-const SCHEDULED_STATUS = "Terjadwal — dikirim ke mesin pencari saat tayang";
+const SCHEDULED_STATUS = "Terjadwal, dikirim ke mesin pencari saat tayang";
 
 function revalidateBlog(slugs: string[]) {
     revalidatePath("/"); // beranda memuat 3 artikel terbaru
@@ -62,7 +62,7 @@ async function indexAndRecord(id: string, slug: string): Promise<string> {
     const { anyConfigured, summary } = await notifyAll(url);
     const status = anyConfigured
         ? summary
-        : "Belum dikonfigurasi — artikel tetap masuk sitemap.xml otomatis.";
+        : "Belum dikonfigurasi, artikel tetap masuk sitemap.xml otomatis.";
     try {
         const supabase = createAdminClient();
         await supabase
@@ -287,7 +287,7 @@ export async function requestIndex(id: string): Promise<R> {
         if (data.status !== "published")
             return { ok: false, error: "Terbitkan artikel dulu sebelum dikirim ke mesin pencari." };
         if (isFuture(data.published_at))
-            return { ok: false, error: "Artikel masih terjadwal — akan dikirim otomatis saat tayang." };
+            return { ok: false, error: "Artikel masih terjadwal, akan dikirim otomatis saat tayang." };
         const message = await indexAndRecord(id, data.slug);
         revalidatePath("/admin/blog");
         return { ok: true, message };

@@ -72,7 +72,7 @@ export function SelectOrNew({
         onChange={(e) => onValue(e.target.value)}
         className={inputClass}
       >
-        <option value="">— tidak diisi —</option>
+        <option value="">(tidak diisi)</option>
         {options.map((o) => (
           <option key={o.id} value={String(o.id)}>
             {o.name}

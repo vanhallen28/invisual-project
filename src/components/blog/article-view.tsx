@@ -122,8 +122,8 @@ export default function ArticleView({
                             Ingin mendiskusikan identitas merek Anda?
                         </h2>
                         <p className="mt-3 max-w-xl text-muted-foreground">
-                            Ceritakan proyek Anda lewat beberapa pertanyaan singkat — kami membalas
-                            lewat email. Brand identity, ilustrasi, dan desain kemasan.
+                            Ceritakan proyek Anda lewat beberapa pertanyaan singkat, kami akan
+                            membalas lewat email. Brand identity, ilustrasi, dan desain kemasan.
                         </p>
                         <div className="mt-6 flex flex-wrap gap-3">
                             <Link

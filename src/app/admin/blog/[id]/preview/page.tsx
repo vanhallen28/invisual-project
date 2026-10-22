@@ -53,10 +53,10 @@ export default async function PreviewPostPage({
         Date.parse(post.published_at) > Date.now();
     const label =
         post.status === "draft"
-            ? "DRAF — belum tayang di situs"
+            ? "DRAF: belum tayang di situs"
             : scheduled
-                ? `TERJADWAL — tayang ${fmtWib(post.published_at)} WIB`
-                : "TERBIT — ini versi yang tayang";
+                ? `TERJADWAL: tayang ${fmtWib(post.published_at)} WIB`
+                : "TERBIT: ini versi yang tayang";
 
     const banner = (
         <div className="sticky top-14 z-40 border-b border-amber-500/40 bg-amber-500/10 px-6 py-2 text-xs backdrop-blur md:px-10">

@@ -128,7 +128,7 @@ export default async function AdminContactPage() {
                 </h1>
                 <p className="mb-6 text-sm text-muted-foreground">
                     Atur seluruh isi halaman Contact, footer situs, dan form “Start a
-                    Project” — semuanya di satu tempat. Halaman Contact dwibahasa:
+                    Project”, semuanya di satu tempat. Halaman Contact dwibahasa:
                     teks Inggris (bawaan) dan Bahasa Indonesia (tab “ID”).
                 </p>
 

@@ -8,7 +8,7 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata: Metadata = pageMetadata({
   title: "Works",
   description:
-    "Selected works by Invisual Studio — visual identity, illustration, and packaging design projects.",
+    "Selected works by Invisual Studio, visual identity, illustration, and packaging design projects.",
   path: "/works",
 });
 

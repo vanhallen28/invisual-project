@@ -1,0 +1,52 @@
+INVISUAL — update #53 (gaya tulisan Indonesia: tanpa simbol strip panjang)
+
+APA INI
+- Semua teks Indonesia yang tampil ke pengunjung dibersihkan dari simbol
+  strip panjang (—): terjemahan bawaan halaman Contact & form, sub-teks
+  pertanyaan, panel ajakan di akhir artikel, meta halaman /blog.
+- Label-label di admin (Indonesia) juga dirapikan (koma/titik dua pengganti strip).
+- Editor artikel: 2 poin checklist baru
+    * "Tanpa simbol strip panjang (—)" + tombol "Ganti otomatis" (mengganti
+      strip di judul, ringkasan, judul Google, dan isi dengan koma; tetap
+      baca ulang kalimatnya setelah diganti).
+    * "Tanpa frasa klise khas tulisan AI" (mis. "di era digital",
+      "tidak dapat dipungkiri", "penting untuk dicatat", "sebagai kesimpulan",
+      "mari kita bahas", "jangan ragu untuk", "selamat mencoba").
+  Checklist SEO sekarang 14 poin.
+- Dua artikel yang sudah ada dibersihkan juga (file terpisah, lihat bawah).
+
+SQL (hanya bila bilingual-contact.sql SUDAH dijalankan sebelum update ini)
+  Supabase → SQL Editor → tempel isi  supabase/sql/bilingual-contact-tanpa-strip.sql
+  → Run. Mengganti teks terjemahan bawaan yang masih persis sama dengan seed
+  lama; teks yang sudah Anda ubah sendiri tidak disentuh.
+  Kalau bilingual-contact.sql BELUM pernah dijalankan: jalankan versi baru
+  dari paket ini (sudah tanpa strip), tidak perlu file "tanpa-strip".
+
+LANGKAH (di FOLDER ROOT proyek)
+  unzip -o ~/Downloads/invisual-update-53.zip
+  git add -A
+  git commit -m "style: konten Indonesia tanpa simbol strip panjang + checklist gaya"
+  git push
+
+ARTIKEL YANG SUDAH TERBIT
+  Artikel "Brand Identity Adalah…" di situs masih memakai strip panjang (27
+  tempat). Buka /admin/blog → artikel itu → ganti isi kolom "Isi artikel"
+  dengan isi dari file  artikel-unggulan-brand-identity-tanpa-strip.md
+  (bagian di bawah garis), atau cukup klik "Ganti otomatis" di checklist lalu
+  baca ulang. Artikel Nike: paste-pack-nya sudah bersih.
+
+FILE
+  src/lib/contact-content-types.ts
+  src/lib/inquiry-form-types.ts
+  src/components/blog/article-view.tsx
+  src/app/blog/page.tsx
+  src/app/admin/blog/post-editor.tsx
+  src/app/admin/blog/actions.ts
+  src/app/admin/blog/upload-client.ts
+  src/app/admin/blog/[id]/preview/page.tsx
+  src/app/admin/contact/page.tsx, content-client.tsx, actions.ts
+  src/app/admin/inquiry-form/form-client.tsx, actions.ts
+  src/app/admin/_components/work-form.tsx, form-ui.tsx
+  supabase/sql/bilingual-contact.sql            (seed tanpa strip)
+  supabase/sql/bilingual-contact-tanpa-strip.sql (BARU, opsional)
+  supabase/sql/README.md

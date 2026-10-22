@@ -26,6 +26,7 @@ database dari nol.
 | 12 | `contact-content-setup.sql` | tabel `contact_content` & `footer_content` (isi halaman Contact + footer) |
 | 13 | `blog-setup.sql` | tabel `blog_posts` (Blog) |
 | 14 | `bilingual-contact.sql` | kolom `translations` (terjemahan Indonesia) pada `contact_content`, `inquiry_settings`, `inquiry_questions` + seed terjemahan |
+| 15 | `bilingual-contact-tanpa-strip.sql` | perbaikan teks seed terjemahan: hilangkan simbol strip panjang (—); hanya bila SQL #14 sudah dijalankan sebelum update #53 |
 
 ## Catatan
 - Tabel yang dibaca publik memakai RLS + kebijakan `for select using (true)`

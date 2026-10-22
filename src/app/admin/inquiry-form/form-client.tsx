@@ -193,8 +193,8 @@ export default function InquiryFormClient({
                         <h2 className="text-sm font-semibold">Layar pembuka & terima kasih</h2>
                         <p className="mt-1 text-xs text-muted-foreground">
                             {tab === "en"
-                                ? "Teks Inggris (bawaan) — tampil sebelum pertanyaan dimulai dan setelah form dikirim."
-                                : "Terjemahan Indonesia — tampil saat pengunjung memilih ID. Kolom kosong memakai terjemahan bawaan (teks samar)."}
+                                ? "Teks Inggris (bawaan), tampil sebelum pertanyaan dimulai dan setelah form dikirim."
+                                : "Terjemahan Indonesia, tampil saat pengunjung memilih ID. Kolom kosong memakai terjemahan bawaan (teks samar)."}
                         </p>
                     </div>
                     <div className="inline-flex items-center gap-0.5 rounded-full border p-0.5 text-xs">
@@ -215,20 +215,20 @@ export default function InquiryFormClient({
                     </div>
                 </div>
 
-                <Field label="Pembuka — Judul">
+                <Field label="Pembuka: Judul">
                     <input
                         {...sf("welcome_title")}
                         className={inputClass}
                     />
                 </Field>
-                <Field label="Pembuka — Deskripsi">
+                <Field label="Pembuka: Deskripsi">
                     <textarea
                         {...sf("welcome_body")}
                         rows={4}
                         className={`${inputClass} resize-y`}
                     />
                 </Field>
-                <Field label="Pembuka — Teks tombol">
+                <Field label="Pembuka: Teks tombol">
                     <input
                         {...sf("welcome_cta")}
                         className={inputClass}
@@ -237,13 +237,13 @@ export default function InquiryFormClient({
 
                 <div className="border-t pt-4" />
 
-                <Field label="Terima kasih — Judul">
+                <Field label="Terima kasih: Judul">
                     <input
                         {...sf("thankyou_title")}
                         className={inputClass}
                     />
                 </Field>
-                <Field label="Terima kasih — Deskripsi">
+                <Field label="Terima kasih: Deskripsi">
                     <textarea
                         {...sf("thankyou_body")}
                         rows={3}
@@ -319,7 +319,7 @@ export default function InquiryFormClient({
                                     )}
                                     <div className="space-y-3 rounded-md border border-dashed p-3">
                                         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                            Bahasa Indonesia (opsional — kosong = terjemahan bawaan)
+                                            Bahasa Indonesia (opsional; kosong = terjemahan bawaan)
                                         </p>
                                         <Field label="Pertanyaan (ID)">
                                             <input
@@ -350,7 +350,7 @@ export default function InquiryFormClient({
                                             </Field>
                                         )}
                                         {(q.kind === "multi" || q.kind === "single") && (
-                                            <Field label="Pilihan jawaban (ID) — satu per baris, urutan SAMA dengan Inggris; yang disimpan tetap teks Inggris">
+                                            <Field label="Pilihan jawaban (ID): satu per baris, urutan SAMA dengan Inggris; yang disimpan tetap teks Inggris">
                                                 <textarea
                                                     value={eOptionsId}
                                                     onChange={(e) => setEOptionsId(e.target.value)}
@@ -375,7 +375,7 @@ export default function InquiryFormClient({
                                         Wajib diisi
                                         {q.core && (
                                             <span className="text-xs">
-                                                (inti — selalu wajib)
+                                                (inti, selalu wajib)
                                             </span>
                                         )}
                                     </label>
