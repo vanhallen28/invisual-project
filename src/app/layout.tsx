@@ -12,12 +12,17 @@ import ConsentBanner from "@/components/consent/consent-banner";
 import BackToTop from "@/components/common/back-to-top";
 import { site } from "@/configs/site";
 import { absoluteUrl, safeJsonLd } from "@/lib/seo";
+import { getAdSettings } from "@/lib/ads-server";
+import { extractHeadMeta, toPublicAds } from "@/lib/ads-types";
+import { AdsProvider } from "@/components/ads/ads-context";
+import AdSlot from "@/components/ads/ad-slot";
+import SiteScripts from "@/components/ads/site-scripts";
 
 const hostGrotesk = Host_Grotesk({
     subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
+const baseMetadata: Metadata = {
     metadataBase: new URL(site.url),
     title: {
         default: `${site.name} — ${site.tagline}`,
@@ -50,6 +55,16 @@ export const metadata: Metadata = {
     robots: { index: true, follow: true },
 };
 
+// Metadata + tag verifikasi dari menu "Iklan & Kode":
+// <meta name="google-adsense-account"> dan <meta> di kode <head> (mis.
+// facebook-domain-verification) harus ada di HTML awal agar terbaca Google/Meta.
+export async function generateMetadata(): Promise<Metadata> {
+    const ads = await getAdSettings();
+    const other: Record<string, string> = extractHeadMeta(ads.head_code);
+    if (ads.adsense_enabled && ads.adsense_client) other["google-adsense-account"] = ads.adsense_client;
+    return Object.keys(other).length ? { ...baseMetadata, other } : baseMetadata;
+}
+
 const organizationJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -64,7 +79,7 @@ export default async function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const footer = await getFooterContentServer();
+    const [footer, ads] = await Promise.all([getFooterContentServer(), getAdSettings()]);
     return (
         <html lang="en" className={hostGrotesk.className} suppressHydrationWarning>
             <body>
@@ -80,15 +95,20 @@ export default async function RootLayout({
                     enableSystem
                     disableTransitionOnChange
                 >
-                    <main className="relative pt-14">
-                        <Header />
-                        {children}
-                        <Footer content={footer} />
-                    </main>
+                    <AdsProvider value={toPublicAds(ads)}>
+                        <main className="relative pt-14">
+                            <Header />
+                            <AdSlot position="site_top" className="mx-auto max-w-6xl px-4 pt-4 md:px-8" />
+                            {children}
+                            <AdSlot position="site_bottom" className="mx-auto mt-16 max-w-6xl px-4 md:px-8" />
+                            <Footer content={footer} />
+                        </main>
+                        <SiteScripts />
+                    </AdsProvider>
                 </ThemeProvider>
                 <Analytics />
                 <PageViewTracker />
-                <MetaPixel />
+                <MetaPixel ids={ads.meta_pixel_ids} enabled={ads.meta_pixel_enabled} />
                 <ConsentBanner />
                 <BackToTop />
             </body>

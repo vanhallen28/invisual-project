@@ -5,6 +5,7 @@ import { site } from "@/configs/site";
 import { getPublishedPosts } from "@/lib/blog-server";
 import BlogList from "./blog-list";
 import HtmlLang from "@/components/seo/html-lang";
+import AdSlot from "@/components/ads/ad-slot";
 
 // Halaman blog berbahasa Indonesia (berbeda dari bagian situs lain yang Inggris).
 export const metadata: Metadata = pageMetadata({
@@ -56,6 +57,7 @@ export default async function BlogPage() {
 
             <section className="min-h-[50vh] px-6 pb-16 pt-8 md:px-10 md:pt-12">
                 <div className="mx-auto max-w-5xl">
+                    <AdSlot position="blog_list_top" label="Iklan" className="mb-10" />
                     <BlogList posts={posts} />
                 </div>
             </section>

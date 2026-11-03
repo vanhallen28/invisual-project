@@ -6,6 +6,8 @@ import Image from "next/image";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import type { BlogPost, BlogPostCard } from "@/lib/blog-server";
 import { readingTime } from "@/lib/markdown";
+import { splitAfterParagraph } from "@/lib/split-html";
+import AdSlot from "@/components/ads/ad-slot";
 
 function fmt(d: string | null) {
     if (!d) return "";
@@ -26,13 +28,17 @@ export default function ArticleView({
     related,
     backHref = "/blog",
     banner,
+    adMiddleAfter = null,
 }: {
     post: BlogPost;
     html: string;
     related: BlogPostCard[];
     backHref?: string;
     banner?: ReactNode;
+    // Paragraf ke-N tempat iklan "Artikel: tengah isi" disisipkan (null = tidak ada).
+    adMiddleAfter?: number | null;
 }) {
+    const parts = adMiddleAfter ? splitAfterParagraph(html, adMiddleAfter) : null;
     return (
         <div className="flex flex-col">
             {banner}
@@ -94,11 +100,21 @@ export default function ArticleView({
                         </figure>
                     )}
 
+                    <AdSlot position="article_top" label="Iklan" className="mt-10" />
+
                     {/* Isi artikel (HTML hasil Markdown; ditulis oleh admin). */}
-                    <div
-                        className={ARTICLE_BODY_CLASS}
-                        dangerouslySetInnerHTML={{ __html: html }}
-                    />
+                    {parts ? (
+                        <>
+                            <div className={ARTICLE_BODY_CLASS} dangerouslySetInnerHTML={{ __html: parts[0] }} />
+                            <AdSlot position="article_middle" label="Iklan" className="my-10" />
+                            <div className={`${ARTICLE_BODY_CLASS} !mt-0`} dangerouslySetInnerHTML={{ __html: parts[1] }} />
+                        </>
+                    ) : (
+                        <div
+                            className={ARTICLE_BODY_CLASS}
+                            dangerouslySetInnerHTML={{ __html: html }}
+                        />
+                    )}
 
                     {post.tags?.length > 0 && (
                         <div className="mt-12 flex flex-wrap gap-2">
@@ -112,6 +128,8 @@ export default function ArticleView({
                             ))}
                         </div>
                     )}
+
+                    <AdSlot position="article_bottom" label="Iklan" className="mt-12" />
 
                     {/* Ajakan berbahasa Indonesia → halaman Contact versi ID */}
                     <aside className="mt-14 rounded-3xl border bg-black/[0.02] p-6 dark:bg-white/[0.03] md:p-8">

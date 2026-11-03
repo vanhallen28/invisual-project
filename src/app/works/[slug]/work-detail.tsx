@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { Work } from "@/services/works";
 import cloudinaryLoader from "@/lib/cloudinary-loader";
 import { X, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import AdSlot from "@/components/ads/ad-slot";
 
 // Optimasi URL Cloudinary untuk <img> biasa (format & kualitas otomatis).
 // URL non-Cloudinary dikembalikan apa adanya.
@@ -165,6 +166,8 @@ export function WorkDetail({
                     </div>
                 )}
             </section>
+
+            <AdSlot position="work_bottom" className="mx-auto mt-12 max-w-6xl px-4" />
 
             {/* Next project — bar horizontal (hover: biru di light, pink di dark) */}
             {nextWork && (

@@ -9,6 +9,7 @@ import { getWorksListServer, getClientsServer } from "@/lib/works-server";
 import FaqSection from "./_sections/faq";
 import { getFaqsServer } from "@/lib/faq-server";
 import ArticlesSection from "./_sections/articles";
+import AdSlot from "@/components/ads/ad-slot";
 import { getPublishedPosts } from "@/lib/blog-server";
 
 export const metadata: Metadata = pageMetadata({ path: "/" });
@@ -50,6 +51,7 @@ export default async function Page() {
             <HeroSection videoUrl={home.hero_video_url ?? undefined} />
             <IntroSection text={home.intro_text ?? undefined} />
             <WorksSection works={featured} />
+            <AdSlot position="home_middle" className="mx-auto w-full max-w-6xl px-4 md:px-8" />
             <ClientsSection clients={clients} />
             {/* Artikel terbaru (tanpa judul section) */}
             <ArticlesSection posts={posts.slice(0, 3)} />

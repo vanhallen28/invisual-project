@@ -72,5 +72,6 @@ git push
 
 `/admin` — Ringkasan, Karya, Klien, Testimoni, Tim, Layanan, Intro, Beranda,
 FAQ, Halaman Contact (termasuk footer & form "Start a Project"), Blog, Pesan,
-Proyek Masuk, Statistik, Keamanan & Cadangan (unduh cadangan data, status
+Proyek Masuk, Statistik, Iklan & Kode (AdSense, Meta Pixel, kode header/footer,
+posisi iklan, ads.txt), Keamanan & Cadangan (unduh cadangan data, status
 keamanan, laporan CSP).

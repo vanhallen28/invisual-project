@@ -1,0 +1,109 @@
+INVISUAL, update #57 (menu admin baru: Iklan & Kode)
+
+APA INI
+Menu admin baru "Iklan & Kode" (/admin/ads), di grup "Lainnya". Isinya:
+
+1) Google AdSense
+   - Saklar aktif + Publisher ID (boleh tempel pub-… atau ca-pub-…, otomatis
+     dirapikan).
+   - Saat aktif, situs otomatis memasang skrip AdSense, tag verifikasi
+     <meta name="google-adsense-account"> untuk peninjauan situs, dan file
+     https://invisual.studio/ads.txt.
+   - Pengunjung yang belum/tidak menyetujui cookie tetap melihat iklan, tetapi
+     Google diminta menampilkan iklan yang TIDAK dipersonalisasi.
+   - Iklan otomatis (Auto ads) dinyalakan dari dashboard AdSense.
+
+2) Meta (Facebook) Pixel
+   - ID Pixel sekarang diatur dari admin (sebelumnya tertanam di kode). Dua
+     Pixel lama sudah terisi otomatis, jadi tidak ada yang berubah.
+   - Catatan: Facebook/Instagram TIDAK menayangkan iklan di dalam situs web.
+     Pixel dipakai untuk mengukur hasil iklan Facebook/Instagram Anda dan
+     membuat audiens. Pixel tetap hanya dimuat setelah pengunjung menekan
+     "Terima" di banner cookie.
+
+3) Kode header & footer
+   - "Kode di <head>": untuk tag verifikasi (<meta>), Google Tag/Analytics,
+     TikTok Pixel, dll. Tag <meta> ditulis langsung ke HTML setiap halaman
+     (terbaca alat verifikasi Google Search Console / domain Meta).
+   - "Kode sebelum </body>": untuk widget chat atau skrip tambahan.
+   - Pilihan (bawaan: aktif): kode tambahan & kode iklan jaringan lain baru
+     dimuat setelah pengunjung menyetujui cookie.
+
+4) Posisi iklan (8 posisi, masing-masing bisa dinyalakan sendiri)
+     1. Di bawah header (semua halaman publik)
+     2. Di atas footer (semua halaman publik)
+     3. Beranda: tengah (antara Karya unggulan dan Klien)
+     4. Blog: atas daftar artikel
+     5. Artikel: sebelum isi (di bawah sampul)
+     6. Artikel: tengah isi (setelah paragraf ke-N, bisa diatur)
+     7. Artikel: setelah isi (sebelum ajakan kontak)
+     8. Detail karya: bawah (sebelum proyek berikutnya)
+   Isinya bisa:
+     - Unit AdSense: tempel ID unit iklan (angka data-ad-slot) + format.
+     - Kode HTML/JS dari jaringan iklan lain, tampil langsung atau di dalam
+       bingkai (iframe, untuk kode yang memakai document.write).
+   Bisa dibatasi: semua perangkat, desktop & tablet saja, atau ponsel saja.
+   Posisi yang mati tidak memakan ruang. Iklan tidak pernah tampil di
+   halaman admin. Unit AdSense yang tidak terisi iklan otomatis disembunyikan
+   bersama labelnya.
+
+5) ads.txt
+   Dibuat otomatis dari Publisher ID, atau isi sendiri bila jaringan iklan
+   lain meminta baris tambahan.
+
+Juga:
+- Kebijakan Privasi (/privacy) menyesuaikan diri: bagian Google AdSense,
+  Meta Pixel, dan mitra iklan lain hanya muncul bila memang aktif. Simbol
+  strip panjang di halaman itu ikut dibersihkan.
+- CSP (keamanan) sudah mengizinkan domain Google AdSense. Kode dari jaringan
+  lain (TikTok, Adsterra, dll.) tetap jalan selama CSP mode laporan, tapi
+  tercatat di Laporan CSP. Sebelum CSP diberlakukan, tambahkan domainnya di
+  env Vercel CSP_EXTRA_SOURCES (contoh ada di env.example) lalu redeploy.
+
+LANGKAH DI TERMINAL (Mac)
+  cd /path/ke/folder-proyek-invisual
+  unzip -o ~/Downloads/invisual-update-57.zip
+  git add -A
+  git commit -m "feat: menu Iklan & Kode (AdSense, Meta Pixel, kode header/footer, posisi iklan, ads.txt)"
+  git push
+  Tidak perlu npm install.
+
+SQL (sekali saja, 1 menit)
+  Supabase → SQL Editor → New query → tempel isi file
+    supabase/sql/ad-settings.sql
+  → Run.
+  Sebelum SQL dijalankan, situs tetap normal (Meta Pixel lama jalan, iklan
+  mati) dan halaman admin menampilkan pengingat kuning.
+
+CARA PASANG ADSENSE (setelah deploy + SQL)
+  1. /admin → Iklan & Kode → nyalakan Google AdSense, isi Publisher ID →
+     Simpan pengaturan.
+  2. Di dashboard AdSense, tambahkan situs invisual.studio dan pilih metode
+     verifikasi "Cuplikan kode AdSense" atau "Tag meta": keduanya sudah
+     terpasang otomatis. Cek juga https://invisual.studio/ads.txt.
+  3. Setelah situs disetujui Google: nyalakan Auto ads di dashboard AdSense,
+     dan/atau buat unit iklan (Iklan → Menurut unit iklan → Display), salin
+     angka data-ad-slot ke posisi yang diinginkan di admin.
+  Catatan: Google tidak mengizinkan mengklik iklan sendiri. Untuk mengecek
+  tampilan, cukup lihat; jangan diklik.
+
+FILE BARU
+  src/app/admin/ads/page.tsx, actions.ts, ads-client.tsx
+  src/app/ads.txt/route.ts
+  src/components/ads/ads-context.tsx, ad-slot.tsx, site-scripts.tsx
+  src/lib/ads-types.ts, ads-server.ts, split-html.ts
+  supabase/sql/ad-settings.sql
+
+FILE DIUBAH (diganti utuh)
+  src/app/layout.tsx                         penyedia iklan, posisi 1 & 2, meta verifikasi
+  src/app/page.tsx                           posisi 3
+  src/app/blog/page.tsx                      posisi 4
+  src/app/blog/[slug]/page.tsx               posisi 6 (paragraf ke-N)
+  src/components/blog/article-view.tsx       posisi 5, 6, 7
+  src/app/works/[slug]/work-detail.tsx       posisi 8
+  src/components/analytics/meta-pixel.tsx    ID Pixel dari admin
+  src/app/privacy/page.tsx                   kebijakan menyesuaikan pengaturan iklan
+  src/lib/csp.ts                             domain Google AdSense + CSP_EXTRA_SOURCES
+  src/app/admin/_components/admin-sidebar.tsx  menu "Iklan & Kode"
+  supabase/sql/README.md, env.example, README.md
+  docs/updates/BACA-INI-update-57.txt

@@ -11,6 +11,7 @@ import { getPostBySlug, getRelatedPosts } from "@/lib/blog-server";
 import { renderMarkdown, stripMarkdown, wordCount } from "@/lib/markdown";
 import ArticleView from "@/components/blog/article-view";
 import HtmlLang from "@/components/seo/html-lang";
+import { getAdSettings } from "@/lib/ads-server";
 
 export const revalidate = 60;
 
@@ -46,7 +47,8 @@ export default async function BlogArticlePage({
     const post = await getPost(slug);
     if (!post) notFound();
 
-    const related = await getRelatedPosts(post.category, post.slug, 3);
+    const [related, ads] = await Promise.all([getRelatedPosts(post.category, post.slug, 3), getAdSettings()]);
+    const middle = ads.slots.article_middle;
     const html = renderMarkdown(post.content);
     const description = post.excerpt || truncate(stripMarkdown(post.content));
     const url = absoluteUrl(`/blog/${post.slug}`);
@@ -93,7 +95,12 @@ export default async function BlogArticlePage({
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbLd) }}
             />
-            <ArticleView post={post} html={html} related={related} />
+            <ArticleView
+                post={post}
+                html={html}
+                related={related}
+                adMiddleAfter={middle.enabled ? middle.after_paragraph : null}
+            />
         </>
     );
 }

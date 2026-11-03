@@ -31,14 +31,36 @@ function supabaseOrigins(): string[] {
     }
 }
 
+// Google AdSense / Ad Manager (update #57, menu "Iklan & Kode").
+const GOOGLE_ADS = [
+    "https://*.googlesyndication.com",
+    "https://*.doubleclick.net",
+    "https://*.googleadservices.com",
+    "https://*.adtrafficquality.google",
+    "https://www.google.com",
+    "https://*.gstatic.com",
+    "https://fundingchoicesmessages.google.com",
+];
+
+// Domain tambahan untuk kode iklan/pelacak lain yang ditempel di admin.
+// Isi env CSP_EXTRA_SOURCES di Vercel (pisahkan dengan spasi atau koma),
+// mis. "https://*.tiktok.com https://analytics.tiktok.com", lalu redeploy.
+function extraSources(): string[] {
+    return (process.env.CSP_EXTRA_SOURCES ?? "")
+        .split(/[\s,]+/)
+        .map((x) => x.trim())
+        .filter((x) => /^(https:\/\/|wss:\/\/)[a-z0-9.*-]+(:\d+)?(\/\S*)?$/i.test(x));
+}
+
 export function cspDirectives(enforce = cspEnforced()): [string, string[]][] {
     const [sbHttp, sbWs] = supabaseOrigins();
     const sb = sbHttp ? [sbHttp] : [];
+    const extra = extraSources();
     const list: [string, string[]][] = [
         ["default-src", ["'self'"]],
         // Vercel Analytics dimuat dari domain sendiri (/_vercel/insights).
         // vercel.live = toolbar komentar Vercel di deployment preview.
-        ["script-src", ["'self'", "'unsafe-inline'", "https://connect.facebook.net", "https://vercel.live"]],
+        ["script-src", ["'self'", "'unsafe-inline'", "https://connect.facebook.net", "https://vercel.live", ...GOOGLE_ADS, ...extra]],
         ["style-src", ["'self'", "'unsafe-inline'", "https://vercel.live"]],
         // Gambar boleh dari https mana pun (logo klien, avatar, Cloudinary, Meta).
         ["img-src", ["'self'", "data:", "blob:", "https:"]],
@@ -55,11 +77,13 @@ export function cspDirectives(enforce = cspEnforced()): [string, string[]][] {
                 "https://connect.facebook.net",
                 "https://vercel.live",
                 "wss://ws-us3.pusher.com",
+                ...GOOGLE_ADS,
+                ...extra,
             ],
         ],
         ["media-src", ["'self'", "blob:", "https://res.cloudinary.com", ...sb]],
-        // Peta Google di halaman Contact.
-        ["frame-src", ["'self'", "https://www.google.com", "https://maps.google.com", "https://vercel.live"]],
+        // Peta Google di halaman Contact + bingkai iklan Google.
+        ["frame-src", ["'self'", "https://www.google.com", "https://maps.google.com", "https://vercel.live", ...GOOGLE_ADS, ...extra]],
         ["worker-src", ["'self'", "blob:"]],
         ["manifest-src", ["'self'"]],
         ["object-src", ["'none'"]],
@@ -75,7 +99,7 @@ export function cspDirectives(enforce = cspEnforced()): [string, string[]][] {
 
 export function buildCsp(enforce = cspEnforced()): string {
     return cspDirectives(enforce)
-        .map(([k, v]) => (v.length ? `${k} ${v.join(" ")}` : k))
+        .map(([k, v]) => (v.length ? `${k} ${[...new Set(v)].join(" ")}` : k))
         .join("; ");
 }
 
