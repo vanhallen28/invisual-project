@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export type ViewStats = {
   total: number;
+  firstAt: string | null; // kunjungan pertama yang tercatat (untuk keterangan "Total")
   last24: number;
   last7: number;
   last30: number;
@@ -39,35 +40,77 @@ function refLabel(ref: string | null): string | null {
   }
 }
 
+// ---- Pengambilan baris tanpa batas 1.000 ----
+// Supabase (PostgREST) mengembalikan MAKSIMAL 1.000 baris per permintaan,
+// berapa pun .limit() yang diminta. Dulu statistik memakai .limit(50000), jadi
+// angka "30 hari terakhir" mentok di 1.000 dan rincian (halaman, negara,
+// sumber, grafik) hanya dihitung dari 1.000 kunjungan terbaru.
+// Sekarang: jumlah dihitung database (count exact), lalu baris diambil per
+// halaman 1.000 sampai habis.
+const PAGE = 1000;
+const MAX_ROWS = 300_000; // pengaman
+const CONCURRENCY = 4;
+
+type Admin = ReturnType<typeof createAdminClient>;
+type ViewFilter = { from?: string; to?: string; path?: string };
+
+function viewQuery(supabase: Admin, f: ViewFilter, columns: string, head = false) {
+  let q = supabase
+    .from("page_views")
+    .select(columns, head ? { count: "exact", head: true } : undefined);
+  if (f.from) q = q.gte("created_at", f.from);
+  if (f.to) q = q.lte("created_at", f.to);
+  if (f.path) q = q.eq("path", f.path);
+  return q;
+}
+
+async function countViews(supabase: Admin, f: ViewFilter): Promise<number> {
+  const { count } = await viewQuery(supabase, f, "*", true);
+  return count ?? 0;
+}
+
+// Semua baris yang cocok, terbaru dulu. `total` = hasil countViews dengan
+// filter yang sama (menentukan jumlah halaman yang perlu diambil).
+async function fetchViewRows(supabase: Admin, f: ViewFilter, total: number): Promise<Row[]> {
+  const pages = Math.ceil(Math.min(total, MAX_ROWS) / PAGE);
+  const out: Row[][] = new Array(pages);
+  let next = 0;
+  async function worker() {
+    while (next < pages) {
+      const i = next++;
+      const { data } = await viewQuery(supabase, f, "path, created_at, country, referrer")
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
+        .range(i * PAGE, i * PAGE + PAGE - 1);
+      out[i] = (data as unknown as Row[] | null) ?? [];
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, pages) }, worker));
+  return out.flat();
+}
+
 export async function getViewStats(): Promise<ViewStats> {
   const supabase = createAdminClient();
 
-  // total all-time
-  const totalRes = await supabase
-    .from("page_views")
-    .select("*", { count: "exact", head: true });
-  const total = totalRes.count ?? 0;
-
-  // ambil baris 30 hari terakhir untuk rincian
-  const day = 24 * 60 * 60 * 1000;
-  const since = new Date(Date.now() - 30 * day).toISOString();
-  const { data } = await supabase
-    .from("page_views")
-    .select("path, created_at, country, referrer")
-    .gte("created_at", since)
-    .order("created_at", { ascending: false })
-    .limit(50000);
-
-  const rows = (data as Row[] | null) ?? [];
+  // Batas atas tetap (sekarang) agar kunjungan baru selama pengambilan tidak
+  // menggeser halaman data.
   const now = Date.now();
+  const nowIso = new Date(now).toISOString();
+  const day = 24 * 60 * 60 * 1000;
+  const iso = (ms: number) => new Date(ms).toISOString();
 
-  const last30 = rows.length;
-  const last7 = rows.filter(
-    (r) => now - new Date(r.created_at).getTime() <= 7 * day
-  ).length;
-  const last24 = rows.filter(
-    (r) => now - new Date(r.created_at).getTime() <= day
-  ).length;
+  // Semua angka ringkasan dihitung langsung oleh database (pasti tepat).
+  const [total, last24, last7, last30, first] = await Promise.all([
+    countViews(supabase, { to: nowIso }),
+    countViews(supabase, { from: iso(now - day), to: nowIso }),
+    countViews(supabase, { from: iso(now - 7 * day), to: nowIso }),
+    countViews(supabase, { from: iso(now - 30 * day), to: nowIso }),
+    supabase.from("page_views").select("created_at").order("created_at", { ascending: true }).limit(1).maybeSingle(),
+  ]);
+  const firstAt = (first.data as { created_at?: string } | null)?.created_at ?? null;
+
+  // Rincian 30 hari: SEMUA baris, diambil per 1.000.
+  const rows = await fetchViewRows(supabase, { from: iso(now - 30 * day), to: nowIso }, last30);
 
   // halaman terpopuler
   const pathCount = new Map<string, number>();
@@ -103,16 +146,22 @@ export async function getViewStats(): Promise<ViewStats> {
     .sort((a, b) => b.count - a.count)
     .slice(0, 8);
 
-  // grafik 14 hari
+  // grafik 14 hari (tanggal WIB, sama dengan "Ambil data per tanggal")
+  const byDay = new Map<string, number>();
+  for (const r of rows) {
+    const k = jktDateOf(r.created_at);
+    byDay.set(k, (byDay.get(k) ?? 0) + 1);
+  }
+  const today = jktToday();
   const daily: { date: string; count: number }[] = [];
   for (let i = 13; i >= 0; i--) {
-    const key = new Date(now - i * day).toISOString().slice(0, 10);
-    const count = rows.filter((r) => r.created_at.slice(0, 10) === key).length;
-    daily.push({ date: key, count });
+    const key = jktShift(today, -i);
+    daily.push({ date: key, count: byDay.get(key) ?? 0 });
   }
 
   return {
     total,
+    firstAt,
     last24,
     last7,
     last30,
@@ -154,22 +203,10 @@ export async function getRangeStats(
   const startUTC = new Date(`${from}T00:00:00.000+07:00`).toISOString();
   const endUTC = new Date(`${to}T23:59:59.999+07:00`).toISOString();
 
-  // total pasti (meski lebih dari 50rb baris)
-  const totalRes = await supabase
-    .from("page_views")
-    .select("*", { count: "exact", head: true })
-    .gte("created_at", startUTC)
-    .lte("created_at", endUTC);
-  const total = totalRes.count ?? 0;
-
-  const { data } = await supabase
-    .from("page_views")
-    .select("path, created_at, country, referrer")
-    .gte("created_at", startUTC)
-    .lte("created_at", endUTC)
-    .order("created_at", { ascending: false })
-    .limit(50000);
-  const rows = (data as Row[] | null) ?? [];
+  // Batas akhir tidak melewati "sekarang" agar pengambilan per halaman stabil.
+  const filter = { from: startUTC, to: endUTC < new Date().toISOString() ? endUTC : new Date().toISOString() };
+  const total = await countViews(supabase, filter);
+  const rows = await fetchViewRows(supabase, filter, total);
 
   // rincian per hari (zona Jakarta)
   const dayCount = new Map<string, number>();
@@ -264,23 +301,13 @@ export async function getPathStats(
   const startUTC = new Date(`${from}T00:00:00.000+07:00`).toISOString();
   const endUTC = new Date(`${to}T23:59:59.999+07:00`).toISOString();
 
-  const totalRes = await supabase
-    .from("page_views")
-    .select("*", { count: "exact", head: true })
-    .eq("path", path)
-    .gte("created_at", startUTC)
-    .lte("created_at", endUTC);
-  const total = totalRes.count ?? 0;
-
-  const { data } = await supabase
-    .from("page_views")
-    .select("path, created_at, country, referrer")
-    .eq("path", path)
-    .gte("created_at", startUTC)
-    .lte("created_at", endUTC)
-    .order("created_at", { ascending: false })
-    .limit(50000);
-  const rows = (data as Row[] | null) ?? [];
+  const filter = {
+    path,
+    from: startUTC,
+    to: endUTC < new Date().toISOString() ? endUTC : new Date().toISOString(),
+  };
+  const total = await countViews(supabase, filter);
+  const rows = await fetchViewRows(supabase, filter, total);
 
   // tren per hari
   const dayCount = new Map<string, number>();

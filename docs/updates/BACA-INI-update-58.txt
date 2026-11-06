@@ -1,0 +1,47 @@
+INVISUAL, update #58 (angka Statistik kunjungan jadi akurat)
+
+MASALAH
+Di menu Statistik, "30 hari terakhir" selalu berhenti di 1.000.
+Penyebab: Supabase hanya mengembalikan MAKSIMAL 1.000 baris per permintaan,
+berapa pun jumlah yang diminta kode. Akibatnya:
+  - "30 hari terakhir" mentok di 1.000 padahal kunjungannya lebih banyak.
+  - Halaman paling ramai, negara, dan sumber kunjungan hanya dihitung dari
+    1.000 kunjungan terbaru (beberapa hari terakhir saja).
+  - Hal yang sama terjadi di "Ambil data per tanggal" dan rincian satu
+    halaman bila rentangnya berisi lebih dari 1.000 kunjungan.
+  - "24 jam" dan "7 hari" kebetulan masih benar karena di bawah 1.000.
+  - "Total kunjungan" sebenarnya sudah benar (dihitung dengan cara lain),
+    tapi tidak ada keterangan sejak kapan dihitung.
+
+PERBAIKAN
+  - Angka 24 jam, 7 hari, 30 hari, dan total dihitung langsung oleh
+    database, jadi pasti tepat berapa pun jumlahnya.
+  - Rincian (halaman, negara, sumber, grafik) membaca SEMUA kunjungan,
+    diambil per 1.000 baris sampai habis.
+  - Kartu "Total kunjungan" kini menampilkan "sejak <tanggal kunjungan
+    pertama yang tercatat>".
+  - Grafik "14 hari terakhir" memakai tanggal WIB (sebelumnya UTC, sehingga
+    kunjungan pukul 00.00 sampai 07.00 WIB masuk ke hari sebelumnya).
+  - Sudah termasuk perbaikan grafik batang dari update #56 (batang yang
+    tidak tampil). Kalau #56 belum terpasang, cukup pasang #58 ini.
+
+Diuji dengan 3.223 kunjungan tiruan dan batas 1.000 baris seperti Supabase:
+30 hari 2.076 (dulu tertulis 1.000), rentang 45 hari 2.639 dengan jumlah
+batang harian yang sama persis.
+
+Catatan: kunjungan yang sudah tercatat tidak berubah; yang diperbaiki hanya
+cara menghitung. Setelah deploy, angka 30 hari dan rinciannya langsung naik
+ke jumlah sebenarnya.
+
+LANGKAH DI TERMINAL (Mac)
+  cd /path/ke/folder-proyek-invisual
+  unzip -o ~/Downloads/invisual-update-58.zip
+  git add -A
+  git commit -m "fix: statistik kunjungan akurat (lewati batas 1.000 baris Supabase)"
+  git push
+  Tidak ada SQL, tidak perlu npm install.
+
+FILE
+  src/lib/stats-server.ts
+  src/app/admin/stats/page.tsx
+  docs/updates/BACA-INI-update-58.txt

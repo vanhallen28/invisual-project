@@ -91,7 +91,7 @@ export default async function StatsPage({
           </div>
 
           {detail.daily.length > 1 && (
-            <div className="mb-6 flex h-32 items-end gap-1 border-b">
+            <div className="mb-6 flex h-32 items-stretch gap-1 border-b">
               {detail.daily.map((d) => (
                 <div
                   key={d.date}
@@ -100,7 +100,7 @@ export default async function StatsPage({
                 >
                   <div
                     className="w-full rounded-t bg-[#416fd8] dark:bg-[#f65294]"
-                    style={{ height: `${(d.count / dmax) * 100}%` }}
+                    style={{ height: `calc((100% - 16px) * ${d.count / dmax})`, minHeight: d.count ? 2 : 0 }}
                   />
                   {detail.daily.length <= 45 && (
                     <span className="text-[10px] text-muted-foreground">
@@ -218,7 +218,7 @@ export default async function StatsPage({
           </div>
 
           {range.daily.length > 1 && (
-            <div className="mb-6 flex h-40 items-end gap-1 border-b">
+            <div className="mb-6 flex h-40 items-stretch gap-1 border-b">
               {range.daily.map((d) => (
                 <div
                   key={d.date}
@@ -227,7 +227,7 @@ export default async function StatsPage({
                 >
                   <div
                     className="w-full rounded-t bg-[#416fd8] dark:bg-[#f65294]"
-                    style={{ height: `${(d.count / rmax) * 100}%` }}
+                    style={{ height: `calc((100% - 16px) * ${d.count / rmax})`, minHeight: d.count ? 2 : 0 }}
                   />
                   {range.daily.length <= 45 && (
                     <span className="text-[10px] text-muted-foreground">
@@ -310,13 +310,21 @@ export default async function StatsPage({
         <StatCard label="24 jam terakhir" value={stats.last24} />
         <StatCard label="7 hari terakhir" value={stats.last7} />
         <StatCard label="30 hari terakhir" value={stats.last30} />
-        <StatCard label="Total kunjungan" value={stats.total} />
+        <StatCard
+          label="Total kunjungan"
+          value={stats.total}
+          note={
+            stats.firstAt
+              ? `sejak ${new Date(stats.firstAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" })}`
+              : undefined
+          }
+        />
       </div>
 
       <h2 className="text-sm uppercase tracking-wide text-muted-foreground mb-3">
         14 hari terakhir
       </h2>
-      <div className="flex items-end gap-1 h-40 border-b mb-10">
+      <div className="flex items-stretch gap-1 h-40 border-b mb-10">
         {stats.daily.map((d) => (
           <div
             key={d.date}
@@ -325,7 +333,7 @@ export default async function StatsPage({
           >
             <div
               className="w-full rounded-t bg-[#416fd8] dark:bg-[#f65294]"
-              style={{ height: `${(d.count / max) * 100}%` }}
+              style={{ height: `calc((100% - 16px) * ${d.count / max})`, minHeight: d.count ? 2 : 0 }}
             />
             <span className="text-[10px] text-muted-foreground">
               {d.date.slice(5)}
@@ -442,13 +450,14 @@ function PathList({
   );
 }
 
-function StatCard({ label, value }: { label: string; value: number }) {
+function StatCard({ label, value, note }: { label: string; value: number; note?: string }) {
   return (
     <div className="rounded-lg border p-4">
       <p className="text-xs uppercase tracking-wide text-muted-foreground">
         {label}
       </p>
       <p className="mt-2 text-3xl font-bold">{value.toLocaleString("id-ID")}</p>
+      {note && <p className="mt-1 text-xs text-muted-foreground">{note}</p>}
     </div>
   );
 }
