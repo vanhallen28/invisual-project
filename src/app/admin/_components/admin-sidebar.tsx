@@ -19,6 +19,7 @@ import {
     BarChart3,
     ShieldCheck,
     Megaphone,
+    MousePointerClick,
     ExternalLink,
     LogOut,
     ChevronsLeft,
@@ -41,6 +42,7 @@ export type NavKey =
     | "messages"
     | "inquiries"
     | "stats"
+    | "clicks"
     | "ads"
     | "security";
 
@@ -73,6 +75,7 @@ const GROUPS: { title: string; items: ItemDef[] }[] = [
             { key: "messages", label: "Pesan", href: "/admin/messages", icon: <Mail className="h-[18px] w-[18px]" /> },
             { key: "inquiries", label: "Proyek Masuk", href: "/admin/inquiries", icon: <ClipboardList className="h-[18px] w-[18px]" /> },
             { key: "stats", label: "Statistik", href: "/admin/stats", icon: <BarChart3 className="h-[18px] w-[18px]" /> },
+            { key: "clicks", label: "Klik Start a Project", href: "/admin/clicks", icon: <MousePointerClick className="h-[18px] w-[18px]" /> },
             { key: "ads", label: "Iklan & Kode", href: "/admin/ads", icon: <Megaphone className="h-[18px] w-[18px]" /> },
             { key: "security", label: "Keamanan & Cadangan", href: "/admin/security", icon: <ShieldCheck className="h-[18px] w-[18px]" /> },
         ],

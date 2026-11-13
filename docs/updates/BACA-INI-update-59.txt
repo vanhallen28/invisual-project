@@ -1,0 +1,92 @@
+INVISUAL, update #59 (tombol "Start a project" ke portal + pencatat klik)
+
+YANG BERUBAH DI SITUS
+  - Tombol biru di header: tulisan "Client Portal" diganti "Start a project".
+  - Semua tombol "Start a project" kini menuju alamat yang sama persis:
+      https://portal.invisual.studio/start?utm_source=website&utm_campaign=hero
+    Tombolnya ada di:
+      1. Header (desktop)
+      2. Menu ponsel (tombol biru baru di bawah daftar menu; sebelumnya menu
+         ponsel tidak punya tombol ke portal)
+      3. Halaman Contact (panel "Have something in mind?")
+    Portal dibuka di tab yang sama, sesuai kode tautan yang Anda berikan.
+  - Form "Start a Project" lama (jendela pertanyaan di halaman Contact) tidak
+    lagi tampil untuk pengunjung, karena tombolnya sekarang ke portal.
+    Pengaturan dan pertanyaannya TIDAK dihapus, masih ada di admin
+    "Halaman Contact" bila suatu saat ingin dipakai lagi. Artinya menu
+    "Proyek Masuk" tidak akan menerima kiriman baru dari situs; data lama
+    tetap ada.
+
+MENU ADMIN BARU: "Klik Start a Project" (/admin/clicks)
+  Setiap klik dicatat sesaat sebelum pengunjung pindah ke portal. Isinya:
+  - Jumlah klik per rentang: hari ini, 7 hari, 30 hari, 90 hari, semua.
+  - Pengunjung berbeda, dan berapa orang yang mengklik lebih dari sekali.
+  - Tingkat klik: persentase klik dibanding kunjungan halaman.
+  - Total klik sejak klik pertama tercatat.
+  - Grafik klik per hari (tanggal WIB).
+  - Rincian: tombol mana yang diklik, di halaman apa, asal kunjungan
+    (Instagram, Google, kampanye UTM, atau langsung), lokasi (kota, negara),
+    dan perangkat (ponsel, tablet, desktop).
+  - Tabel 50 klik terbaru, dan tombol "Unduh CSV" untuk semua data.
+
+  Tentang "siapa": pencatatan ini ANONIM. Situs tidak tahu nama atau email
+  pengunjung sebelum mereka mengisi form di portal, dan alamat IP tidak
+  disimpan. Yang terlihat adalah kode pengunjung (mis. #20f28d) yang sama
+  untuk orang yang sama di hari yang sama, ditambah kota, perangkat, asal
+  kunjungan, dan halaman tempat ia mengklik. Identitas klien baru diketahui
+  dari isian form di portal.
+
+  Asal kunjungan diingat selama satu sesi. Contoh: orang datang dari iklan
+  Instagram ke Beranda, lalu membuka Works, lalu mengklik tombol. Klik itu
+  tetap tercatat berasal dari Instagram.
+
+  Yang tidak dihitung: bot/mesin pencari, dan klik dari browser yang sedang
+  login admin (supaya uji coba Anda sendiri tidak mengotori angka).
+
+  Kebijakan Privasi otomatis menyebut pencatatan klik ini.
+
+LANGKAH 1: SQL (sekali saja)
+  Supabase > SQL Editor > New query > tempel isi file
+  supabase/sql/cta-clicks.sql > Run.
+  Sebelum SQL dijalankan, tombol tetap berfungsi normal, hanya kliknya
+  belum tercatat (halaman admin akan menampilkan pengingat kuning).
+
+LANGKAH 2: TERMINAL (Mac)
+  cd /path/ke/folder-proyek-invisual
+  unzip -o ~/Downloads/invisual-update-59.zip
+  git add -A
+  git commit -m "feat: tombol Start a project ke portal + pencatat klik"
+  git push
+  Tidak perlu npm install.
+
+OPSIONAL
+  Teks panel di halaman Contact ("Answer a few quick questions...") masih
+  teks lama. Bisa diubah di admin > Halaman Contact > Panel ajakan
+  "Start a Project" bila ingin menyesuaikan dengan portal.
+
+DIUJI
+  Dengan 1.200 klik tiruan dan batas 1.000 baris seperti Supabase: ketiga
+  tombol mengarah ke URL yang sama persis dan tercatat dengan lokasi tombol
+  yang benar; UTM Instagram tetap terbawa setelah pindah halaman; bot, data
+  palsu, dan klik admin tidak tercatat; jumlah batang harian sama dengan
+  total; CSV hanya bisa diunduh saat login admin.
+
+FILE
+  src/configs/links.ts
+  src/lib/cta-types.ts                         (baru)
+  src/lib/track-click.ts                       (baru)
+  src/lib/clicks-server.ts                     (baru)
+  src/lib/backup-tables.ts
+  src/components/analytics/start-project-link.tsx  (baru)
+  src/components/layout/header.tsx
+  src/components/layout/sidebar.tsx
+  src/app/contact/_components/start-project-launcher.tsx
+  src/app/api/track-click/route.ts             (baru)
+  src/app/admin/clicks/page.tsx                (baru)
+  src/app/admin/_components/admin-sidebar.tsx
+  src/app/admin/contact/page.tsx
+  src/app/privacy/page.tsx
+  supabase/sql/cta-clicks.sql                  (baru, SQL #18)
+  supabase/sql/README.md
+  README.md
+  docs/updates/BACA-INI-update-59.txt

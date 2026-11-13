@@ -142,8 +142,14 @@ export default async function AdminContactPage() {
 
                 <div className="mt-12 border-t pt-8">
                     <h2 className="mb-1 text-xl font-bold">Form “Start a Project”</h2>
-                    <p className="mb-6 text-sm text-muted-foreground">
+                    <p className="mb-3 text-sm text-muted-foreground">
                         Layar pembuka, ucapan terima kasih, dan daftar pertanyaan.
+                    </p>
+                    <p className="mb-6 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+                        Sejak update #59 tombol <strong>Start a project</strong> di situs mengarah ke portal
+                        (portal.invisual.studio/start), jadi form di bawah tidak lagi tampil untuk pengunjung.
+                        Pengaturannya tetap tersimpan bila nanti ingin dipakai lagi. Jumlah klik ada di menu{" "}
+                        <a href="/admin/clicks" className="underline">Klik Start a Project</a>.
                     </p>
                     <InquiryFormClient
                         ready={formReady}

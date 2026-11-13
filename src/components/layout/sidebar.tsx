@@ -14,6 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { ConnectLinks, NavLinks } from "@/configs/links";
 import Image from "next/image";
 import { useTheme } from "next-themes";
+import StartProjectLink from "@/components/analytics/start-project-link";
 
 export default function Sidebar({
     open,
@@ -83,6 +84,17 @@ export default function Sidebar({
                             );
                         })}
                     </div>
+                </div>
+
+                {/* Start a project (klik dicatat di /admin/clicks) */}
+                <div className="px-4 pt-2">
+                    <StartProjectLink
+                        placement="menu_mobile"
+                        onClick={() => setOpen(false)}
+                        className="flex w-full items-center justify-center rounded-full bg-[#0457ff] px-4 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#0344cc]"
+                    >
+                        Start a project
+                    </StartProjectLink>
                 </div>
 
                 {/* Connect Links */}

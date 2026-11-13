@@ -26,6 +26,7 @@ export const BACKUP_TABLES: BackupTable[] = [
     { name: "blog_posts", label: "Artikel blog", group: "Konten" },
     { name: "contact_messages", label: "Pesan", group: "Masukan" },
     { name: "project_inquiries", label: "Proyek masuk", group: "Masukan" },
+    { name: "cta_clicks", label: "Klik Start a Project", group: "Masukan" },
 ];
 
 export const STATS_TABLE = "page_views";

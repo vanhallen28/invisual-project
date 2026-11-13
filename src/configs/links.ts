@@ -22,3 +22,8 @@ export const ContactLinks = [
     label: "+62 822 9555 5314",
   },
 ] as const;
+
+// Tujuan semua tombol "Start a project" (header, menu ponsel, halaman Contact).
+// Klik tiap tombol dicatat di /admin/clicks sebelum pindah ke portal.
+export const START_PROJECT_URL =
+  "https://portal.invisual.studio/start?utm_source=website&utm_campaign=hero";

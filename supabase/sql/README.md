@@ -29,6 +29,7 @@ database dari nol.
 | 15 | `bilingual-contact-tanpa-strip.sql` | perbaikan teks seed terjemahan: hilangkan simbol strip panjang (—); hanya bila SQL #14 sudah dijalankan sebelum update #53 |
 | 16 | `csp-reports.sql` | tabel `csp_reports` + fungsi `log_csp_report` (laporan Content-Security-Policy di menu Keamanan & Cadangan) |
 | 17 | `ad-settings.sql` | tabel `ad_settings` (menu "Iklan & Kode": AdSense, Meta Pixel, kode header/footer, posisi iklan, ads.txt) |
+| 18 | `cta-clicks.sql` | tabel `cta_clicks` (menu "Klik Start a Project": pencatat anonim klik tombol Start a project menuju portal) |
 
 ## Catatan
 - Tabel yang dibaca publik memakai RLS + kebijakan `for select using (true)`

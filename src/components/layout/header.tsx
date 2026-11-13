@@ -14,6 +14,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { NavLinks, ConnectLinks } from "@/configs/links";
 import { useTheme } from "next-themes";
+import StartProjectLink from "@/components/analytics/start-project-link";
 
 export default function Navbar() {
     const [open, setOpen] = useState(false);
@@ -60,16 +61,14 @@ export default function Navbar() {
                     </div>
                 </Link>
 
-                {/* Desktop Nav + Client Portal */}
+                {/* Desktop Nav + Start a project (klik dicatat di /admin/clicks) */}
                 <div className="hidden lg:flex items-center gap-4">
-                    <a
-                        href="https://portal.invisual.studio"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                    <StartProjectLink
+                        placement="header"
                         className="inline-flex items-center rounded-full bg-[#0457ff] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#0344cc]"
                     >
-                        Client Portal
-                    </a>
+                        Start a project
+                    </StartProjectLink>
                     <NavigationMenu>
                         <NavigationMenuList className="flex gap-10">
                             {NavLinks.map((item) => {

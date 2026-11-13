@@ -47,9 +47,11 @@ export default async function PrivacyPage() {
                         </li>
                         <li>
                             <span className="text-foreground">Data kunjungan anonim:</span>{" "}
-                            halaman yang dibuka dan waktunya, untuk statistik
-                            internal. Data ini tidak mengidentifikasi Anda secara
-                            pribadi.
+                            halaman yang dibuka dan waktunya, serta klik tombol
+                            &ldquo;Start a project&rdquo; (lokasi tombol, asal
+                            kunjungan, jenis perangkat), untuk statistik internal.
+                            Data ini tidak mengidentifikasi Anda secara pribadi dan
+                            tidak menyimpan alamat IP.
                         </li>
                         <li>
                             <span className="text-foreground">Cookie analitik, pemasaran &amp; iklan:</span>{" "}
