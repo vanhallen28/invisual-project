@@ -25,5 +25,6 @@ export const ContactLinks = [
 
 // Tujuan semua tombol "Start a project" (header, menu ponsel, halaman Contact).
 // Klik tiap tombol dicatat di /admin/clicks sebelum pindah ke portal.
-export const START_PROJECT_URL =
-  "https://portal.invisual.studio/start?utm_source=website&utm_campaign=hero";
+// Update #60: tanpa ?utm_... karena alamat dengan UTM menampilkan 404 di portal.
+// Asal kunjungan tetap tercatat di /admin/clicks.
+export const START_PROJECT_URL = "https://portal.invisual.studio/start";

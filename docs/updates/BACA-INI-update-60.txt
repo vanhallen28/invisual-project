@@ -1,0 +1,30 @@
+INVISUAL, update #60 (perbaikan tujuan tombol "Start a project")
+
+MASALAH
+Setelah update #59, tombol "Start a project" membuka
+  https://portal.invisual.studio/start?utm_source=website&utm_campaign=hero
+dan portal menampilkan "404 This page could not be found".
+
+PERBAIKAN
+Semua tombol "Start a project" (header, menu ponsel, halaman Contact) kini
+langsung menuju alamat yang aktif:
+  https://portal.invisual.studio/start
+
+Pencatatan klik di admin "Klik Start a Project" tetap berjalan seperti biasa,
+termasuk asal kunjungan (Instagram, Google, kampanye UTM yang dibawa
+pengunjung ke situs). Yang dihapus hanya tambahan ?utm_... di alamat portal.
+
+LANGKAH DI TERMINAL (Mac)
+  cd /path/ke/folder-proyek-invisual
+  unzip -o ~/Downloads/invisual-update-60.zip
+  git add -A
+  git commit -m "fix: tombol Start a project ke portal.invisual.studio/start"
+  git push
+  Tidak ada SQL, tidak perlu npm install.
+
+Setelah Vercel selesai deploy (sekitar 1 sampai 2 menit), muat ulang situs.
+Bila tombol masih membuka alamat lama, tekan Cmd+Shift+R sekali.
+
+FILE
+  src/configs/links.ts
+  docs/updates/BACA-INI-update-60.txt
